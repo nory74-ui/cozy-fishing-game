@@ -9,7 +9,7 @@ config_version=5
 config/name="こもれびフィッシング"
 config/description="ほのぼの系釣りゲーム"
 run/main_scene="res://scenes/title.tscn"
-config/features=PackedStringArray("4.6", "Forward Plus")
+config/features=PackedStringArray("4.6", "GL Compatibility")
 boot_splash/bg_color=Color(0.91, 0.96, 0.93, 1)
 
 [autoload]

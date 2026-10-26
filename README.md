@@ -7,6 +7,14 @@
   <em>水彩画の湖畔を舞台にした、心温まる見下ろし型HD-2D探索釣りゲーム</em>
 </p>
 
+<p align="center">
+  <a href="https://nory74-ui.github.io/cozy-fishing-game/">
+    <img src="https://img.shields.io/badge/🎮%20今すぐブラウザでプレイ-Play%20Online-brightgreen?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Play Online" height="42" />
+  </a><br>
+  👉 <strong><a href="https://nory74-ui.github.io/cozy-fishing-game/">https://nory74-ui.github.io/cozy-fishing-game/</a></strong><br>
+  <em>（インストール不要！PCやスマホのブラウザで誰でもすぐにプレイできます）</em>
+</p>
+
 ---
 
 ## 📖 ゲーム概要
