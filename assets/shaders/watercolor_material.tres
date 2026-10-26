@@ -1,0 +1,9 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://assets/shaders/watercolor.gdshader" id="1_sh"]
+
+[resource]
+shader = ExtResource("1_sh")
+shader_parameter/paper_roughness = 0.045
+shader_parameter/vignette_strength = 0.14
+shader_parameter/paper_tint = Color(0.995, 0.985, 0.96, 1)

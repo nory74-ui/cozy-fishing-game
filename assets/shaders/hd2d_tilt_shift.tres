@@ -1,0 +1,11 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://assets/shaders/hd2d_tilt_shift.gdshader" id="1_ts"]
+
+[resource]
+shader = ExtResource("1_ts")
+shader_parameter/blur_amount = 2.2
+shader_parameter/focus_y = 0.52
+shader_parameter/focus_height = 0.32
+shader_parameter/vignette_amount = 0.16
+shader_parameter/saturation = 1.08
