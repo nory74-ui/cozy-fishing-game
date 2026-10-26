@@ -214,12 +214,30 @@ func _ready() -> void:
 
 # 外部画像ロードヘルパー
 static func load_texture(res_path: String) -> Texture2D:
+	if ResourceLoader.exists(res_path):
+		var res = load(res_path)
+		if res is Texture2D:
+			return res
+	# フォールバック: res://から直接バイナリをロード
+	if FileAccess.file_exists(res_path):
+		var bytes = FileAccess.get_file_as_bytes(res_path)
+		if bytes.size() > 0:
+			var img = Image.new()
+			var err = OK
+			if res_path.ends_with(".png"):
+				err = img.load_png_from_buffer(bytes)
+			elif res_path.ends_with(".jpg") or res_path.ends_with(".jpeg"):
+				err = img.load_jpg_from_buffer(bytes)
+			if err == OK:
+				return ImageTexture.create_from_image(img)
+	# 最終フォールバック: ローカルファイルシステムパス
 	var global_path = ProjectSettings.globalize_path(res_path)
-	var img = Image.new()
-	var err = img.load(global_path)
-	if err == OK:
-		return ImageTexture.create_from_image(img)
-	push_warning("Failed to load texture: " + global_path)
+	if FileAccess.file_exists(global_path):
+		var img = Image.new()
+		var err = img.load(global_path)
+		if err == OK:
+			return ImageTexture.create_from_image(img)
+	push_warning("Failed to load texture: " + res_path)
 	return null
 
 # 水彩絵本調パステルボタンスタイル共通ヘルパー

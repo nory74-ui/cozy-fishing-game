@@ -29,6 +29,10 @@ window/size/resizable=true
 window/stretch/mode="canvas_items"
 window/stretch/aspect="keep"
 
+[gui]
+
+theme/custom_font="res://assets/fonts/ZenMaruGothic-Medium.ttf"
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"

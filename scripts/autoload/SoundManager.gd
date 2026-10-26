@@ -66,11 +66,17 @@ func _load_sound(sound_id: String, res_path: String, is_loop: bool = false) -> v
 		
 	# 2. フォールバック（直接ファイル読み込み）
 	if not stream:
-		var global_path = ProjectSettings.globalize_path(res_path)
-		if res_path.ends_with(".ogg"):
-			stream = AudioStreamOggVorbis.load_from_file(global_path)
-		elif res_path.ends_with(".wav"):
-			stream = _load_wav_file(global_path)
+		if FileAccess.file_exists(res_path):
+			if res_path.ends_with(".ogg"):
+				stream = AudioStreamOggVorbis.load_from_file(res_path)
+			elif res_path.ends_with(".wav"):
+				stream = _load_wav_file(res_path)
+		if not stream:
+			var global_path = ProjectSettings.globalize_path(res_path)
+			if res_path.ends_with(".ogg"):
+				stream = AudioStreamOggVorbis.load_from_file(global_path)
+			elif res_path.ends_with(".wav"):
+				stream = _load_wav_file(global_path)
 			
 	if stream:
 		if is_loop:
