@@ -78,10 +78,11 @@ func _generate_trees() -> void:
 		Vector2(1250, 340), Vector2(1330, 330), Vector2(1410, 340), Vector2(1480, 320), # 東の封鎖樹林
 		Vector2(860, 220), Vector2(880, 130), Vector2(1320, 220), Vector2(1360, 110), # 滝壺左右の深林
 		
-		# 池の東岸・南岸
+		# 池の東岸・南岸・北東の深林連峰
 		Vector2(1780, 260), Vector2(1980, 450), Vector2(2050, 820), Vector2(1980, 1150),
 		Vector2(1400, 1380), Vector2(1680, 1320), Vector2(1150, 1380),
-		Vector2(1480, 200), Vector2(2150, 650)
+		Vector2(1480, 200), Vector2(2150, 650),
+		Vector2(1650, 280), Vector2(1850, 200), Vector2(2050, 240), Vector2(2250, 180), Vector2(1900, 360), Vector2(2100, 380) # 北東の山岳原生林
 	]
 	# マップ外周の境界木
 	for x in range(80, int(map_size.x), 160):
@@ -395,18 +396,25 @@ func _build_collision_boundaries() -> void:
 
 	# 5. 滝壺峡谷・倒木バリケード壁（倒木を迂回する侵入を100%遮断！）
 	# 倒木の位置: (1100, 340), コリジョン幅: 110px (x: 1045〜1155)
-	# A. 西側封鎖壁（川の東岸から倒木左端まで完全遮断＋西の断崖壁）
-	_add_wall_seg(sb, Vector2(500, 340), Vector2(1048, 340))   # 西側平原からの侵入遮断横壁
+	
+	# A. 西側封鎖壁（滝壺西側の断崖壁を北外周(y=0)から倒木ライン(y=340)まで隙間なく縦断完全密閉！）
+	_add_wall_seg(sb, Vector2(920, 0), Vector2(920, 340))      # 西側の断崖壁（北外周壁から倒木ラインまで貫通）
+	_add_wall_seg(sb, Vector2(920, 340), Vector2(1048, 340))   # 西断崖壁から倒木左端への直結壁
 	_add_wall_seg(sb, Vector2(1048, 340), Vector2(1048, 250)) # 谷間小道西ガイド壁
-	_add_wall_seg(sb, Vector2(1048, 250), Vector2(940, 250))   # 滝壺南西の岩壁
-	_add_wall_seg(sb, Vector2(940, 250), Vector2(940, 0))      # 西側の断崖壁（北の外周壁へ直結）
+	_add_wall_seg(sb, Vector2(1048, 250), Vector2(920, 250))   # 釣りデッキ西側の岩壁
+	_add_wall_seg(sb, Vector2(500, 340), Vector2(920, 340))    # 川から西断崖壁への封鎖横壁
 
-	# B. 東側封鎖壁（倒木右端から東の平原・池北岸まで完全遮断＋東の断崖壁）
-	_add_wall_seg(sb, Vector2(1152, 340), Vector2(1500, 340))  # 東側平原からの侵入遮断横壁
-	_add_wall_seg(sb, Vector2(1500, 340), Vector2(1500, 520))  # 池北岸への接続縦壁
+	# B. 東側封鎖壁（滝壺東側の断崖壁を北外周(y=0)から倒木ライン(y=340)まで隙間なく縦断完全密閉！）
+	# ★重要: x=1260の縦壁が y=0 から y=340 まで完全に直結！右側の森からのすり抜けを100%封鎖！
+	_add_wall_seg(sb, Vector2(1260, 0), Vector2(1260, 340))    # 東側の断崖壁（北外周壁から倒木ラインまで完全貫通！）
+	_add_wall_seg(sb, Vector2(1152, 340), Vector2(1260, 340))  # 倒木右端から東断崖壁への直結壁
 	_add_wall_seg(sb, Vector2(1152, 340), Vector2(1152, 250)) # 谷間小道東ガイド壁
-	_add_wall_seg(sb, Vector2(1152, 250), Vector2(1260, 250))  # 滝壺南東の岩壁
-	_add_wall_seg(sb, Vector2(1260, 250), Vector2(1260, 0))    # 東側の断崖壁（北の外周壁へ直結）
+	_add_wall_seg(sb, Vector2(1152, 250), Vector2(1260, 250))  # 釣りデッキ東側の岩壁
+	
+	# C. 池北側・北東連峰の遮断壁（池の右側の森の上部への侵入も完全遮断！）
+	_add_wall_seg(sb, Vector2(1260, 340), Vector2(1450, 340))  # 東側平原への遮断横壁
+	_add_wall_seg(sb, Vector2(1450, 340), Vector2(1450, 430))  # 縦壁
+	_add_wall_seg(sb, Vector2(1450, 430), Vector2(2400, 430))  # 北東の深林・山岳連峰への完全遮断横壁（東端まで！）
 
 func _add_wall_seg(sb: StaticBody2D, a: Vector2, b: Vector2) -> void:
 	var col = CollisionShape2D.new()
@@ -551,21 +559,27 @@ func _draw_emerald_basin() -> void:
 	draw_colored_polygon(w_cliff_pts, west_cliff_color)
 	draw_polyline(w_cliff_pts, west_shadow_color, 3.0)
 	
-	# 東側の巨大岩山層（x: 1155〜1500, y: 120〜350）
-	var e_cliff_pts = PackedVector2Array([
-		Vector2(1260, 0), Vector2(1500, 0), Vector2(1500, 345),
-		Vector2(1155, 345), Vector2(1155, 250), Vector2(1260, 250)
+	# 東側の巨大岩山層（x: 1260〜2400, y: 0〜345）
+	# 自己交差を避けるためシンプルな2つのブロックで描画
+	var e_cliff_pts1 = PackedVector2Array([
+		Vector2(1260, 0), Vector2(2400, 0), Vector2(2400, 345), Vector2(1260, 345)
 	])
-	draw_colored_polygon(e_cliff_pts, west_cliff_color)
-	draw_polyline(e_cliff_pts, west_shadow_color, 3.0)
+	draw_colored_polygon(e_cliff_pts1, west_cliff_color)
+	draw_polyline(e_cliff_pts1, west_shadow_color, 3.0)
+
+	var e_cliff_pts2 = PackedVector2Array([
+		Vector2(1155, 250), Vector2(1260, 250), Vector2(1260, 345), Vector2(1155, 345)
+	])
+	draw_colored_polygon(e_cliff_pts2, west_cliff_color)
+	draw_polyline(e_cliff_pts2, west_shadow_color, 3.0)
 
 	# 岩段・苔のディテール
-	for rx in [600, 720, 840, 960]:
+	for rx in [600, 720, 840]:
 		draw_line(Vector2(rx, 160), Vector2(rx + 80, 160), west_shadow_color, 2.0)
 		draw_line(Vector2(rx + 10, 156), Vector2(rx + 70, 156), west_moss_color, 4.0)
 		draw_line(Vector2(rx - 30, 270), Vector2(rx + 60, 270), west_shadow_color, 2.0)
 		draw_line(Vector2(rx - 20, 266), Vector2(rx + 50, 266), west_moss_color, 4.0)
-	for rx in [1200, 1320, 1420]:
+	for rx in [1280, 1420, 1600, 1800, 2000, 2200]:
 		draw_line(Vector2(rx, 180), Vector2(rx + 75, 180), west_shadow_color, 2.0)
 		draw_line(Vector2(rx + 8, 176), Vector2(rx + 65, 176), west_moss_color, 4.0)
 		draw_line(Vector2(rx - 20, 280), Vector2(rx + 60, 280), west_shadow_color, 2.0)
