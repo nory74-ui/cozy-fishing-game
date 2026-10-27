@@ -18,7 +18,7 @@ func _ready() -> void:
 
 func show_catch(fish: Dictionary) -> void:
 	visible = true
-	icon_label.text = fish.get("icon", "🐟")
+	icon_label.text = ""
 	title_label.text = fish.get("name", "謎の魚")
 	size_label.text = "サイズ: " + str(fish.get("size", 10.0)) + " cm"
 	

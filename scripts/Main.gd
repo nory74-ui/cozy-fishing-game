@@ -126,7 +126,7 @@ func open_book() -> void:
 	current_state = State.BOOK
 	player.set_physics_process(false)
 	fish_book_modal.open_book()
-	hud.set_status("📘 お魚図鑑を閲覧中... これまでに釣った魚の記録を確認しよう")
+	hud.set_status("お魚図鑑を閲覧中... これまでに釣った魚の記録を確認しよう")
 
 func _on_book_closed() -> void:
 	SoundManager.play_sfx("book")
@@ -148,7 +148,7 @@ func open_shop() -> void:
 	current_state = State.SHOP
 	player.set_physics_process(false) # おじさんの移動を一時停止
 	shop_modal.open_shop()
-	hud.set_status("🏪 水辺のよろず屋で買い物中...")
+	hud.set_status("水辺のよろず屋で買い物中...")
 
 func _on_shop_closed() -> void:
 	SoundManager.play_sfx("book")
@@ -160,26 +160,26 @@ func _on_tool_unlocked(tool_id: String) -> void:
 	var tool_data = GameData.TOOLS.get(tool_id, {})
 	var t_name = tool_data.get("name", "道具")
 	SoundManager.play_sfx("catch", 0.05, 1.0)
-	hud.set_status("🎉 【" + t_name + "】を手に入れた！ 探索範囲が広がった！", true)
+	hud.set_status("【" + t_name + "】を手に入れた！ 探索範囲が広がった！", true)
 
 func _on_shallow_entered(has_boots: bool) -> void:
 	if has_boots:
-		hud.set_status("🥾 長靴を履いて浅瀬を渡った！ 川の向こう『西の原生林』に到達！")
+		hud.set_status("長靴を履いて浅瀬を渡った！ 川の向こう『西の原生林』に到達！")
 	else:
-		hud.set_status("💦 浅瀬だ... 水が深くて渡れない。【ゴム長靴】があれば渡れそうだ！")
+		hud.set_status("浅瀬だ... 水が深くて渡れない。【ゴム長靴】があれば渡れそうだ！")
 
 func _on_log_destroyed() -> void:
-	hud.set_status("🪓 木こりのオノで倒木を切り払った！ 北の『秘密のエメラルド滝壺』が開通！", true)
+	hud.set_status("木こりのオノで倒木を切り払った！ 北の『秘密のエメラルド滝壺』が開通！", true)
 	map_field.queue_redraw()
 
 func _on_boat_ride_started() -> void:
-	hud.set_status("⛵ 手漕ぎボートで湖をスイスイ進んでいる...")
+	hud.set_status("手漕ぎボートで湖をスイスイ進んでいる...")
 
 func _on_boat_ride_finished(at_island: bool) -> void:
 	if at_island:
-		hud.set_status("🌸 湖の中央『神秘の孤島』へ上陸した！ 湖の底に眠る主の気配がする...", true)
+		hud.set_status("湖の中央『神秘の孤島』へ上陸した！ 湖の底に眠る主の気配がする...", true)
 	else:
-		hud.set_status("⛵ 岸のボート乗り場へ無事に戻ってきた。")
+		hud.set_status("岸のボート乗り場へ無事に戻ってきた。")
 
 func _spawn_initial_fishes() -> void:
 	# 1. 川の魚（小川〜中流）
@@ -214,7 +214,7 @@ func _spawn_fixed_fish(species: String, pos: Vector2) -> void:
 	fish.fish_reached_bobber.connect(func():
 		if current_state == State.WAITING:
 			var s_desc = fish.get_shadow_size_desc() if fish.has_method("get_shadow_size_desc") else "魚影"
-			hud.set_status("🐟 【" + s_desc + "】がウキに近寄ってきた！ つついている...")
+			hud.set_status("【" + s_desc + "】がウキに近寄ってきた！ つついている...")
 	)
 	fish.fish_bit.connect(func():
 		biting_fish_node = fish
@@ -241,7 +241,7 @@ func _spawn_single_fish(species: String, area: String, idx: int, total: int) -> 
 	fish.fish_reached_bobber.connect(func():
 		if current_state == State.WAITING:
 			var s_desc = fish.get_shadow_size_desc() if fish.has_method("get_shadow_size_desc") else "魚影"
-			hud.set_status("🐟 【" + s_desc + "】がウキに近寄ってきた！ つついている...")
+			hud.set_status("【" + s_desc + "】がウキに近寄ってきた！ つついている...")
 	)
 	fish.fish_bit.connect(func():
 		biting_fish_node = fish
@@ -278,7 +278,7 @@ func _on_bobber_fish_bitten() -> void:
 	current_state = State.BITE
 	bite_timer = bite_window
 	SoundManager.play_sfx("hit", 0.04, 2.0)
-	hud.set_status("💥 HIT!! 水中の獲物が食いついた！ 今すぐ合わせろ！", true)
+	hud.set_status("【HIT!!】 水中の獲物が食いついた！ 今すぐ合わせろ！", true)
 
 func _on_miss_bite() -> void:
 	current_state = State.IDLE
@@ -303,7 +303,7 @@ func _start_reeling_fight() -> void:
 		"name": fish_name
 	}
 	reel_minigame.start_minigame(fish_info)
-	hud.set_status("🎣 ファイト開始！【長押し】でリールを巻き、緑の枠に魚影をキープしろ！")
+	hud.set_status("ファイト開始！【長押し】でリールを巻き、緑の枠に魚影をキープしろ！")
 
 func _on_reel_success() -> void:
 	current_state = State.RESULT
@@ -333,11 +333,11 @@ func _on_reel_success() -> void:
 	
 	catch_popup.show_result(fish_dict)
 	if record_result.is_first:
-		hud.set_status("🎉 【新種発見！】" + fish_dict.name + " を初めて釣り上げた！図鑑に登録！", true)
+		hud.set_status("【新種発見！】" + fish_dict.name + " を初めて釣り上げた！図鑑に登録！", true)
 	elif record_result.is_new_record:
-		hud.set_status("👑 【大物記録更新！】" + fish_dict.name + " (" + str(fish_dict.size) + "cm) 自己ベスト！", true)
+		hud.set_status("【大物記録更新！】" + fish_dict.name + " (" + str(fish_dict.size) + "cm) 自己ベスト！", true)
 	else:
-		hud.set_status("✨ やったー！見事に " + fish_dict.name + " を釣り上げた！")
+		hud.set_status("やったー！見事に " + fish_dict.name + " を釣り上げた！")
 
 func _on_reel_failed() -> void:
 	current_state = State.IDLE

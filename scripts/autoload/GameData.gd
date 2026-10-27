@@ -77,21 +77,21 @@ const TOOLS: Dictionary = {
 	"boots": {
 		"id": "boots",
 		"name": "ゴム長靴",
-		"icon": "🥾",
+		"icon": "",
 		"price": 100,
 		"desc": "膝下まである丈夫な長靴。川の浅瀬をジャブジャブ歩いて渡れる！"
 	},
 	"axe": {
 		"id": "axe",
 		"name": "木こりのオノ",
-		"icon": "🪓",
+		"icon": "",
 		"price": 250,
 		"desc": "切れ味の良い手斧。道をふさぐ倒木を壊して秘密のスポットを開拓！"
 	},
 	"boat": {
 		"id": "boat",
 		"name": "手漕ぎボート",
-		"icon": "⛵",
+		"icon": "",
 		"price": 600,
 		"desc": "小さな木製ボート。湖の沖合へ漕ぎ出し、未知の主が住む孤島へ！"
 	}
@@ -184,7 +184,7 @@ const FISH_DATABASE: Dictionary = {
 		"base_price": 85,
 		"min_size": 20.0,
 		"max_size": 32.0,
-		"habitat": "西の原生林（🥾長靴で渡った先）",
+		"habitat": "西の原生林（長靴で渡った先）",
 		"desc": "原生林の源流に棲む「幻の深山魚」。白い斑点と力強い引きが魅力。"
 	},
 	"rainbow_trout": {
@@ -194,7 +194,7 @@ const FISH_DATABASE: Dictionary = {
 		"base_price": 175,
 		"min_size": 30.0,
 		"max_size": 52.0,
-		"habitat": "秘密の滝壺（🪓オノで開通した先）",
+		"habitat": "秘密の滝壺（オノで開通した先）",
 		"desc": "秘密の滝壺に輝く美しい魚。体側の虹色の帯が鮮やかにきらめく。"
 	},
 	"golden_koi": {
@@ -204,7 +204,7 @@ const FISH_DATABASE: Dictionary = {
 		"base_price": 600,
 		"min_size": 75.0,
 		"max_size": 110.0,
-		"habitat": "神秘の孤島沖（⛵ボートで渡った先）",
+		"habitat": "神秘の孤島沖（ボートで渡った先）",
 		"desc": "湖の中央の孤島に眠る伝説の主。全身が神々しい黄金の光を放つ。"
 	}
 }

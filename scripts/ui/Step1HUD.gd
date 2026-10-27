@@ -63,20 +63,20 @@ func _apply_pastel_btn_style(btn: Button) -> void:
 func update_stats() -> void:
 	if stats_label:
 		var tools_str = ""
-		if GameData.has_boots: tools_str += " 🥾"
-		if GameData.has_axe: tools_str += " 🪓"
-		if GameData.has_boat: tools_str += " ⛵"
+		if GameData.has_boots: tools_str += " [長靴]"
+		if GameData.has_axe: tools_str += " [オノ]"
+		if GameData.has_boat: tools_str += " [ボート]"
 		
 		var discovered = GameData.get_discovered_count()
 		var total = GameData.get_total_species_count()
-		stats_label.text = "💰 " + str(GameData.coins) + " G | 🪣 " + str(GameData.inventory.size()) + "匹 | 📘 " + str(discovered) + "/" + str(total) + "種" + tools_str
+		stats_label.text = "所持金: " + str(GameData.coins) + " G | バケツ: " + str(GameData.inventory.size()) + "匹 | 図鑑: " + str(discovered) + "/" + str(total) + "種" + tools_str
 		
 	if tip_label:
 		var rod_name = GameData.RODS.get(GameData.current_rod, {}).get("name", "木の枝竿")
 		var b_count = GameData.bait_counts.get(GameData.current_bait, 0)
 		var b_name = GameData.BAITS.get(GameData.current_bait, {}).get("name", "みみず")
 		var bait_info = b_name + "(×" + str(b_count) + ")" if b_count > 0 else "エサなし"
-		tip_label.text = "🎣 " + rod_name + " ＆ 🪱 " + bait_info + "  |  【WASD】移動 【左クリック】釣り 【E】調べる"
+		tip_label.text = "竿: " + rod_name + " ＆ エサ: " + bait_info + "  |  【WASD】移動 【左クリック】釣り 【E】調べる"
 
 func set_status(text: String, is_alert: bool = false) -> void:
 	if status_label:

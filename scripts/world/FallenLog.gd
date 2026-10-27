@@ -64,7 +64,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 			else:
 				if prompt_label:
-					prompt_label.text = "🪓 オノがあれば切り払えそうだ！"
+					prompt_label.text = "【倒木】オノがあれば切り払えそうだ！"
 
 func _start_destroy_effect() -> void:
 	is_destroying = true
@@ -92,9 +92,9 @@ func _on_body_entered(body: Node2D) -> void:
 		if prompt_label:
 			prompt_label.visible = true
 			if GameData.has_axe:
-				prompt_label.text = "🪓 [E] 木こりのオノで倒木を切り払う！"
+				prompt_label.text = "【倒木】[E] 木こりのオノで倒木を切り払う！"
 			else:
-				prompt_label.text = "🪵 太い倒木（オノがあれば壊せそう）"
+				prompt_label.text = "【倒木】オノがあれば壊せそう"
 
 func _on_body_exited(body: Node2D) -> void:
 	if body is CharacterBody2D:

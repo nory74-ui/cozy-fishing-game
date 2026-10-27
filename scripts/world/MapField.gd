@@ -545,61 +545,8 @@ func _draw() -> void:
 	_draw_watercolor_pier(island_dock_pier, "east")
 
 func _draw_emerald_basin() -> void:
-	# 0. 滝壺を包む切り立った渓谷の巨岩断崖（西崖・東崖）
-	# 西の岩壁（x: 520〜1040, y: 120〜350）
-	var west_cliff_color = Color("#4a5759")
-	var west_moss_color = Color("#588157", 0.7)
-	var west_shadow_color = Color("#2f3e46")
-	
-	# 西側の巨大岩山層
-	var w_cliff_pts = PackedVector2Array([
-		Vector2(520, 0), Vector2(940, 0), Vector2(940, 250),
-		Vector2(1045, 250), Vector2(1045, 345), Vector2(520, 345)
-	])
-	draw_colored_polygon(w_cliff_pts, west_cliff_color)
-	draw_polyline(w_cliff_pts, west_shadow_color, 3.0)
-	
-	# 東側の巨大岩山層（x: 1260〜2400, y: 0〜345）
-	# 自己交差を避けるためシンプルな2つのブロックで描画
-	var e_cliff_pts1 = PackedVector2Array([
-		Vector2(1260, 0), Vector2(2400, 0), Vector2(2400, 345), Vector2(1260, 345)
-	])
-	draw_colored_polygon(e_cliff_pts1, west_cliff_color)
-	draw_polyline(e_cliff_pts1, west_shadow_color, 3.0)
-
-	var e_cliff_pts2 = PackedVector2Array([
-		Vector2(1155, 250), Vector2(1260, 250), Vector2(1260, 345), Vector2(1155, 345)
-	])
-	draw_colored_polygon(e_cliff_pts2, west_cliff_color)
-	draw_polyline(e_cliff_pts2, west_shadow_color, 3.0)
-
-	# 岩段・苔のディテール
-	for rx in [600, 720, 840]:
-		draw_line(Vector2(rx, 160), Vector2(rx + 80, 160), west_shadow_color, 2.0)
-		draw_line(Vector2(rx + 10, 156), Vector2(rx + 70, 156), west_moss_color, 4.0)
-		draw_line(Vector2(rx - 30, 270), Vector2(rx + 60, 270), west_shadow_color, 2.0)
-		draw_line(Vector2(rx - 20, 266), Vector2(rx + 50, 266), west_moss_color, 4.0)
-	for rx in [1280, 1420, 1600, 1800, 2000, 2200]:
-		draw_line(Vector2(rx, 180), Vector2(rx + 75, 180), west_shadow_color, 2.0)
-		draw_line(Vector2(rx + 8, 176), Vector2(rx + 65, 176), west_moss_color, 4.0)
-		draw_line(Vector2(rx - 20, 280), Vector2(rx + 60, 280), west_shadow_color, 2.0)
-		draw_line(Vector2(rx - 12, 276), Vector2(rx + 50, 276), west_moss_color, 4.0)
-
-	# 倒木の左右に鎮座する守り神のような巨岩（Boulder）
-	# 左の巨岩 (1010, 340)
-	draw_circle(Vector2(1010, 335), 36.0, west_shadow_color)
-	draw_circle(Vector2(1008, 332), 34.0, Color("#52677a"))
-	draw_arc(Vector2(1008, 320), 22.0, PI * 0.1, PI * 0.9, 12, west_moss_color, 5.0)
-	draw_circle(Vector2(1002, 326), 14.0, Color("#6c757d", 0.6))
-
-	# 右の巨岩 (1190, 340)
-	draw_circle(Vector2(1190, 335), 36.0, west_shadow_color)
-	draw_circle(Vector2(1192, 332), 34.0, Color("#52677a"))
-	draw_arc(Vector2(1192, 320), 22.0, PI * 0.1, PI * 0.9, 12, west_moss_color, 5.0)
-	draw_circle(Vector2(1198, 326), 14.0, Color("#6c757d", 0.6))
-
-	# 1. 滝壺内部の砂浜・岩肌
-	draw_ellipse(basin_center, basin_rx + 22.0, basin_ry + 18.0, Color(0.85, 0.82, 0.74, 0.85))
+	# 1. 滝壺内部の砂浜・岸辺（水彩の柔らかな砂浜）
+	draw_ellipse(basin_center, basin_rx + 22.0, basin_ry + 18.0, Color(0.92, 0.88, 0.80, 0.85))
 	
 	# エメラルド水面
 	var b_pts: PackedVector2Array = []

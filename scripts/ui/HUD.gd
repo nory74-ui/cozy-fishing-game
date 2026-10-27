@@ -29,23 +29,23 @@ func refresh_all() -> void:
 
 func _on_coins_changed(amount: int) -> void:
 	if coin_label:
-		coin_label.text = "💰 " + str(amount) + " G"
+		coin_label.text = "所持金: " + str(amount) + " G"
 
 func _on_spot_changed(spot_id: String) -> void:
 	if spot_label:
 		var spot = GameData.SPOTS.get(spot_id, {})
-		spot_label.text = "📍 " + spot.get("name", "釣り場")
+		spot_label.text = "釣り場: " + spot.get("name", "釣り場")
 
 func _on_equipment_changed() -> void:
 	if equip_label:
 		var rod = GameData.RODS.get(GameData.current_rod, {})
 		var bait = GameData.BAITS.get(GameData.current_bait, {})
 		var bait_count = GameData.bait_counts.get(GameData.current_bait, 0)
-		equip_label.text = "🎣 " + rod.get("name", "竿") + "  |  🪱 " + bait.get("name", "エサ") + ": " + str(bait_count) + "個"
+		equip_label.text = "竿: " + rod.get("name", "竿") + "  |  エサ: " + bait.get("name", "エサ") + ": " + str(bait_count) + "個"
 
 func _on_inventory_changed() -> void:
 	if bag_label:
-		bag_label.text = "🪣 " + str(GameData.inventory.size()) + "匹"
+		bag_label.text = "バケツ: " + str(GameData.inventory.size()) + "匹"
 
 func set_guide(text: String) -> void:
 	if guide_label:

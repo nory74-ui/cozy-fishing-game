@@ -87,7 +87,7 @@ func _render_sell_tab() -> void:
 		var hbox = HBoxContainer.new()
 		
 		var icon_lbl = Label.new()
-		icon_lbl.text = fish.get("icon", "🐟") + " " + fish.get("name", "魚") + " (" + str(fish.get("size", 10.0)) + "cm)"
+		icon_lbl.text = fish.get("name", "魚") + " (" + str(fish.get("size", 10.0)) + "cm)"
 		icon_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		hbox.add_child(icon_lbl)
 		

@@ -75,7 +75,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 			else:
 				if prompt_label_shore:
-					prompt_label_shore.text = "⛵ ショップでボートを買えば孤島へ渡れそうだ..."
+					prompt_label_shore.text = "【ボート乗り場】ショップでボートを買えば孤島へ渡れそうだ..."
 		elif is_player_near_island:
 			_start_ride(false)
 			get_viewport().set_input_as_handled()
@@ -125,9 +125,9 @@ func _on_shore_area_body_entered(body: Node2D) -> void:
 		if prompt_label_shore:
 			prompt_label_shore.visible = true
 			if GameData.has_boat:
-				prompt_label_shore.text = "⛵ [E] 手漕ぎボートで孤島へ渡る"
+				prompt_label_shore.text = "【ボート乗り場】[E] 手漕ぎボートで孤島へ渡る"
 			else:
-				prompt_label_shore.text = "⛵ ボート乗り場（ボートがあれば渡れる）"
+				prompt_label_shore.text = "【ボート乗り場】ボートがあれば渡れる"
 
 func _on_shore_area_body_exited(body: Node2D) -> void:
 	if body is CharacterBody2D:
@@ -140,7 +140,7 @@ func _on_island_area_body_entered(body: Node2D) -> void:
 		is_player_near_island = true
 		if prompt_label_island:
 			prompt_label_island.visible = true
-			prompt_label_island.text = "⛵ [E] 手漕ぎボートで岸へ戻る"
+			prompt_label_island.text = "【ボート乗り場】[E] 手漕ぎボートで岸へ戻る"
 
 func _on_island_area_body_exited(body: Node2D) -> void:
 	if body is CharacterBody2D:

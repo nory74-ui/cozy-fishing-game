@@ -51,7 +51,7 @@ func _on_tool_unlocked(tool_id: String) -> void:
 	if tool_id == "boots":
 		_update_barrier_state()
 		if prompt_label:
-			prompt_label.text = "🥾 ゴム長靴で浅瀬をジャブジャブ渡れる！"
+			prompt_label.text = "【浅瀬】ゴム長靴で浅瀬をジャブジャブ渡れる！"
 
 func _on_trigger_area_body_entered(body: Node2D) -> void:
 	if body is CharacterBody2D:
@@ -59,9 +59,9 @@ func _on_trigger_area_body_entered(body: Node2D) -> void:
 		if prompt_label:
 			prompt_label.visible = true
 			if GameData.has_boots:
-				prompt_label.text = "🥾 浅瀬：ジャブジャブ渡れる！"
+				prompt_label.text = "【浅瀬】ジャブジャブ渡れる！"
 			else:
-				prompt_label.text = "💦 浅瀬：長靴があれば渡れそうだ..."
+				prompt_label.text = "【浅瀬】長靴があれば渡れそうだ..."
 		shallow_entered.emit(GameData.has_boots)
 
 func _on_trigger_area_body_exited(body: Node2D) -> void:

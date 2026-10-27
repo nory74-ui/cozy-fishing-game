@@ -51,13 +51,13 @@ alignment = 1
 [node name="HeaderLabel" type="Label" parent="Panel/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "✨ 釣り上げ成功！ ✨"
+text = "釣り上げ成功！"
 horizontal_alignment = 1
 
 [node name="FishIcon" type="Label" parent="Panel/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 42
-text = "🐟"
+text = ""
 horizontal_alignment = 1
 
 [node name="TitleLabel" type="Label" parent="Panel/VBox"]

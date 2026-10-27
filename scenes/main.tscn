@@ -83,7 +83,7 @@ offset_right = 520.0
 offset_bottom = 1160.0
 theme_override_colors/font_color = Color(0.15, 0.25, 0.35, 1)
 theme_override_font_sizes/font_size = 14
-text = "💦 浅瀬：長靴があれば渡れそうだ..."
+text = "【浅瀬】長靴があれば渡れそうだ..."
 horizontal_alignment = 1
 
 [node name="FallenLog" type="Node2D" parent="."]
@@ -107,7 +107,7 @@ offset_right = 110.0
 offset_bottom = -30.0
 theme_override_colors/font_color = Color(0.15, 0.25, 0.35, 1)
 theme_override_font_sizes/font_size = 14
-text = "🪵 太い倒木（オノがあれば壊せそう）"
+text = "【倒木】オノがあれば壊せそう"
 horizontal_alignment = 1
 
 [node name="BoatDock" type="Node2D" parent="."]
@@ -132,7 +132,7 @@ offset_right = 1960.0
 offset_bottom = 775.0
 theme_override_colors/font_color = Color(0.15, 0.25, 0.35, 1)
 theme_override_font_sizes/font_size = 14
-text = "⛵ ボート乗り場（ボートがあれば渡れる）"
+text = "【ボート乗り場】ボートがあれば渡れる"
 horizontal_alignment = 1
 
 [node name="PromptLabelIsland" type="Label" parent="BoatDock"]
@@ -142,7 +142,7 @@ offset_right = 1660.0
 offset_bottom = 775.0
 theme_override_colors/font_color = Color(0.15, 0.25, 0.35, 1)
 theme_override_font_sizes/font_size = 14
-text = "⛵ [E] 手漕ぎボートで岸へ戻る"
+text = "[E] 手漕ぎボートで岸へ戻る"
 horizontal_alignment = 1
 
 [node name="ShopBuilding" type="StaticBody2D" parent="."]
@@ -165,7 +165,7 @@ offset_right = 75.0
 offset_bottom = -60.0
 theme_override_colors/font_color = Color(0.15, 0.25, 0.35, 1)
 theme_override_font_sizes/font_size = 14
-text = "🏪 【E】店に入る"
+text = "【よろず屋】[E] 店に入る"
 horizontal_alignment = 1
 
 [node name="FishContainer" type="Node2D" parent="."]
@@ -219,7 +219,7 @@ theme_override_constants/separation = 6
 layout_mode = 2
 theme_override_colors/font_color = Color(0.2, 0.45, 0.35, 1)
 theme_override_font_sizes/font_size = 18
-text = "✨ こもれびフィッシング"
+text = "こもれびフィッシング"
 
 [node name="HBoxStats" type="HBoxContainer" parent="CanvasLayer/Step1HUD/Card/VBox"]
 layout_mode = 2
@@ -230,19 +230,19 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.85, 0.55, 0.2, 1)
 theme_override_font_sizes/font_size = 15
-text = "💰 50 G | 🪣 0匹"
+text = "所持金: 50 G | バケツ: 0匹"
 
 [node name="BookButton" type="Button" parent="CanvasLayer/Step1HUD/Card/VBox/HBoxStats"]
 layout_mode = 2
-text = "📘 図鑑 [B]"
+text = "図鑑 [B]"
 
 [node name="ShopButton" type="Button" parent="CanvasLayer/Step1HUD/Card/VBox/HBoxStats"]
 layout_mode = 2
-text = "🏪 よろず屋"
+text = "よろず屋"
 
 [node name="TitleButton" type="Button" parent="CanvasLayer/Step1HUD/Card/VBox/HBoxStats"]
 layout_mode = 2
-text = "🏠 タイトル"
+text = "タイトル"
 
 [node name="StatusLabel" type="Label" parent="CanvasLayer/Step1HUD/Card/VBox"]
 layout_mode = 2
@@ -328,7 +328,7 @@ alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(0.18, 0.25, 0.3, 1)
 theme_override_font_sizes/font_size = 20
-text = "✨ ヤマメ を釣り上げた！"
+text = "ヤマメ を釣り上げた！"
 horizontal_alignment = 1
 
 [node name="FishTextureRect" type="TextureRect" parent="CanvasLayer/CatchResultPopup/Card/VBox"]
@@ -349,7 +349,7 @@ visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.45, 0.1, 1)
 theme_override_font_sizes/font_size = 14
-text = "👑 大物記録更新！ (NEW RECORD!)"
+text = "【大物記録更新！】自己ベスト！"
 horizontal_alignment = 1
 
 [node name="RarityLabel" type="Label" parent="CanvasLayer/CatchResultPopup/Card/VBox"]
@@ -376,7 +376,7 @@ horizontal_alignment = 1
 [node name="ConfirmButton" type="Button" parent="CanvasLayer/CatchResultPopup/Card/VBox"]
 custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
-text = "🪣 バケツに入れる"
+text = "バケツに入れる"
 
 [node name="ShopModal" type="Control" parent="CanvasLayer"]
 visible = false
@@ -424,13 +424,13 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.18, 0.25, 0.3, 1)
 theme_override_font_sizes/font_size = 20
-text = "🏪 水辺のよろず屋"
+text = "水辺のよろず屋"
 
 [node name="CloseBtn" type="Button" parent="CanvasLayer/ShopModal/Card/VBox/HeaderHBox"]
 custom_minimum_size = Vector2(80, 32)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "✕ 閉じる"
+text = "閉じる"
 
 [node name="TabHBox" type="HBoxContainer" parent="CanvasLayer/ShopModal/Card/VBox"]
 layout_mode = 2
@@ -441,25 +441,25 @@ layout_mode = 2
 size_flags_horizontal = 3
 toggle_mode = true
 button_pressed = true
-text = "🐟 魚を売る"
+text = "魚を売る"
 
 [node name="BtnTools" type="Button" parent="CanvasLayer/ShopModal/Card/VBox/TabHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 toggle_mode = true
-text = "🎒 探索道具"
+text = "探索道具"
 
 [node name="BtnRods" type="Button" parent="CanvasLayer/ShopModal/Card/VBox/TabHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 toggle_mode = true
-text = "🎣 釣り竿"
+text = "釣り竿"
 
 [node name="BtnBaits" type="Button" parent="CanvasLayer/ShopModal/Card/VBox/TabHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 toggle_mode = true
-text = "🪱 エサ"
+text = "エサ"
 
 [node name="Scroll" type="ScrollContainer" parent="CanvasLayer/ShopModal/Card/VBox"]
 layout_mode = 2
@@ -476,7 +476,7 @@ layout_mode = 2
 [node name="StatusLabel" type="Label" parent="CanvasLayer/ShopModal/Card/VBox/BottomBar"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "💰 所持金: 50 G"
+text = "所持金: 50 G"
 
 [node name="ActionAllBtn" type="Button" parent="CanvasLayer/ShopModal/Card/VBox/BottomBar"]
 layout_mode = 2
@@ -527,7 +527,7 @@ layout_mode = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(0.18, 0.25, 0.3, 1)
 theme_override_font_sizes/font_size = 20
-text = "📘 こもれびお魚図鑑"
+text = "こもれびお魚図鑑"
 
 [node name="ProgressLabel" type="Label" parent="CanvasLayer/FishBookModal/Card/VBox/HeaderHBox"]
 layout_mode = 2
@@ -541,7 +541,7 @@ horizontal_alignment = 1
 custom_minimum_size = Vector2(80, 32)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "✕ 閉じる"
+text = "閉じる"
 
 [node name="BodyHBox" type="HBoxContainer" parent="CanvasLayer/FishBookModal/Card/VBox"]
 layout_mode = 2
@@ -594,7 +594,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.85, 0.45, 0.15, 1)
 theme_override_font_sizes/font_size = 15
-text = "👑 最大記録: 24.5 cm"
+text = "最大記録: 24.5 cm"
 horizontal_alignment = 1
 
 [node name="CountLabel" type="Label" parent="CanvasLayer/FishBookModal/Card/VBox/BodyHBox/DetailCard/DetailVBox/StatsHBox"]
@@ -602,14 +602,14 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.25, 0.45, 0.55, 1)
 theme_override_font_sizes/font_size = 15
-text = "🎣 累計釣果: 3 匹"
+text = "累計釣果: 3 匹"
 horizontal_alignment = 1
 
 [node name="HabitatLabel" type="Label" parent="CanvasLayer/FishBookModal/Card/VBox/BodyHBox/DetailCard/DetailVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.35, 0.4, 0.45, 1)
 theme_override_font_sizes/font_size = 14
-text = "📍 主な生息地: 川の中流・桟橋付近"
+text = "主な生息地: 川の中流・桟橋付近"
 
 [node name="DescLabel" type="Label" parent="CanvasLayer/FishBookModal/Card/VBox/BodyHBox/DetailCard/DetailVBox"]
 layout_mode = 2

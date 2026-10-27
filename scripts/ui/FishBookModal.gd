@@ -92,7 +92,7 @@ func _refresh_ui() -> void:
 	if progress_label:
 		progress_label.text = "発見度: " + str(discovered) + " / " + str(total) + " 種 (" + str(pct) + "%)"
 		if discovered == total:
-			progress_label.text += " 🏆 COMPLETE!"
+			progress_label.text += " 【完全制覇！】"
 			
 	# 2. リスト再描画
 	for child in fish_list_container.get_children():
@@ -144,10 +144,10 @@ func _refresh_ui() -> void:
 		name_lbl.add_theme_font_size_override("font_size", 14)
 		
 		if is_discovered:
-			name_lbl.text = "🐟 " + base_data.get("name", "魚")
+			name_lbl.text = base_data.get("name", "魚")
 			name_lbl.add_theme_color_override("font_color", Color("#2b2d42"))
 		else:
-			name_lbl.text = "❓ ？？？？？？"
+			name_lbl.text = "？？？？？？"
 			name_lbl.add_theme_color_override("font_color", Color("#8d99ae"))
 		btn_hbox.add_child(name_lbl)
 		
@@ -155,7 +155,7 @@ func _refresh_ui() -> void:
 		max_lbl.add_theme_font_size_override("font_size", 13)
 		if is_discovered:
 			var max_s = record.get("max_size", 0.0)
-			max_lbl.text = "👑 " + str(max_s) + " cm"
+			max_lbl.text = str(max_s) + " cm"
 			max_lbl.add_theme_color_override("font_color", Color("#e76f51"))
 		else:
 			max_lbl.text = "未発見"
@@ -193,11 +193,11 @@ func _render_detail() -> void:
 			"Epic": detail_rarity.modulate = Color("#7209b7")
 			"Legendary": detail_rarity.modulate = Color("#f4a261")
 			
-		detail_max_size.text = "👑 最大記録: " + str(record.get("max_size", 0.0)) + " cm"
+		detail_max_size.text = "最大記録: " + str(record.get("max_size", 0.0)) + " cm"
 		detail_max_size.add_theme_color_override("font_color", Color("#d95d39"))
-		detail_count.text = "🎣 累計釣果: " + str(record.get("caught_count", 0)) + " 匹"
+		detail_count.text = "累計釣果: " + str(record.get("caught_count", 0)) + " 匹"
 		detail_count.add_theme_color_override("font_color", Color("#264653"))
-		detail_habitat.text = "📍 主な生息地: " + base_data.get("habitat", "水辺")
+		detail_habitat.text = "主な生息地: " + base_data.get("habitat", "水辺")
 		detail_habitat.add_theme_color_override("font_color", Color("#2a6f97"))
 		detail_desc.text = base_data.get("desc", "穏やかな水辺に棲む魚。")
 		detail_desc.add_theme_color_override("font_color", Color("#4a4e69"))
@@ -225,11 +225,11 @@ func _render_detail() -> void:
 		detail_name.add_theme_color_override("font_color", Color("#8d99ae"))
 		detail_rarity.text = "【レア度: ？？？】"
 		detail_rarity.modulate = Color("#8d99ae")
-		detail_max_size.text = "👑 最大記録: --- cm"
+		detail_max_size.text = "最大記録: --- cm"
 		detail_max_size.add_theme_color_override("font_color", Color("#adb5bd"))
-		detail_count.text = "🎣 累計釣果: 0 匹"
+		detail_count.text = "累計釣果: 0 匹"
 		detail_count.add_theme_color_override("font_color", Color("#adb5bd"))
-		detail_habitat.text = "📍 ヒント: " + base_data.get("habitat", "未知の水辺")
+		detail_habitat.text = "ヒント: " + base_data.get("habitat", "未知の水辺")
 		detail_habitat.add_theme_color_override("font_color", Color("#6c757d"))
 		detail_desc.text = "まだ釣り上げたことのない魚。道具を手に入れて新たな水辺を探索してみよう！"
 		detail_desc.add_theme_color_override("font_color", Color("#8d99ae"))

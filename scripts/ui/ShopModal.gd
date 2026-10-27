@@ -128,7 +128,7 @@ func _render_sell_tab() -> void:
 	btn_action_all.visible = true
 	btn_action_all.text = "すべての魚を売る (+" + str(total_value) + " G)"
 	btn_action_all.disabled = (GameData.inventory.size() == 0)
-	status_bar.text = "💰 所持金: " + str(GameData.coins) + " G  |  🪣 バケツ: " + str(GameData.inventory.size()) + " 匹"
+	status_bar.text = "所持金: " + str(GameData.coins) + " G  |  バケツ: " + str(GameData.inventory.size()) + " 匹"
 
 	if GameData.inventory.size() == 0:
 		var empty_lbl = Label.new()
@@ -144,7 +144,7 @@ func _render_sell_tab() -> void:
 		var hbox = HBoxContainer.new()
 		
 		var icon_lbl = Label.new()
-		icon_lbl.text = "🐟 " + fish.get("name", "魚") + " (" + str(fish.get("size", 15.0)) + "cm)"
+		icon_lbl.text = fish.get("name", "魚") + " (" + str(fish.get("size", 15.0)) + "cm)"
 		icon_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		icon_lbl.add_theme_color_override("font_color", Color("#2b2d42"))
 		hbox.add_child(icon_lbl)
@@ -183,7 +183,7 @@ func _render_sell_tab() -> void:
 func _render_tools_tab() -> void:
 	btn_action_all.visible = false
 	status_bar.add_theme_color_override("font_color", Color("#2b2d42"))
-	status_bar.text = "💰 所持金: " + str(GameData.coins) + " G  |  道具を手に入れて新しい釣りスポットを開拓しよう！"
+	status_bar.text = "所持金: " + str(GameData.coins) + " G  |  道具を手に入れて新しい釣りスポットを開拓しよう！"
 	
 	for tool_key in ["boots", "axe", "boat"]:
 		var tool = GameData.TOOLS.get(tool_key)
@@ -195,7 +195,7 @@ func _render_tools_tab() -> void:
 		var vbox = VBoxContainer.new()
 		vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var title_lbl = Label.new()
-		title_lbl.text = tool.icon + " " + tool.name + (" 【購入済】" if is_owned else "")
+		title_lbl.text = tool.name + (" 【購入済】" if is_owned else "")
 		title_lbl.add_theme_color_override("font_color", Color("#2b2d42"))
 		var desc_lbl = Label.new()
 		desc_lbl.text = tool.desc
@@ -209,7 +209,7 @@ func _render_tools_tab() -> void:
 		btn.add_theme_font_size_override("font_size", 13)
 		GameData.apply_pastel_button_style(btn)
 		if is_owned:
-			btn.text = "購入済 ✓"
+			btn.text = "購入済"
 			btn.disabled = true
 		else:
 			btn.text = "購入 (" + str(tool.price) + " G)"
@@ -224,7 +224,7 @@ func _render_tools_tab() -> void:
 func _render_rods_tab() -> void:
 	btn_action_all.visible = false
 	status_bar.add_theme_color_override("font_color", Color("#2b2d42"))
-	status_bar.text = "💰 所持金: " + str(GameData.coins) + " G  |  竿が良いほど魚が引きやすく、緑枠が広がります。"
+	status_bar.text = "所持金: " + str(GameData.coins) + " G  |  竿が良いほど魚が引きやすく、緑枠が広がります。"
 	
 	for rod_key in ["branch_rod", "bamboo_rod", "carbon_rod", "master_rod"]:
 		var rod = GameData.RODS.get(rod_key)
@@ -237,7 +237,7 @@ func _render_rods_tab() -> void:
 		var vbox = VBoxContainer.new()
 		vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var title_lbl = Label.new()
-		title_lbl.text = "🎣 " + rod.name + (" [装備中]" if is_equipped else "")
+		title_lbl.text = rod.name + (" [装備中]" if is_equipped else "")
 		title_lbl.add_theme_color_override("font_color", Color("#2b2d42"))
 		var desc_lbl = Label.new()
 		desc_lbl.text = rod.desc + " (パワー: x" + str(rod.power) + ", 安定度: x" + str(rod.stability) + ")"
@@ -251,7 +251,7 @@ func _render_rods_tab() -> void:
 		btn.add_theme_font_size_override("font_size", 13)
 		GameData.apply_pastel_button_style(btn)
 		if is_equipped:
-			btn.text = "装備中 ✓"
+			btn.text = "装備中"
 			btn.disabled = true
 		elif is_unlocked:
 			btn.text = "装備する"
@@ -269,7 +269,7 @@ func _render_rods_tab() -> void:
 func _render_baits_tab() -> void:
 	btn_action_all.visible = false
 	status_bar.add_theme_color_override("font_color", Color("#2b2d42"))
-	status_bar.text = "💰 所持金: " + str(GameData.coins) + " G  |  良いエサほど珍しい魚や大物が集まります。"
+	status_bar.text = "所持金: " + str(GameData.coins) + " G  |  良いエサほど珍しい魚や大物が集まります。"
 	
 	for bait_key in ["worm", "dumpling", "lure"]:
 		var bait = GameData.BAITS.get(bait_key)
@@ -283,7 +283,7 @@ func _render_baits_tab() -> void:
 		var vbox = VBoxContainer.new()
 		vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var title_lbl = Label.new()
-		title_lbl.text = "🪱 " + bait.name + " (所持: " + str(count) + "個)" + (" [使用中 ✓]" if is_equipped else "")
+		title_lbl.text = bait.name + " (所持: " + str(count) + "個)" + (" [使用中]" if is_equipped else "")
 		title_lbl.add_theme_color_override("font_color", Color("#2b2d42"))
 		var desc_lbl = Label.new()
 		desc_lbl.text = bait.desc + " [引き寄せ＆大物補正: x" + str(bait.rare_boost) + "]"

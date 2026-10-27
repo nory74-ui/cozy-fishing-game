@@ -24,7 +24,7 @@ func show_result(fish_data: Dictionary) -> void:
 	current_fish = fish_data
 	visible = true
 	
-	title_label.text = "✨ " + fish_data.get("name", "魚") + " を釣り上げた！"
+	title_label.text = fish_data.get("name", "魚") + " を釣り上げた！"
 	
 	# スプライト画像の読み込み
 	var species = fish_data.get("species", "funa")
@@ -59,11 +59,11 @@ func show_result(fish_data: Dictionary) -> void:
 	if record_badge_label:
 		if is_first:
 			record_badge_label.visible = true
-			record_badge_label.text = "🎉 【新種発見！】お魚図鑑に登録！"
+			record_badge_label.text = "【新種発見！】お魚図鑑に登録！"
 			record_badge_label.add_theme_color_override("font_color", Color("#2a9d8f"))
 		elif is_new_record:
 			record_badge_label.visible = true
-			record_badge_label.text = "👑 【大物記録更新！】自己ベスト！"
+			record_badge_label.text = "【大物記録更新！】自己ベスト！"
 			record_badge_label.add_theme_color_override("font_color", Color("#e76f51"))
 		else:
 			record_badge_label.visible = false
