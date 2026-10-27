@@ -109,25 +109,25 @@ func _draw() -> void:
 	# 倒木の本体描画（苔むした水彩の丸太）
 	if not is_destroying:
 		# 影
-		draw_ellipse(Vector2(0, 14), 48.0, 12.0, Color(0.15, 0.2, 0.15, 0.35))
+		draw_ellipse(Vector2(0, 14), 56.0, 14.0, Color(0.15, 0.2, 0.15, 0.35))
 		
-		# 丸太の胴体
-		var log_rect = Rect2(-45, -12, 90, 24)
+		# 丸太の胴体（幅108px、谷間の岩壁にぴったり挟まる）
+		var log_rect = Rect2(-54, -13, 108, 26)
 		draw_rect(log_rect, Color("#8c562e"), true) # 茶色の樹皮
 		draw_rect(log_rect, Color("#5e3012"), false, 2.0)
 		
 		# 木目ライン
-		draw_line(Vector2(-35, -4), Vector2(35, -4), Color("#5e3012", 0.5), 1.5)
-		draw_line(Vector2(-30, 4), Vector2(28, 4), Color("#5e3012", 0.5), 1.5)
+		draw_line(Vector2(-42, -5), Vector2(42, -5), Color("#5e3012", 0.5), 1.5)
+		draw_line(Vector2(-38, 4), Vector2(36, 4), Color("#5e3012", 0.5), 1.5)
 		
 		# 切り口の年輪（左端と右端）
-		draw_ellipse(Vector2(-44, 0), 6.0, 11.0, Color("#d4a373"))
-		draw_ellipse(Vector2(-44, 0), 6.0, 11.0, Color("#5e3012"), false, 1.2)
-		draw_ellipse(Vector2(-44, 0), 3.0, 5.0, Color("#5e3012"), false, 1.0)
+		draw_ellipse(Vector2(-53, 0), 6.5, 12.0, Color("#d4a373"))
+		draw_ellipse(Vector2(-53, 0), 6.5, 12.0, Color("#5e3012"), false, 1.2)
+		draw_ellipse(Vector2(-53, 0), 3.2, 5.5, Color("#5e3012"), false, 1.0)
 		
 		# 苔とキノコの装飾
-		draw_arc(Vector2(-10, -11), 12.0, 0.2, PI * 0.9, 12, Color("#52796f"), 3.5)
-		draw_arc(Vector2(18, -10), 10.0, 0.3, PI * 0.8, 10, Color("#52796f"), 3.0)
+		draw_arc(Vector2(-15, -12), 14.0, 0.2, PI * 0.9, 14, Color("#52796f"), 3.5)
+		draw_arc(Vector2(20, -11), 12.0, 0.3, PI * 0.8, 12, Color("#52796f"), 3.0)
 		
 		# 小さな赤いキノコ
 		draw_circle(Vector2(5, -15), 4.5, Color("#e63946"))

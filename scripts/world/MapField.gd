@@ -71,9 +71,12 @@ func _generate_trees() -> void:
 		Vector2(680, 220), Vector2(760, 380), Vector2(850, 180),
 		Vector2(700, 1050), Vector2(820, 1250), Vector2(660, 1380),
 		
-		# 滝壺の奥・左右を囲む原生木
+		# 滝壺の奥・左右を囲む原生木・険しい峡谷の森
 		Vector2(920, 140), Vector2(980, 80), Vector2(1220, 90), Vector2(1280, 150),
 		Vector2(1010, 340), Vector2(1190, 340), # 倒木の両脇にそびえる大木
+		Vector2(940, 330), Vector2(870, 340), Vector2(800, 320), Vector2(720, 340), Vector2(640, 330), # 西の封鎖樹林
+		Vector2(1250, 340), Vector2(1330, 330), Vector2(1410, 340), Vector2(1480, 320), # 東の封鎖樹林
+		Vector2(860, 220), Vector2(880, 130), Vector2(1320, 220), Vector2(1360, 110), # 滝壺左右の深林
 		
 		# 池の東岸・南岸
 		Vector2(1780, 260), Vector2(1980, 450), Vector2(2050, 820), Vector2(1980, 1150),
@@ -390,6 +393,21 @@ func _build_collision_boundaries() -> void:
 		var bp2 = basin_center + Vector2(cos(a2) * (basin_rx - 4), sin(a2) * (basin_ry - 4))
 		_add_wall_seg(sb, bp1, bp2)
 
+	# 5. 滝壺峡谷・倒木バリケード壁（倒木を迂回する侵入を100%遮断！）
+	# 倒木の位置: (1100, 340), コリジョン幅: 110px (x: 1045〜1155)
+	# A. 西側封鎖壁（川の東岸から倒木左端まで完全遮断＋西の断崖壁）
+	_add_wall_seg(sb, Vector2(500, 340), Vector2(1048, 340))   # 西側平原からの侵入遮断横壁
+	_add_wall_seg(sb, Vector2(1048, 340), Vector2(1048, 250)) # 谷間小道西ガイド壁
+	_add_wall_seg(sb, Vector2(1048, 250), Vector2(940, 250))   # 滝壺南西の岩壁
+	_add_wall_seg(sb, Vector2(940, 250), Vector2(940, 0))      # 西側の断崖壁（北の外周壁へ直結）
+
+	# B. 東側封鎖壁（倒木右端から東の平原・池北岸まで完全遮断＋東の断崖壁）
+	_add_wall_seg(sb, Vector2(1152, 340), Vector2(1500, 340))  # 東側平原からの侵入遮断横壁
+	_add_wall_seg(sb, Vector2(1500, 340), Vector2(1500, 520))  # 池北岸への接続縦壁
+	_add_wall_seg(sb, Vector2(1152, 340), Vector2(1152, 250)) # 谷間小道東ガイド壁
+	_add_wall_seg(sb, Vector2(1152, 250), Vector2(1260, 250))  # 滝壺南東の岩壁
+	_add_wall_seg(sb, Vector2(1260, 250), Vector2(1260, 0))    # 東側の断崖壁（北の外周壁へ直結）
+
 func _add_wall_seg(sb: StaticBody2D, a: Vector2, b: Vector2) -> void:
 	var col = CollisionShape2D.new()
 	var seg = SegmentShape2D.new()
@@ -519,7 +537,54 @@ func _draw() -> void:
 	_draw_watercolor_pier(island_dock_pier, "east")
 
 func _draw_emerald_basin() -> void:
-	# 砂浜・岩肌
+	# 0. 滝壺を包む切り立った渓谷の巨岩断崖（西崖・東崖）
+	# 西の岩壁（x: 520〜1040, y: 120〜350）
+	var west_cliff_color = Color("#4a5759")
+	var west_moss_color = Color("#588157", 0.7)
+	var west_shadow_color = Color("#2f3e46")
+	
+	# 西側の巨大岩山層
+	var w_cliff_pts = PackedVector2Array([
+		Vector2(520, 0), Vector2(940, 0), Vector2(940, 250),
+		Vector2(1045, 250), Vector2(1045, 345), Vector2(520, 345)
+	])
+	draw_colored_polygon(w_cliff_pts, west_cliff_color)
+	draw_polyline(w_cliff_pts, west_shadow_color, 3.0)
+	
+	# 東側の巨大岩山層（x: 1155〜1500, y: 120〜350）
+	var e_cliff_pts = PackedVector2Array([
+		Vector2(1260, 0), Vector2(1500, 0), Vector2(1500, 345),
+		Vector2(1155, 345), Vector2(1155, 250), Vector2(1260, 250)
+	])
+	draw_colored_polygon(e_cliff_pts, west_cliff_color)
+	draw_polyline(e_cliff_pts, west_shadow_color, 3.0)
+
+	# 岩段・苔のディテール
+	for rx in [600, 720, 840, 960]:
+		draw_line(Vector2(rx, 160), Vector2(rx + 80, 160), west_shadow_color, 2.0)
+		draw_line(Vector2(rx + 10, 156), Vector2(rx + 70, 156), west_moss_color, 4.0)
+		draw_line(Vector2(rx - 30, 270), Vector2(rx + 60, 270), west_shadow_color, 2.0)
+		draw_line(Vector2(rx - 20, 266), Vector2(rx + 50, 266), west_moss_color, 4.0)
+	for rx in [1200, 1320, 1420]:
+		draw_line(Vector2(rx, 180), Vector2(rx + 75, 180), west_shadow_color, 2.0)
+		draw_line(Vector2(rx + 8, 176), Vector2(rx + 65, 176), west_moss_color, 4.0)
+		draw_line(Vector2(rx - 20, 280), Vector2(rx + 60, 280), west_shadow_color, 2.0)
+		draw_line(Vector2(rx - 12, 276), Vector2(rx + 50, 276), west_moss_color, 4.0)
+
+	# 倒木の左右に鎮座する守り神のような巨岩（Boulder）
+	# 左の巨岩 (1010, 340)
+	draw_circle(Vector2(1010, 335), 36.0, west_shadow_color)
+	draw_circle(Vector2(1008, 332), 34.0, Color("#52677a"))
+	draw_arc(Vector2(1008, 320), 22.0, PI * 0.1, PI * 0.9, 12, west_moss_color, 5.0)
+	draw_circle(Vector2(1002, 326), 14.0, Color("#6c757d", 0.6))
+
+	# 右の巨岩 (1190, 340)
+	draw_circle(Vector2(1190, 335), 36.0, west_shadow_color)
+	draw_circle(Vector2(1192, 332), 34.0, Color("#52677a"))
+	draw_arc(Vector2(1192, 320), 22.0, PI * 0.1, PI * 0.9, 12, west_moss_color, 5.0)
+	draw_circle(Vector2(1198, 326), 14.0, Color("#6c757d", 0.6))
+
+	# 1. 滝壺内部の砂浜・岩肌
 	draw_ellipse(basin_center, basin_rx + 22.0, basin_ry + 18.0, Color(0.85, 0.82, 0.74, 0.85))
 	
 	# エメラルド水面
