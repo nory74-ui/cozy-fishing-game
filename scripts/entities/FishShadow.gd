@@ -222,7 +222,15 @@ func _check_bobber_detection(bobber: Node2D) -> void:
 	if dist <= detect_range:
 		is_resting = false
 		current_state = State.NOTICE
-		notice_timer = randf_range(0.4, 0.8)
+		match fish_species:
+			"yamame", "rainbow_trout":
+				notice_timer = randf_range(0.15, 0.45) # 鋭くすばやい反応
+			"iwana":
+				notice_timer = randf_range(0.40, 1.10) # 慎重に観察する間
+			"golden_koi", "koi":
+				notice_timer = randf_range(0.50, 1.30) # 悠然とした反応
+			_:
+				notice_timer = randf_range(0.25, 0.85)
 		target_swim_dir = (bobber.global_position - global_position).normalized()
 
 func on_bobber_retrieved() -> void:
@@ -254,18 +262,99 @@ func _process_approach(delta: float) -> void:
 	var to_target = target_pos - global_position
 	var dist = to_target.length()
 	
-	if dist < 20.0 or global_position.distance_to(target_bobber.global_position) < 30.0:
-		target_bobber.occupied_by_fish = self
-		current_state = State.NIBBLE
-		nibble_count = 0
-		max_nibbles = randi_range(1, 3)
-		nibble_timer = 0.65
-		if target_bobber.has_method("trigger_nibble"):
-			target_bobber.trigger_nibble()
-		fish_reached_bobber.emit()
+	if dist < 22.0 or global_position.distance_to(target_bobber.global_position) < 32.0:
+		_start_nibbling()
 	else:
 		swim_direction = swim_direction.slerp(to_target.normalized(), delta * 4.5).normalized()
 		global_position += swim_direction * (swim_speed * 1.15) * delta
+
+# つつき・ヒット開始処理（魚種と個体による多彩でリアルなランダムタイミング）
+func _start_nibbling() -> void:
+	target_bobber.occupied_by_fish = self
+	current_state = State.NIBBLE
+	nibble_count = 0
+	fish_reached_bobber.emit()
+	
+	var r = randf() # 0.0 〜 1.0
+	
+	# 魚種ごとの捕食習性に応じたタイミング・つつき回数プロファイル
+	match fish_species:
+		"yamame", "rainbow_trout":
+			# 俊敏なトラウト類: アグレッシブ！電撃即食い or 1〜2回の鋭いつつき
+			if r < 0.22:
+				max_nibbles = 0 # 電撃即ヒット！
+				nibble_timer = randf_range(0.20, 0.40)
+			elif r < 0.65:
+				max_nibbles = 1 # 1回つつき即食い
+				nibble_timer = randf_range(0.30, 0.55)
+			else:
+				max_nibbles = randi_range(2, 3) # 2〜3回
+				nibble_timer = randf_range(0.40, 0.75)
+				
+		"iwana":
+			# 警戒心の強いイワナ: ウキの前で様子見＆慎重なつつき
+			if r < 0.10:
+				max_nibbles = 1
+				nibble_timer = randf_range(0.40, 0.70)
+			elif r < 0.60:
+				max_nibbles = randi_range(2, 3)
+				nibble_timer = randf_range(0.60, 1.20)
+			else:
+				max_nibbles = randi_range(4, 5) # じらしパターン！
+				nibble_timer = randf_range(0.80, 1.60)
+				
+		"catfish":
+			# 底から一気に吸い込むナマズ: 即食い、またはじっと待ってから一撃
+			if r < 0.25:
+				max_nibbles = 0 # 下からドスン！
+				nibble_timer = randf_range(0.25, 0.50)
+			elif r < 0.70:
+				max_nibbles = 1
+				nibble_timer = randf_range(0.50, 0.90)
+			else:
+				max_nibbles = randi_range(2, 3)
+				nibble_timer = randf_range(0.70, 1.30)
+				
+		"golden_koi", "koi":
+			# 悠然とした大ゴイ: じわじわと間をあけて焦らしつつ食い込む
+			if r < 0.08:
+				max_nibbles = 0
+				nibble_timer = randf_range(0.35, 0.60)
+			elif r < 0.45:
+				max_nibbles = randi_range(1, 2)
+				nibble_timer = randf_range(0.60, 1.20)
+			else:
+				max_nibbles = randi_range(3, 4) # 堂々の3〜4回つつき
+				nibble_timer = randf_range(0.80, 1.70)
+				
+		"medaka":
+			# メダカ: ちょこまかとした小刻みな突進
+			if r < 0.20:
+				max_nibbles = 1
+				nibble_timer = randf_range(0.25, 0.45)
+			else:
+				max_nibbles = randi_range(2, 4)
+				nibble_timer = randf_range(0.30, 0.60)
+				
+		_: # ギンブナなど
+			if r < 0.12:
+				max_nibbles = 0
+				nibble_timer = randf_range(0.25, 0.45)
+			elif r < 0.40:
+				max_nibbles = 1
+				nibble_timer = randf_range(0.40, 0.70)
+			elif r < 0.80:
+				max_nibbles = randi_range(2, 3)
+				nibble_timer = randf_range(0.50, 1.10)
+			else:
+				max_nibbles = randi_range(4, 5) # 警戒フェイント
+				nibble_timer = randf_range(0.80, 1.50)
+				
+	# つつき回数が1回以上の場合は最初のツンを演出
+	if max_nibbles > 0:
+		var strength = randf_range(2.5, 5.0)
+		if target_bobber.has_method("trigger_nibble"):
+			target_bobber.trigger_nibble(strength)
 
 func _process_nibble(delta: float) -> void:
 	if not is_instance_valid(target_bobber) or not target_bobber.is_active:
@@ -275,15 +364,23 @@ func _process_nibble(delta: float) -> void:
 	nibble_timer -= delta
 	if nibble_timer <= 0.0:
 		nibble_count += 1
-		if nibble_count >= max_nibbles:
+		if nibble_count > max_nibbles:
+			# 本命の食い込み（HIT!!）
 			current_state = State.BITE
 			target_bobber.trigger_bite()
 			fish_bit.emit()
 		else:
-			nibble_timer = randf_range(0.6, 1.0)
+			# 次のつつきまでのインターバル（毎度ランダムに揺らぐリアルな間隔！）
+			var interval = randf_range(0.35, 1.30)
+			# たまにフェイントで長めの間（焦らし）を挟む
+			if randf() < 0.22:
+				interval = randf_range(1.20, 2.00)
+			nibble_timer = interval
+			
+			var strength = randf_range(2.2, 5.5)
 			if target_bobber.has_method("trigger_nibble"):
-				target_bobber.trigger_nibble()
-			swim_direction = swim_direction.rotated(randf_range(-0.3, 0.3))
+				target_bobber.trigger_nibble(strength)
+			swim_direction = swim_direction.rotated(randf_range(-0.4, 0.4))
 
 func _draw() -> void:
 	# 黄金の主の神々しいオーラ

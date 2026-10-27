@@ -51,8 +51,8 @@ func _physics_process(delta: float) -> void:
 		
 		step_sfx_timer -= delta
 		if step_sfx_timer <= 0.0:
-			step_sfx_timer = 0.40 # ぽてぽて歩行に合わせた心地よい間隔
-			SoundManager.play_sfx("step", 0.08, -14.0) # 耳に優しい控えめな足音
+			step_sfx_timer = 0.38 # ぽてぽて歩行に合わせた軽快な間隔
+			SoundManager.play_sfx("step", 0.08, -7.0) # クリアに聞こえる心地よい足音
 		
 		# ドラクエ風4方向判定
 		if abs(input_vec.x) > abs(input_vec.y):

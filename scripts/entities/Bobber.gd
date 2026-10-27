@@ -42,18 +42,18 @@ func retrieve() -> void:
 	visible = false
 	ripples.clear()
 
-func trigger_nibble() -> void:
-	nibble_dip = 4.0
-	ripples.append({"radius": 2.5, "alpha": 0.85})
-	SoundManager.play_sfx("cast", 0.25, -8.0)
+func trigger_nibble(strength: float = 4.0) -> void:
+	nibble_dip = strength
+	ripples.append({"radius": 2.0 + strength * 0.5, "alpha": 0.85})
+	SoundManager.play_sfx("cast", 0.25, -13.0 + strength)
 
 func trigger_bite() -> void:
 	is_bitten = true
 	bite_anim_timer = 0.0
 	fish_bitten.emit()
-	# 食いつき波紋
-	for i in range(3):
-		ripples.append({"radius": 3.0 + i * 4.0, "alpha": 0.9})
+	# 食いつき時のダイナミックな波紋群
+	for i in range(4):
+		ripples.append({"radius": 3.0 + i * 5.0, "alpha": 0.95})
 
 func _process(delta: float) -> void:
 	if not is_active:
@@ -61,12 +61,12 @@ func _process(delta: float) -> void:
 		
 	time_counter += delta
 	if nibble_dip > 0.0:
-		nibble_dip = move_toward(nibble_dip, 0.0, delta * 14.0)
+		nibble_dip = move_toward(nibble_dip, 0.0, delta * 15.0)
 	bob_offset = sin(time_counter * 3.5) * 2.0 + nibble_dip
 	
 	if is_bitten:
 		bite_anim_timer += delta
-		bob_offset += 6.0 # グッと沈む
+		bob_offset += 8.5 # グッと力強く水中に引き込まれるリアルな沈み込み！
 
 	# 波紋の定期発生
 	ripple_timer += delta
