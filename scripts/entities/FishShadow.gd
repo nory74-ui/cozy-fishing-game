@@ -52,81 +52,79 @@ func setup(map: Node2D) -> void:
 
 func _init_species_profile() -> void:
 	match fish_species:
-		"yamame":
-			fish_name = "ヤマメ"
-			swim_speed = 36.0
-		"funa":
-			fish_name = "ギンブナ"
-			swim_speed = 26.0
-		"koi":
-			fish_name = "ニシキゴイ"
-			swim_speed = 20.0
-		"catfish":
-			fish_name = "ナマズ"
-			swim_speed = 22.0
 		"medaka":
 			fish_name = "メダカ"
-			swim_speed = 42.0
+			swim_speed = 36.0 # 小刻みにすばしっこく泳ぐ
+		"yamame":
+			fish_name = "ヤマメ"
+			swim_speed = 40.0 # 清流を鋭く俊敏に泳ぐ
 		"iwana":
 			fish_name = "イワナ"
-			swim_speed = 34.0
+			swim_speed = 32.0 # 岩陰に潜みながら警戒して泳ぐ
+		"funa":
+			fish_name = "ギンブナ"
+			swim_speed = 24.0 # のんびり池底を巡回
 		"rainbow_trout":
 			fish_name = "ニジマス"
-			swim_speed = 38.0
+			swim_speed = 42.0 # 滝壺を力強く活発に回遊
+		"koi":
+			fish_name = "ニシキゴイ"
+			swim_speed = 20.0 # 悠然と優雅に泳ぐ
+		"catfish":
+			fish_name = "ナマズ"
+			swim_speed = 18.0 # 水底を重々しく這うように泳ぐ
 		"golden_koi":
 			fish_name = "黄金の主"
-			swim_speed = 18.0
+			swim_speed = 16.0 # 威風堂々たる威厳ある泳ぎ
+		_:
+			fish_name = "魚"
+			swim_speed = 28.0
 
 func get_shadow_size_desc() -> String:
 	match fish_species:
 		"medaka":
 			return "ちいさな魚影"
 		"funa":
-			return "中くらいの魚影"
+			return "丸っこい魚影"
 		"yamame":
-			return "素早い魚影"
+			return "すばやい魚影"
 		"iwana":
 			return "渓流の魚影"
 		"rainbow_trout":
-			return "大きな素早い魚影"
+			return "大きな力強い魚影"
 		"koi":
-			return "大きな魚影"
+			return "優雅な大きな魚影"
 		"catfish":
 			return "底に潜む大きな魚影"
 		"golden_koi":
-			return "金色にきらめく巨大な魚影"
+			return "金色にきらめく巨大な主の魚影"
 		_:
 			return "水中の魚影"
 
 func _setup_sprite() -> void:
-	var tex_name = fish_species
-	if tex_name == "medaka" or tex_name == "iwana" or tex_name == "rainbow_trout":
-		tex_name = "yamame"
-	elif tex_name == "golden_koi":
-		tex_name = "koi"
-		
-	var tex = GameData.load_texture("res://assets/hd2d_fish_" + tex_name + ".png")
+	# 全8魚種すべて専用の実在スプライトテクスチャを読み込み
+	var tex = GameData.load_texture("res://assets/hd2d_fish_" + fish_species + ".png")
 	if not tex:
-		tex = GameData.load_texture("res://assets/fish_" + tex_name + ".png")
+		tex = GameData.load_texture("res://assets/fish_" + fish_species + ".png")
 		
 	if tex:
-		# 自然で適切な魚影サイズにスケーリング
+		# 実在のサイズ比率（メダカ3cm 〜 黄金の主100cm）を精密に反映したスケーリング
 		var scale_val = Vector2(0.07, 0.07)
 		match fish_species:
-			"medaka":        scale_val = Vector2(0.038, 0.038)
-			"yamame":        scale_val = Vector2(0.065, 0.065)
-			"funa":          scale_val = Vector2(0.070, 0.070)
-			"koi":           scale_val = Vector2(0.092, 0.092)
-			"catfish":       scale_val = Vector2(0.096, 0.096)
-			"iwana":         scale_val = Vector2(0.075, 0.075)
-			"rainbow_trout": scale_val = Vector2(0.082, 0.082)
-			"golden_koi":    scale_val = Vector2(0.138, 0.138) # 圧倒的巨大魚影！
+			"medaka":        scale_val = Vector2(0.032, 0.030) # 極小・スリム
+			"yamame":        scale_val = Vector2(0.062, 0.058) # 流線型スリム
+			"iwana":         scale_val = Vector2(0.068, 0.056) # 円筒形・岩陰魚影
+			"funa":          scale_val = Vector2(0.066, 0.066) # 体高のある丸型
+			"rainbow_trout": scale_val = Vector2(0.084, 0.076) # 太くがっしりしたトラウト
+			"catfish":       scale_val = Vector2(0.098, 0.090) # 頭部が平たく大きい底生魚
+			"koi":           scale_val = Vector2(0.105, 0.095) # 肉厚で大柄な錦鯉
+			"golden_koi":    scale_val = Vector2(0.145, 0.135) # 画面を圧倒する巨大な主！
 
 		sprite = Sprite2D.new()
 		sprite.texture = tex
 		sprite.scale = scale_val
 		
-		# ★水中の魚影（シルエット）シェーダーを適用
+		# 水中の魚影（シルエット）シェーダーを適用
 		var shadow_shader = load("res://assets/shaders/fish_shadow.gdshader")
 		if shadow_shader:
 			var mat = ShaderMaterial.new()
@@ -137,12 +135,12 @@ func _setup_sprite() -> void:
 			
 			match fish_species:
 				"medaka":
-					shadow_col = Color(0.18, 0.28, 0.40, 0.60) # 浅瀬の小さな淡い影
+					shadow_col = Color(0.20, 0.30, 0.42, 0.55) # 浅瀬の小さな淡い半透明の影
 				"catfish":
-					shadow_col = Color(0.08, 0.15, 0.25, 0.80) # 底に潜む濃い影
+					shadow_col = Color(0.06, 0.12, 0.22, 0.85) # 底に潜む濃く重い影
 				"golden_koi":
-					shadow_col = Color(0.16, 0.22, 0.28, 0.82)
-					glow_col = Color(1.15, 0.95, 0.45, 0.35)   # 神秘的な淡い金色の微光
+					shadow_col = Color(0.18, 0.24, 0.30, 0.82)
+					glow_col = Color(1.20, 1.00, 0.45, 0.38)   # 神秘的な黄金のオーラ微光
 				_:
 					shadow_col = Color(0.12, 0.22, 0.36, 0.72)
 					
@@ -151,7 +149,6 @@ func _setup_sprite() -> void:
 			mat.set_shader_parameter("depth_fade", 0.30)
 			sprite.material = mat
 		else:
-			# フォールバック
 			sprite.modulate = Color(0.12, 0.22, 0.35, 0.70)
 			
 		add_child(sprite)

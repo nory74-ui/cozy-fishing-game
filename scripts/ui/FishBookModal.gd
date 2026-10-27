@@ -202,24 +202,13 @@ func _render_detail() -> void:
 		detail_desc.text = base_data.get("desc", "穏やかな水辺に棲む魚。")
 		detail_desc.add_theme_color_override("font_color", Color("#4a4e69"))
 		
-		# イラスト読み込み
-		var tex_name = selected_species
-		if tex_name == "medaka" or tex_name == "iwana" or tex_name == "rainbow_trout":
-			tex_name = "yamame"
-		elif tex_name == "golden_koi":
-			tex_name = "koi"
-			
-		var tex = GameData.load_texture("res://assets/hd2d_fish_" + tex_name + ".png")
+		# イラスト読み込み（全8魚種すべて専用の本格イラストを表示）
+		var tex = GameData.load_texture("res://assets/hd2d_fish_" + selected_species + ".png")
 		if not tex:
-			tex = GameData.load_texture("res://assets/fish_" + tex_name + ".png")
+			tex = GameData.load_texture("res://assets/fish_" + selected_species + ".png")
 		if detail_icon:
 			detail_icon.texture = tex
-			match selected_species:
-				"medaka": detail_icon.modulate = Color(1.0, 0.82, 0.5, 1.0)
-				"iwana": detail_icon.modulate = Color(0.72, 0.88, 0.65, 1.0)
-				"rainbow_trout": detail_icon.modulate = Color(1.15, 0.85, 0.95, 1.0)
-				"golden_koi": detail_icon.modulate = Color(1.4, 1.25, 0.55, 1.0)
-				_: detail_icon.modulate = Color(1.0, 1.0, 1.0, 1.0)
+			detail_icon.modulate = Color.WHITE
 	else:
 		detail_name.text = "？？？？？？ (未発見)"
 		detail_name.add_theme_color_override("font_color", Color("#8d99ae"))

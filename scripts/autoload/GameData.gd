@@ -125,17 +125,17 @@ const BAITS: Dictionary = {
 	}
 }
 
-# 魚データベース
+# 魚データベース（実在の魚類学的サイズ・生態・生息環境に基づく設定）
 const FISH_DATABASE: Dictionary = {
 	"medaka": {
 		"id": "medaka",
 		"name": "メダカ",
 		"rarity": "Common",
 		"base_price": 10,
-		"min_size": 2.5,
+		"min_size": 2.8,
 		"max_size": 4.5,
-		"habitat": "穏やかな小川・水草の茂み",
-		"desc": "小さくてすばしっこい小川のアイドル。群れで泳ぐ姿が可愛い。"
+		"habitat": "平地の小川・水生植物の茂る浅瀬",
+		"desc": "水面近くを群れで泳ぐ日本固有の小魚。上向きの小さな口で水面のプランクトンを捕食する。成魚でも4cm前後の愛らしい姿。"
 	},
 	"yamame": {
 		"id": "yamame",
@@ -143,39 +143,39 @@ const FISH_DATABASE: Dictionary = {
 		"rarity": "Rare",
 		"base_price": 55,
 		"min_size": 18.0,
-		"max_size": 28.0,
-		"habitat": "川の中流・桟橋付近の早瀬",
-		"desc": "「渓流の女王」と呼ばれる美しい斑紋の川魚。警戒心が強い。"
+		"max_size": 34.0,
+		"habitat": "清流の中・上流域、早瀬や落ち込み",
+		"desc": "「渓流の女王」と称されるサケ科の美魚。体側に並ぶ小判型のパーマークが特徴。警戒心が極めて強く、30cm（尺）超えは釣り人の憧れ。"
 	},
 	"funa": {
 		"id": "funa",
 		"name": "ギンブナ",
 		"rarity": "Common",
 		"base_price": 25,
-		"min_size": 15.0,
-		"max_size": 26.0,
-		"habitat": "中央広場の池・のんびりした岸辺",
-		"desc": "のんびり池底の藻を食べる丸っこい魚。日本の釣りの原点。"
+		"min_size": 16.0,
+		"max_size": 35.0,
+		"habitat": "中央広場の池・水草の生える緩やかな岸辺",
+		"desc": "体高が高く銀色に輝く日本の代表的な淡水魚。池底の泥をついばみ藻類やミミズを食べる。「釣りはフナに始まりフナに終わる」の言葉で有名。"
 	},
 	"koi": {
 		"id": "koi",
 		"name": "ニシキゴイ",
 		"rarity": "Epic",
 		"base_price": 120,
-		"min_size": 38.0,
-		"max_size": 60.0,
-		"habitat": "中央広場の池・池の深み",
-		"desc": "白地に鮮やかな朱赤と墨が映える池の貴族。優雅に泳ぐ。"
+		"min_size": 45.0,
+		"max_size": 82.0,
+		"habitat": "中央広場の池・水深のある静かな深み",
+		"desc": "「泳ぐ宝石」と称えられる観賞鯉。口元に2対のヒゲを持ち、白地に鮮やかな朱赤と墨の斑紋が優雅。肉厚で力強い引きを見せる。"
 	},
 	"catfish": {
 		"id": "catfish",
 		"name": "ナマズ",
 		"rarity": "Epic",
 		"base_price": 140,
-		"min_size": 45.0,
-		"max_size": 68.0,
-		"habitat": "中央広場の池・水底の暗がり",
-		"desc": "長いヒゲとつぶらな瞳がチャーミング。池底に潜む大物。"
+		"min_size": 42.0,
+		"max_size": 75.0,
+		"habitat": "中央広場の池・水底の暗がりや泥底",
+		"desc": "上下に平たい大きな頭と4本のヒゲを持つ夜行性の捕食者。ウロコがなく滑らかな体で、水底の暗がりに潜み獲物を一気に吸い込む。"
 	},
 	"iwana": {
 		"id": "iwana",
@@ -183,29 +183,29 @@ const FISH_DATABASE: Dictionary = {
 		"rarity": "Rare",
 		"base_price": 85,
 		"min_size": 20.0,
-		"max_size": 32.0,
-		"habitat": "西の原生林（長靴で渡った先）",
-		"desc": "原生林の源流に棲む「幻の深山魚」。白い斑点と力強い引きが魅力。"
+		"max_size": 42.0,
+		"habitat": "西の原生林（長靴で渡った最源流部）",
+		"desc": "原生林の冷たい岩陰に潜む「渓流の王者」。背中の白斑とヒレの前縁を走る純白のラインが特徴。昆虫から小魚まで貪欲に丸呑みする。"
 	},
 	"rainbow_trout": {
 		"id": "rainbow_trout",
 		"name": "ニジマス",
 		"rarity": "Epic",
 		"base_price": 175,
-		"min_size": 30.0,
-		"max_size": 52.0,
-		"habitat": "秘密の滝壺（オノで開通した先）",
-		"desc": "秘密の滝壺に輝く美しい魚。体側の虹色の帯が鮮やかにきらめく。"
+		"min_size": 28.0,
+		"max_size": 62.0,
+		"habitat": "秘密の滝壺（オノで開通した深淵）",
+		"desc": "冷たく深い滝壺に生息する大型トラウト。体側に輝く鮮烈な紅紫色の帯と全身の黒点が特徴。掛かると水面を割って豪快に跳ねる。"
 	},
 	"golden_koi": {
 		"id": "golden_koi",
 		"name": "黄金の主",
 		"rarity": "Legendary",
 		"base_price": 600,
-		"min_size": 75.0,
-		"max_size": 110.0,
-		"habitat": "神秘の孤島沖（ボートで渡った先）",
-		"desc": "湖の中央の孤島に眠る伝説の主。全身が神々しい黄金の光を放つ。"
+		"min_size": 85.0,
+		"max_size": 118.0,
+		"habitat": "神秘の孤島沖（ボートで渡った深淵）",
+		"desc": "神秘の孤島の深みに何十年も生き続ける伝説の巨鯉。全身の鱗が純金のように神々しく輝き、メーターを超える圧倒的な巨躯を誇る。"
 	}
 }
 

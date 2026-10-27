@@ -26,30 +26,14 @@ func show_result(fish_data: Dictionary) -> void:
 	
 	title_label.text = fish_data.get("name", "魚") + " を釣り上げた！"
 	
-	# スプライト画像の読み込み
+	# スプライト画像の読み込み（全8魚種すべて専用の本格イラストを表示）
 	var species = fish_data.get("species", "funa")
-	var tex_name = species
-	if tex_name == "medaka" or tex_name == "iwana" or tex_name == "rainbow_trout":
-		tex_name = "yamame"
-	elif tex_name == "golden_koi":
-		tex_name = "koi"
-		
-	var tex = GameData.load_texture("res://assets/hd2d_fish_" + tex_name + ".png")
+	var tex = GameData.load_texture("res://assets/hd2d_fish_" + species + ".png")
 	if not tex:
-		tex = GameData.load_texture("res://assets/fish_" + tex_name + ".png")
+		tex = GameData.load_texture("res://assets/fish_" + species + ".png")
 	if fish_tex_rect:
 		fish_tex_rect.texture = tex
-		match species:
-			"medaka":
-				fish_tex_rect.modulate = Color(1.0, 0.82, 0.5, 1.0)
-			"iwana":
-				fish_tex_rect.modulate = Color(0.72, 0.88, 0.65, 1.0)
-			"rainbow_trout":
-				fish_tex_rect.modulate = Color(1.15, 0.85, 0.95, 1.0)
-			"golden_koi":
-				fish_tex_rect.modulate = Color(1.4, 1.25, 0.55, 1.0)
-			_:
-				fish_tex_rect.modulate = Color(1.0, 1.0, 1.0, 1.0)
+		fish_tex_rect.modulate = Color.WHITE
 		
 	size_label.text = "サイズ: " + str(fish_data.get("size", 15.0)) + " cm"
 	
