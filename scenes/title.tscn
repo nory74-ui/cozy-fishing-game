@@ -237,7 +237,7 @@ theme_override_font_sizes/font_size = 15
 text = "1. 探索しよう！
 【WASD】または【矢印キー】でデフォルメされたおじさんを移動。
 小川、池、滝壺など、魚たちが泳ぐ水辺を探そう！"
-autowrap_mode = 2
+autowrap_mode = 3
 
 [node name="Step2" type="Label" parent="CanvasLayer/HelpModal/Card/VBox/Scroll/ContentVBox"]
 layout_mode = 2
@@ -246,7 +246,7 @@ theme_override_font_sizes/font_size = 15
 text = "2. 魚影を狙ってキャスト！
 水辺の魚影の近くにマウスカーソルを合わせ、【左クリック】でウキを投げ入れます。
 魚がウキをつつき、激しく沈んだ【HIT!!】の瞬間にすかさずクリック！"
-autowrap_mode = 2
+autowrap_mode = 3
 
 [node name="Step3" type="Label" parent="CanvasLayer/HelpModal/Card/VBox/Scroll/ContentVBox"]
 layout_mode = 2
@@ -255,7 +255,7 @@ theme_override_font_sizes/font_size = 15
 text = "3. リール巻き上げミニゲーム！
 魚がかかったらファイト開始！ 【マウス左ボタンを長押し】すると緑の枠が右へ動きます。
 暴れる魚を緑枠の中にキープし続け、進行度ゲージを100%まで溜めるとキャッチ！"
-autowrap_mode = 2
+autowrap_mode = 3
 
 [node name="Step4" type="Label" parent="CanvasLayer/HelpModal/Card/VBox/Scroll/ContentVBox"]
 layout_mode = 2
@@ -267,7 +267,7 @@ text = "4. よろず屋で道具を手に入れて開拓！
 ・木こりのオノ: 北の倒木を切り払い「秘密のエメラルド滝壺」へ！
 ・手漕ぎボート: 湖を漕ぎ出して中央の「神秘の孤島」へ！
 強力な釣り竿や良いエサも購入して、大物や主を狙おう！"
-autowrap_mode = 2
+autowrap_mode = 3
 
 [node name="Step5" type="Label" parent="CanvasLayer/HelpModal/Card/VBox/Scroll/ContentVBox"]
 layout_mode = 2
@@ -276,7 +276,7 @@ theme_override_font_sizes/font_size = 15
 text = "5. お魚図鑑をコンプリートしよう！
 全8種類の実在魚を発見しよう！ 【Bキー】または画面左上のボタンでいつでも開けます。
 同じ魚でも大物を釣り上げると自己ベスト記録が更新されるぞ！"
-autowrap_mode = 2
+autowrap_mode = 3
 
 [node name="FishBookModal" type="Control" parent="CanvasLayer"]
 visible = false
@@ -412,7 +412,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.45, 0.5, 0.55, 1)
 theme_override_font_sizes/font_size = 14
 text = "渓流の女王と呼ばれる美しい斑紋の川魚。警戒心が強い。"
-autowrap_mode = 2
+autowrap_mode = 3
 
 [node name="WatercolorOverlay" type="CanvasLayer" parent="."]
 layer = 1

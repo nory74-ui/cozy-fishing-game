@@ -19,6 +19,9 @@ func _ready() -> void:
 	visible = false
 	GameData.apply_pastel_button_style(btn_confirm)
 	btn_confirm.pressed.connect(_on_confirm)
+	if desc_label:
+		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc_label.custom_minimum_size = Vector2(380, 0)
 
 func show_result(fish_data: Dictionary) -> void:
 	current_fish = fish_data
