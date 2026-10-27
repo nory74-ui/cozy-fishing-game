@@ -142,9 +142,20 @@ func _render_sell_tab() -> void:
 		var fish = GameData.inventory[i]
 		var item_panel = _make_item_panel()
 		var hbox = HBoxContainer.new()
+		hbox.add_theme_constant_override("separation", 10)
+		
+		var sp = fish.get("species", "funa")
+		var f_tex = GameData.load_texture("res://assets/fish_side_" + sp + ".png")
+		if f_tex:
+			var icon_rect = TextureRect.new()
+			icon_rect.texture = f_tex
+			icon_rect.custom_minimum_size = Vector2(56, 28)
+			icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			hbox.add_child(icon_rect)
 		
 		var icon_lbl = Label.new()
-		icon_lbl.text = fish.get("name", "魚") + " (" + str(fish.get("size", 15.0)) + "cm)"
+		icon_lbl.text = fish.get("name", "魚") + " (" + str(fish.get("size", 15.0)) + " cm)"
 		icon_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		icon_lbl.add_theme_color_override("font_color", Color("#2b2d42"))
 		hbox.add_child(icon_lbl)

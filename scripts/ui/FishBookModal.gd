@@ -137,11 +137,13 @@ func _refresh_ui() -> void:
 		item_btn.add_theme_stylebox_override("pressed", style)
 		
 		var btn_hbox = HBoxContainer.new()
-		btn_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn_hbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 12)
+		btn_hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		
 		var name_lbl = Label.new()
 		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		name_lbl.add_theme_font_size_override("font_size", 14)
+		name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		name_lbl.add_theme_font_size_override("font_size", 15)
 		
 		if is_discovered:
 			name_lbl.text = base_data.get("name", "魚")
@@ -152,7 +154,9 @@ func _refresh_ui() -> void:
 		btn_hbox.add_child(name_lbl)
 		
 		var max_lbl = Label.new()
-		max_lbl.add_theme_font_size_override("font_size", 13)
+		max_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		max_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		max_lbl.add_theme_font_size_override("font_size", 14)
 		if is_discovered:
 			var max_s = record.get("max_size", 0.0)
 			max_lbl.text = str(max_s) + " cm"
@@ -202,10 +206,12 @@ func _render_detail() -> void:
 		detail_desc.text = base_data.get("desc", "穏やかな水辺に棲む魚。")
 		detail_desc.add_theme_color_override("font_color", Color("#4a4e69"))
 		
-		# イラスト読み込み（全8魚種すべて専用の本格イラストを表示）
-		var tex = GameData.load_texture("res://assets/hd2d_fish_" + selected_species + ".png")
+		# イラスト読み込み（全8魚種すべて専用の本格側面図鑑イラストを表示）
+		var tex = GameData.load_texture("res://assets/fish_side_" + selected_species + ".png")
 		if not tex:
 			tex = GameData.load_texture("res://assets/fish_" + selected_species + ".png")
+		if not tex:
+			tex = GameData.load_texture("res://assets/hd2d_fish_" + selected_species + ".png")
 		if detail_icon:
 			detail_icon.texture = tex
 			detail_icon.modulate = Color.WHITE
@@ -223,6 +229,9 @@ func _render_detail() -> void:
 		detail_desc.text = "まだ釣り上げたことのない魚。道具を手に入れて新たな水辺を探索してみよう！"
 		detail_desc.add_theme_color_override("font_color", Color("#8d99ae"))
 		
+		var sil_tex = GameData.load_texture("res://assets/fish_side_" + selected_species + ".png")
+		if not sil_tex:
+			sil_tex = GameData.load_texture("res://assets/fish_" + selected_species + ".png")
 		if detail_icon:
-			detail_icon.texture = null
-			detail_icon.modulate = Color.WHITE
+			detail_icon.texture = sil_tex
+			detail_icon.modulate = Color(0.18, 0.24, 0.30, 0.32) # 未発見時はその魚種の神秘的な水彩シルエットを表示

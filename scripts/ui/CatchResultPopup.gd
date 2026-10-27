@@ -29,11 +29,13 @@ func show_result(fish_data: Dictionary) -> void:
 	
 	title_label.text = fish_data.get("name", "魚") + " を釣り上げた！"
 	
-	# スプライト画像の読み込み（全8魚種すべて専用の本格イラストを表示）
+	# スプライト画像の読み込み（全8魚種すべて専用の本格側面図鑑イラストを表示）
 	var species = fish_data.get("species", "funa")
-	var tex = GameData.load_texture("res://assets/hd2d_fish_" + species + ".png")
+	var tex = GameData.load_texture("res://assets/fish_side_" + species + ".png")
 	if not tex:
 		tex = GameData.load_texture("res://assets/fish_" + species + ".png")
+	if not tex:
+		tex = GameData.load_texture("res://assets/hd2d_fish_" + species + ".png")
 	if fish_tex_rect:
 		fish_tex_rect.texture = tex
 		fish_tex_rect.modulate = Color.WHITE

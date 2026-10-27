@@ -123,10 +123,9 @@ func _init_title_fishes() -> void:
 	]
 	for cfg in configs:
 		var tex_name = cfg["species"]
-		if tex_name == "golden_koi": tex_name = "koi"
-		elif tex_name == "medaka" or tex_name == "iwana" or tex_name == "rainbow_trout": tex_name = "yamame"
-		
 		var tex = GameData.load_texture("res://assets/hd2d_fish_" + tex_name + ".png")
+		if not tex:
+			tex = GameData.load_texture("res://assets/fish_" + tex_name + ".png")
 		title_fishes.append({
 			"tex": tex,
 			"pos": cfg["pos"],
