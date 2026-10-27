@@ -79,12 +79,24 @@ func _ready() -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg == "--capture-shadows":
 			_run_capture_shadows_test()
+		elif arg == "--capture-save":
+			_run_capture_save_test()
 
 func _run_capture_shadows_test() -> void:
 	await get_tree().create_timer(0.5).timeout
 	var dir_path = "/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/"
 	get_viewport().get_texture().get_image().save_png(dir_path + "view_fish_shadows.png")
 	print("SHADOWS_CAPTURE_SAVED_OK")
+	get_tree().quit()
+
+func _run_capture_save_test() -> void:
+	await get_tree().create_timer(0.4).timeout
+	# セーブボタンを押す
+	hud._on_save_button_pressed()
+	await get_tree().create_timer(0.3).timeout
+	var dir_path = "/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/"
+	get_viewport().get_texture().get_image().save_png(dir_path + "view_save_hud.png")
+	print("SAVE_HUD_CAPTURE_SAVED_OK")
 	get_tree().quit()
 
 func _process(delta: float) -> void:

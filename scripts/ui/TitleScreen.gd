@@ -15,6 +15,7 @@ var petals: Array[Dictionary] = []
 var title_fishes: Array[Dictionary] = []
 
 @onready var btn_start: Button = $CanvasLayer/MenuCard/VBox/BtnStart
+@onready var btn_new_game: Button = $CanvasLayer/MenuCard/VBox/BtnNewGame
 @onready var btn_book: Button = $CanvasLayer/MenuCard/VBox/BtnBook
 @onready var btn_help: Button = $CanvasLayer/MenuCard/VBox/BtnHelp
 @onready var btn_quit: Button = $CanvasLayer/MenuCard/VBox/BtnQuit
@@ -40,9 +41,13 @@ func _ready() -> void:
 		title_logo_rect.texture = GameData.load_texture("res://assets/title_logo.png")
 	
 	btn_start.pressed.connect(_on_start_pressed)
+	if btn_new_game:
+		btn_new_game.pressed.connect(_on_new_game_pressed)
 	btn_book.pressed.connect(_on_book_pressed)
 	btn_help.pressed.connect(_on_help_pressed)
 	btn_quit.pressed.connect(_on_quit_pressed)
+	
+	_update_start_buttons()
 	
 	if help_close_btn:
 		GameData.apply_pastel_button_style(help_close_btn)
@@ -174,8 +179,28 @@ func _unhandled_input(event: InputEvent) -> void:
 			elif fish_book_modal.visible:
 				fish_book_modal.close_book()
 
+func _update_start_buttons() -> void:
+	var has_save = GameData.has_save_file()
+	if btn_start:
+		btn_start.disabled = not has_save
+		if has_save:
+			btn_start.text = "つづきから"
+		else:
+			btn_start.text = "つづきから (データなし)"
+	if btn_new_game:
+		btn_new_game.text = "はじめから"
+
 func _on_start_pressed() -> void:
 	if is_transitioning: return
+	GameData.load_game()
+	SoundManager.play_sfx("coin", 0.05, 2.0)
+	SoundManager.stop_bgm(0.8)
+	is_transitioning = true
+	fade_alpha = 0.0
+
+func _on_new_game_pressed() -> void:
+	if is_transitioning: return
+	GameData.reset_save_data()
 	SoundManager.play_sfx("coin", 0.05, 2.0)
 	SoundManager.stop_bgm(0.8)
 	is_transitioning = true

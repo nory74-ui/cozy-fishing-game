@@ -105,6 +105,7 @@ func _start_ride(to_island: bool) -> void:
 func _finish_ride() -> void:
 	is_riding = false
 	GameData.is_on_island = heading_to_island
+	GameData.save_game()
 	SoundManager.play_sfx("cast", 0.12, -3.0)
 	
 	if player_node:

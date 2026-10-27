@@ -10,6 +10,7 @@ signal open_book_requested()
 @onready var stats_label: Label = $Card/VBox/HBoxStats/StatsLabel
 @onready var btn_book: Button = $Card/VBox/HBoxStats/BookButton
 @onready var btn_shop: Button = $Card/VBox/HBoxStats/ShopButton
+@onready var btn_save: Button = $Card/VBox/HBoxStats/SaveButton
 @onready var btn_title: Button = $Card/VBox/HBoxStats/TitleButton
 
 func _ready() -> void:
@@ -24,9 +25,13 @@ func _ready() -> void:
 	if btn_book:
 		_apply_pastel_btn_style(btn_book)
 		btn_book.pressed.connect(func(): open_book_requested.emit())
+	if btn_save:
+		_apply_pastel_btn_style(btn_save)
+		btn_save.pressed.connect(_on_save_button_pressed)
 	if btn_title:
 		_apply_pastel_btn_style(btn_title)
 		btn_title.pressed.connect(func():
+			GameData.save_game()
 			SoundManager.play_sfx("coin")
 			SoundManager.stop_bgm(0.5)
 			get_tree().change_scene_to_file("res://scenes/title.tscn")
@@ -34,6 +39,14 @@ func _ready() -> void:
 		
 	update_stats()
 	set_status("水辺を探して、魚影の近くにウキを投げてみよう")
+
+func _on_save_button_pressed() -> void:
+	var success = GameData.save_game()
+	if success:
+		SoundManager.play_sfx("coin", 0.05, 1.5)
+		set_status("セーブ完了！冒険の記録を保存しました", false)
+	else:
+		set_status("セーブに失敗しました", true)
 
 func _apply_pastel_btn_style(btn: Button) -> void:
 	var st_n = StyleBoxFlat.new()

@@ -207,7 +207,7 @@ script = ExtResource("6_hud")
 layout_mode = 0
 offset_left = 24.0
 offset_top = 24.0
-offset_right = 660.0
+offset_right = 730.0
 offset_bottom = 180.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_hud")
 
@@ -239,6 +239,10 @@ text = "図鑑 [B]"
 [node name="ShopButton" type="Button" parent="CanvasLayer/Step1HUD/Card/VBox/HBoxStats"]
 layout_mode = 2
 text = "よろず屋"
+
+[node name="SaveButton" type="Button" parent="CanvasLayer/Step1HUD/Card/VBox/HBoxStats"]
+layout_mode = 2
+text = "セーブ"
 
 [node name="TitleButton" type="Button" parent="CanvasLayer/Step1HUD/Card/VBox/HBoxStats"]
 layout_mode = 2

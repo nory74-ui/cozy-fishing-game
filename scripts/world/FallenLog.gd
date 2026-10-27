@@ -70,6 +70,8 @@ func _start_destroy_effect() -> void:
 	is_destroying = true
 	destroy_timer = 0.0
 	SoundManager.play_sfx("hit", 0.05, 2.0)
+	GameData.is_log_cleared = true
+	GameData.save_game()
 	if prompt_label:
 		prompt_label.visible = false
 		

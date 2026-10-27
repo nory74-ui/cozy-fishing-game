@@ -34,6 +34,12 @@ var has_boat: bool = false  # 手漕ぎボート（湖の沖へ出られる）
 var is_log_cleared: bool = false # 倒木が破壊されたか
 var is_on_island: bool = false   # 孤島にいるか
 
+# セーブファイルパス (Web/Local両対応のuser://)
+const SAVE_PATH = "user://save_data.json"
+
+signal game_saved()
+signal game_loaded()
+
 # --- マスターデータ ---
 
 # 釣り竿カタログ
@@ -210,7 +216,7 @@ const FISH_DATABASE: Dictionary = {
 }
 
 func _ready() -> void:
-	pass
+	load_game()
 
 # 外部画像ロードヘルパー
 static func load_texture(res_path: String) -> Texture2D:
@@ -278,11 +284,13 @@ static func apply_pastel_button_style(btn: Button) -> void:
 func add_coins(amount: int) -> void:
 	coins += amount
 	coins_changed.emit(coins)
+	save_game()
 
 func spend_coins(cost: int) -> bool:
 	if coins >= cost:
 		coins -= cost
 		coins_changed.emit(coins)
+		save_game()
 		return true
 	return false
 
@@ -290,6 +298,7 @@ func spend_coins(cost: int) -> bool:
 func add_caught_fish(fish_dict: Dictionary) -> void:
 	inventory.append(fish_dict)
 	inventory_changed.emit()
+	save_game()
 
 func sell_fish_at(index: int) -> int:
 	if index < 0 or index >= inventory.size():
@@ -300,6 +309,7 @@ func sell_fish_at(index: int) -> int:
 	add_coins(price)
 	inventory_changed.emit()
 	SoundManager.play_sfx("coin", 0.08)
+	save_game()
 	return price
 
 func sell_all_fish() -> int:
@@ -311,6 +321,7 @@ func sell_all_fish() -> int:
 	inventory_changed.emit()
 	if total > 0:
 		SoundManager.play_sfx("coin", 0.05, 2.0)
+	save_game()
 	return total
 
 # 道具・竿・エサ購入
@@ -325,6 +336,7 @@ func buy_tool(tool_id: String) -> bool:
 		SoundManager.play_sfx("coin", 0.05)
 		tool_unlocked.emit(tool_id)
 		equipment_changed.emit()
+		save_game()
 		return true
 	return false
 
@@ -340,6 +352,7 @@ func buy_rod(rod_id: String) -> bool:
 		current_rod = rod_id
 		SoundManager.play_sfx("coin", 0.05, -2.0)
 		equipment_changed.emit()
+		save_game()
 		return true
 	var data = RODS.get(rod_id)
 	if data and spend_coins(data.price):
@@ -347,6 +360,7 @@ func buy_rod(rod_id: String) -> bool:
 		current_rod = rod_id
 		SoundManager.play_sfx("coin", 0.05)
 		equipment_changed.emit()
+		save_game()
 		return true
 	return false
 
@@ -355,6 +369,7 @@ func equip_rod(rod_id: String) -> void:
 		current_rod = rod_id
 		SoundManager.play_sfx("coin", 0.08, -3.0)
 		equipment_changed.emit()
+		save_game()
 
 func buy_bait(bait_id: String) -> bool:
 	var data = BAITS.get(bait_id)
@@ -363,6 +378,7 @@ func buy_bait(bait_id: String) -> bool:
 		current_bait = bait_id
 		SoundManager.play_sfx("coin", 0.06)
 		equipment_changed.emit()
+		save_game()
 		return true
 	return false
 
@@ -371,6 +387,7 @@ func equip_bait(bait_id: String) -> void:
 		current_bait = bait_id
 		SoundManager.play_sfx("coin", 0.08, -3.0)
 		equipment_changed.emit()
+		save_game()
 
 func get_current_bait_boost() -> float:
 	if bait_counts.get(current_bait, 0) > 0:
@@ -388,6 +405,7 @@ func consume_current_bait() -> float:
 					current_bait = k
 					break
 		equipment_changed.emit()
+		save_game()
 	return boost
 
 # --- ★図鑑・釣果記録システム ---
@@ -409,6 +427,7 @@ func record_fish_catch(species: String, size: float) -> Dictionary:
 			is_new_record = true
 			
 	book_updated.emit(species, is_first, is_new_record)
+	save_game()
 	return {
 		"is_first": is_first,
 		"is_new_record": is_new_record
@@ -419,3 +438,138 @@ func get_discovered_count() -> int:
 
 func get_total_species_count() -> int:
 	return FISH_DATABASE.size()
+
+# --- ★セーブ＆ロード機能 (Web/Local両対応) ---
+
+func save_game() -> bool:
+	var save_dict = {
+		"version": 1,
+		"coins": coins,
+		"current_rod": current_rod,
+		"current_bait": current_bait,
+		"inventory": inventory,
+		"unlocked_rods": unlocked_rods,
+		"bait_counts": bait_counts,
+		"fish_records": fish_records,
+		"has_boots": has_boots,
+		"has_axe": has_axe,
+		"has_boat": has_boat,
+		"is_log_cleared": is_log_cleared,
+		"is_on_island": is_on_island
+	}
+	
+	var json_str = JSON.stringify(save_dict)
+	var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if not file:
+		push_warning("Failed to open save file for writing: " + SAVE_PATH)
+		return false
+		
+	file.store_string(json_str)
+	file.close()
+	game_saved.emit()
+	return true
+
+func load_game() -> bool:
+	if not has_save_file():
+		return false
+		
+	var file = FileAccess.open(SAVE_PATH, FileAccess.READ)
+	if not file:
+		return false
+		
+	var json_str = file.get_as_text()
+	file.close()
+	
+	var json = JSON.new()
+	var parse_err = json.parse(json_str)
+	if parse_err != OK:
+		push_warning("Failed to parse save file JSON: " + json.get_error_message())
+		return false
+		
+	var data = json.get_data()
+	if typeof(data) != TYPE_DICTIONARY:
+		return false
+		
+	# データを復元
+	coins = data.get("coins", 60)
+	current_rod = data.get("current_rod", "branch_rod")
+	current_bait = data.get("current_bait", "worm")
+	
+	# インベントリ
+	inventory.clear()
+	var raw_inv = data.get("inventory", [])
+	if typeof(raw_inv) == TYPE_ARRAY:
+		for item in raw_inv:
+			if typeof(item) == TYPE_DICTIONARY:
+				inventory.append(item)
+				
+	# 解放済みの竿
+	var raw_rods = data.get("unlocked_rods", ["branch_rod"])
+	if typeof(raw_rods) == TYPE_ARRAY:
+		unlocked_rods.clear()
+		for rod in raw_rods:
+			unlocked_rods.append(str(rod))
+	if unlocked_rods.is_empty():
+		unlocked_rods.append("branch_rod")
+		
+	# エサ所持数
+	var raw_baits = data.get("bait_counts", {})
+	if typeof(raw_baits) == TYPE_DICTIONARY:
+		for k in ["worm", "dumpling", "lure"]:
+			bait_counts[k] = int(raw_baits.get(k, 0))
+			
+	# 図鑑記録
+	fish_records.clear()
+	var raw_records = data.get("fish_records", {})
+	if typeof(raw_records) == TYPE_DICTIONARY:
+		for sp_key in raw_records.keys():
+			var rec_data = raw_records[sp_key]
+			if typeof(rec_data) == TYPE_DICTIONARY:
+				fish_records[sp_key] = {
+					"caught_count": int(rec_data.get("caught_count", 1)),
+					"max_size": float(rec_data.get("max_size", 0.0))
+				}
+				
+	# 探索道具
+	has_boots = bool(data.get("has_boots", false))
+	has_axe = bool(data.get("has_axe", false))
+	has_boat = bool(data.get("has_boat", false))
+	
+	# ギミック
+	is_log_cleared = bool(data.get("is_log_cleared", false))
+	is_on_island = bool(data.get("is_on_island", false))
+	
+	# 全シグナルを発行してUIと同期
+	coins_changed.emit(coins)
+	inventory_changed.emit()
+	equipment_changed.emit()
+	game_loaded.emit()
+	return true
+
+func has_save_file() -> bool:
+	return FileAccess.file_exists(SAVE_PATH)
+
+func reset_save_data() -> void:
+	if FileAccess.file_exists(SAVE_PATH):
+		DirAccess.remove_absolute(SAVE_PATH)
+	coins = 60
+	current_rod = "branch_rod"
+	current_bait = "worm"
+	inventory.clear()
+	unlocked_rods = ["branch_rod"]
+	bait_counts = {
+		"worm": 5,
+		"dumpling": 0,
+		"lure": 0
+	}
+	fish_records.clear()
+	has_boots = false
+	has_axe = false
+	has_boat = false
+	is_log_cleared = false
+	is_on_island = false
+	
+	coins_changed.emit(coins)
+	inventory_changed.emit()
+	equipment_changed.emit()
+	save_game()
