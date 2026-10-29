@@ -148,7 +148,7 @@ func _run_capture_beach_test() -> void:
 func _run_capture_casting_test() -> void:
 	await get_tree().create_timer(0.3).timeout
 	# プレイヤーの正面・海面に向かってキャスト
-	var cast_target = Vector2(580, 340)
+	var cast_target = Vector2(520, 360)
 	_on_player_cast(cast_target)
 	await get_tree().create_timer(0.5).timeout
 	var dir_path = "/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/"

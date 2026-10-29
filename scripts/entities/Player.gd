@@ -213,8 +213,8 @@ func _draw_ojisan_down(step: int, bob_y: float) -> void:
 	var skin_col = Color("#fcd5ce")     # やさしい肌色
 	var mustache_col = Color("#f8f9fa") # ふさふさの白い口ひげ
 	var nose_col = Color("#e76f51")     # 赤い丸鼻
-	var hat_col = Color("#ccd5ae")      # パステルカーキのバケットハット
-	var ribbon_col = Color("#d4a373")
+	var hat_col = Color("#e9c46a")      # 麦わら帽子（ストローハット）
+	var ribbon_col = Color("#264653")
 
 	# 短い足のパタパタ歩行
 	var l_foot_y = 13.0
@@ -291,8 +291,8 @@ func _draw_ojisan_up(step: int, bob_y: float) -> void:
 	var boot_col = _get_boot_color()
 	var overalls_col = Color("#2a6f97")
 	var shirt_col = Color("#e9c46a")
-	var hat_col = Color("#ccd5ae")
-	var ribbon_col = Color("#d4a373")
+	var hat_col = Color("#e9c46a")
+	var ribbon_col = Color("#264653")
 
 	var l_foot_y = 13.0
 	var r_foot_y = 13.0
@@ -340,8 +340,8 @@ func _draw_ojisan_side(step: int, bob_y: float, flip: bool) -> void:
 	var skin_col = Color("#fcd5ce")
 	var mustache_col = Color("#f8f9fa")
 	var nose_col = Color("#e76f51")
-	var hat_col = Color("#ccd5ae")
-	var ribbon_col = Color("#d4a373")
+	var hat_col = Color("#e9c46a")
+	var ribbon_col = Color("#264653")
 
 	var sgn = -1.0 if flip else 1.0
 
