@@ -4,6 +4,7 @@
 [ext_resource type="Material" path="res://assets/shaders/beach_water_mat.tres" id="2_water_mat"]
 [ext_resource type="FontFile" path="res://assets/fonts/ZenMaruGothic-Medium.ttf" id="3_font"]
 [ext_resource type="Script" path="res://scripts/ui/FishBookModal.gd" id="4_book"]
+[ext_resource type="Texture2D" path="res://assets/palm_tree_hd.png" id="5_palm"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_quest_card"]
 bg_color = Color(0.98, 0.96, 0.92, 0.96)
@@ -129,6 +130,16 @@ custom_minimum_size = Vector2(1152, 648)
 offset_right = 1152.0
 offset_bottom = 648.0
 mouse_filter = 2
+
+[node name="PalmTree" type="TextureRect" parent="."]
+offset_left = 790.0
+offset_top = 150.0
+offset_right = 1130.0
+offset_bottom = 570.0
+mouse_filter = 2
+texture = ExtResource("5_palm")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 layer = 5

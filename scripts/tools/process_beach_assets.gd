@@ -13,6 +13,8 @@ func _init() -> void:
 	process_white_transparent(brain_dir + "palm_tree_1793277330888.jpg", assets_dir + "palm_tree.png", 0.94, 0.985)
 	process_white_transparent(brain_dir + "coral_seaweed_1793277347235.jpg", assets_dir + "coral_seaweed.png", 0.94, 0.985)
 	process_white_transparent(brain_dir + "mussel_bait_1793277365438.jpg", assets_dir + "mussel_bait.png", 0.94, 0.985)
+	process_white_transparent(brain_dir + "madai_red_sea_bream_png_1793302303892.jpg", assets_dir + "fish_side_madai.png", 0.92, 0.97)
+	process_white_transparent(brain_dir + "madai_red_sea_bream_png_1793302303892.jpg", assets_dir + "fish_madai.png", 0.92, 0.97)
 	
 	# 2. 動画の宝箱アイコンの抽出と透過
 	extract_and_process_chest(brain_dir + "ui_bottom_right.png", assets_dir + "chest_icon.png")

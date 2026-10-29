@@ -13,6 +13,9 @@ extends Node2D
 signal shop_interacted()
 
 var tex_crab: Texture2D
+var tex_palm: Texture2D
+var tex_coral: Texture2D
+var tex_shack: Texture2D
 var time_counter: float = 0.0
 
 # カニたちの動的データ
@@ -44,6 +47,9 @@ var slope_walk_poly: PackedVector2Array = PackedVector2Array([
 
 func _ready() -> void:
 	tex_crab = GameData.load_texture("res://assets/beach_crab.png")
+	tex_palm = GameData.load_texture("res://assets/palm_tree_hd.png")
+	tex_coral = GameData.load_texture("res://assets/coral_seaweed_hd.png")
+	tex_shack = GameData.load_texture("res://assets/beach_shack_building.png")
 	_init_crabs()
 	_init_butterflies()
 
@@ -221,25 +227,33 @@ func _draw_seabed_details() -> void:
 		draw_ellipse(r, 12.0, 7.5, Color(0.68, 0.72, 0.65, 0.75))
 		draw_ellipse(r + Vector2(-2, -2), 8.0, 4.5, Color(0.82, 0.86, 0.78, 0.80))
 
-	# B. 動画完全再現：鮮やかなサンゴ風海草（紫・マゼンタ・ピンクの美しい海藻）
-	var coral_positions = [
-		Vector2(85, 480), Vector2(125, 520), Vector2(165, 460), Vector2(105, 430)
-	]
-	var coral_base = Color(0.55, 0.18, 0.45, 0.75)
-	var coral_light = Color(0.85, 0.35, 0.65, 0.85)
-	for cp in coral_positions:
-		var sway = sin(time_counter * 1.5 + cp.x) * 4.0
-		draw_circle(cp + Vector2(2, 3), 6.0, Color(0.1, 0.2, 0.2, 0.3))
-		for j in range(5):
-			var a = j * (TAU / 5.0) + time_counter * 0.2
-			var petal_pos = cp + Vector2(cos(a) * 11.0 + sway * 0.5, sin(a) * 8.0)
-			draw_circle(petal_pos, 7.0, coral_base)
-			draw_circle(petal_pos + Vector2(-1, -1), 4.5, coral_light)
-		draw_circle(cp + Vector2(sway * 0.3, 0), 6.0, Color(0.95, 0.60, 0.75, 0.90))
+	# B. 動画完全再現：海底に息づく鮮やかなサンゴ礁・イソギンチャク・海藻（HDテクスチャ）
+	if tex_coral:
+		var c_rect = Rect2(45, 410, 215, 192)
+		var sway_c = sin(time_counter * 1.2) * 2.0
+		# 水底の影
+		draw_texture_rect(tex_coral, Rect2(c_rect.position + Vector2(6, 10), c_rect.size), false, Color(0.08, 0.18, 0.22, 0.40))
+		# 水深による自然なエメラルド透過（水中に沈んでいるリアル感）
+		draw_texture_rect(tex_coral, Rect2(c_rect.position + Vector2(sway_c * 0.5, 0), c_rect.size), false, Color(0.88, 0.94, 0.98, 0.82))
+	else:
+		var coral_positions = [
+			Vector2(85, 480), Vector2(125, 520), Vector2(165, 460), Vector2(105, 430)
+		]
+		var coral_base = Color(0.55, 0.18, 0.45, 0.75)
+		var coral_light = Color(0.85, 0.35, 0.65, 0.85)
+		for cp in coral_positions:
+			var sway = sin(time_counter * 1.5 + cp.x) * 4.0
+			draw_circle(cp + Vector2(2, 3), 6.0, Color(0.1, 0.2, 0.2, 0.3))
+			for j in range(5):
+				var a = j * (TAU / 5.0) + time_counter * 0.2
+				var petal_pos = cp + Vector2(cos(a) * 11.0 + sway * 0.5, sin(a) * 8.0)
+				draw_circle(petal_pos, 7.0, coral_base)
+				draw_circle(petal_pos + Vector2(-1, -1), 4.5, coral_light)
+			draw_circle(cp + Vector2(sway * 0.3, 0), 6.0, Color(0.95, 0.60, 0.75, 0.90))
 
 	# C. 動画完全再現：丸いスイレン風浮草・緑のリーフパッド
 	var lily_positions = [
-		Vector2(135, 410), Vector2(185, 440), Vector2(225, 400), Vector2(160, 460)
+		Vector2(145, 395), Vector2(195, 425), Vector2(235, 385), Vector2(170, 445)
 	]
 	var lily_dark = Color(0.15, 0.45, 0.28, 0.80)
 	var lily_light = Color(0.35, 0.78, 0.45, 0.90)
@@ -361,35 +375,42 @@ func _draw_isometric_pier_and_shack() -> void:
 	draw_line(Vector2(0, 95), Vector2(330, 140), Color(0.50, 0.34, 0.20, 1.0), 3.0)
 
 	# C. アイソメトリック釣り小屋（Beach Shack 本体：左上）
-	# 小屋の影
-	draw_rect(Rect2(25, 48, 130, 85), Color(0.15, 0.15, 0.15, 0.35))
-	
-	# 小屋の壁面
-	var shack_rect = Rect2(15, 40, 130, 85)
-	draw_rect(shack_rect, Color(0.70, 0.50, 0.34, 1.0))
-	draw_rect(Rect2(19, 43, 122, 78), Color(0.82, 0.64, 0.46, 1.0))
-	for x in range(30, 140, 14):
-		draw_line(Vector2(x, 43), Vector2(x, 121), Color(0.62, 0.44, 0.28, 0.7), 1.2)
-	
-	# 青い木製ドア
-	var door_rect = Rect2(60, 75, 30, 48)
-	draw_rect(door_rect, Color(0.24, 0.48, 0.65, 1.0))
-	draw_rect(Rect2(62, 77, 26, 44), Color(0.34, 0.60, 0.78, 1.0))
-	draw_circle(Vector2(65, 99), 2.2, Color(0.95, 0.85, 0.40, 1.0))
+	if tex_shack:
+		# 小屋の自然な接地影
+		draw_ellipse(Vector2(78, 120), 72.0, 18.0, Color(0.12, 0.16, 0.18, 0.32))
+		# 美麗木造釣り小屋イラスト（建物・オーニング・煙突・木箱・樽）
+		var shack_draw_rect = Rect2(-6, 2, 168, 122)
+		draw_texture_rect(tex_shack, shack_draw_rect, false)
+	else:
+		# 小屋の影
+		draw_rect(Rect2(25, 48, 130, 85), Color(0.15, 0.15, 0.15, 0.35))
+		
+		# 小屋の壁面
+		var shack_rect = Rect2(15, 40, 130, 85)
+		draw_rect(shack_rect, Color(0.70, 0.50, 0.34, 1.0))
+		draw_rect(Rect2(19, 43, 122, 78), Color(0.82, 0.64, 0.46, 1.0))
+		for x in range(30, 140, 14):
+			draw_line(Vector2(x, 43), Vector2(x, 121), Color(0.62, 0.44, 0.28, 0.7), 1.2)
+		
+		# 青い木製ドア
+		var door_rect = Rect2(60, 75, 30, 48)
+		draw_rect(door_rect, Color(0.24, 0.48, 0.65, 1.0))
+		draw_rect(Rect2(62, 77, 26, 44), Color(0.34, 0.60, 0.78, 1.0))
+		draw_circle(Vector2(65, 99), 2.2, Color(0.95, 0.85, 0.40, 1.0))
 
-	# 小屋の立体屋根（庇）
-	var roof_poly = PackedVector2Array([
-		Vector2(8, 43), Vector2(155, 43), Vector2(145, 28), Vector2(18, 28)
-	])
-	draw_colored_polygon(roof_poly, Color(0.52, 0.30, 0.18, 1.0))
-	draw_line(Vector2(8, 43), Vector2(155, 43), Color(0.38, 0.22, 0.12, 1.0), 2.5)
+		# 小屋の立体屋根（庇）
+		var roof_poly = PackedVector2Array([
+			Vector2(8, 43), Vector2(155, 43), Vector2(145, 28), Vector2(18, 28)
+		])
+		draw_colored_polygon(roof_poly, Color(0.52, 0.30, 0.18, 1.0))
+		draw_line(Vector2(8, 43), Vector2(155, 43), Color(0.38, 0.22, 0.12, 1.0), 2.5)
 
-	# 救命浮輪
-	var r_center = Vector2(118, 72)
-	draw_circle(r_center, 9.0, Color(0.92, 0.30, 0.18, 1.0))
-	draw_circle(r_center, 4.5, Color(0.82, 0.64, 0.46, 1.0))
-	draw_circle(r_center + Vector2(-4, 0), 2.5, Color(1.0, 1.0, 1.0, 0.95))
-	draw_circle(r_center + Vector2(4, 0), 2.5, Color(1.0, 1.0, 1.0, 0.95))
+		# 救命浮輪
+		var r_center = Vector2(118, 72)
+		draw_circle(r_center, 9.0, Color(0.92, 0.30, 0.18, 1.0))
+		draw_circle(r_center, 4.5, Color(0.82, 0.64, 0.46, 1.0))
+		draw_circle(r_center + Vector2(-4, 0), 2.5, Color(1.0, 1.0, 1.0, 0.95))
+		draw_circle(r_center + Vector2(4, 0), 2.5, Color(1.0, 1.0, 1.0, 0.95))
 
 	# D. デッキ上の小物（立体木箱、樽、漁網）
 	# 木製樽
@@ -464,19 +485,47 @@ func _draw_slope() -> void:
 # レイヤー 4: 砂浜の自然（海岸の大岩、ヤシの木、ソフトシャドウ、貝殻）
 # -----------------------------------------------------------------------------
 func _draw_beach_nature() -> void:
-	# A. 動画完全再現：プレイヤー右側の海岸大岩（Beach Boulder: 立体球体描画）
+	# A. 動画完全再現：プレイヤー右側の海岸大岩（Beach Boulder: 立体岩肌・ハイライト・凹凸）
 	var b_pos = Vector2(725, 275)
-	draw_ellipse(b_pos + Vector2(8, 12), 26.0, 14.0, Color(0.18, 0.20, 0.16, 0.35))
-	draw_ellipse(b_pos, 24.0, 17.0, Color(0.55, 0.58, 0.60, 1.0))
-	draw_ellipse(b_pos + Vector2(-3, -3), 19.0, 13.0, Color(0.72, 0.75, 0.77, 1.0))
-	draw_ellipse(b_pos + Vector2(-7, -6), 11.0, 7.5, Color(0.86, 0.88, 0.90, 1.0))
+	# 砂浜に落ちる岩の接地影
+	draw_ellipse(b_pos + Vector2(10, 14), 28.0, 15.0, Color(0.18, 0.20, 0.16, 0.38))
+	# 岩の自然な非対称ポリゴン輪郭
+	var rock_pts = PackedVector2Array([
+		b_pos + Vector2(-22, 5),
+		b_pos + Vector2(-18, -12),
+		b_pos + Vector2(-6, -18),
+		b_pos + Vector2(12, -16),
+		b_pos + Vector2(24, -4),
+		b_pos + Vector2(25, 10),
+		b_pos + Vector2(14, 18),
+		b_pos + Vector2(-10, 17)
+	])
+	draw_colored_polygon(rock_pts, Color(0.48, 0.52, 0.54, 1.0))
+	# 岩の上面ハイライト面
+	var rock_light_pts = PackedVector2Array([
+		b_pos + Vector2(-16, -2),
+		b_pos + Vector2(-14, -12),
+		b_pos + Vector2(-4, -16),
+		b_pos + Vector2(8, -14),
+		b_pos + Vector2(16, -6),
+		b_pos + Vector2(6, 2),
+		b_pos + Vector2(-8, 4)
+	])
+	draw_colored_polygon(rock_light_pts, Color(0.72, 0.76, 0.78, 1.0))
+	# 最上部の光沢スペキュラ
+	draw_ellipse(b_pos + Vector2(-5, -8), 9.0, 5.0, Color(0.88, 0.91, 0.93, 0.95))
+	# 岩の亀裂（ひび割れライン）
+	draw_line(b_pos + Vector2(-8, -4), b_pos + Vector2(4, 6), Color(0.32, 0.35, 0.38, 0.8), 1.6)
+	draw_line(b_pos + Vector2(4, 6), b_pos + Vector2(14, 10), Color(0.32, 0.35, 0.38, 0.8), 1.4)
+	# 潮だまり・海苔の湿り気
+	draw_line(b_pos + Vector2(-16, 12), b_pos + Vector2(8, 16), Color(0.25, 0.38, 0.28, 0.6), 2.5)
 
 	# B. 動画完全再現：砂浜の立派なヤシの木 ＆ 砂浜に斜めに広がる葉のソフトシャドウ
 	var palm_base = Vector2(980, 420)
 	var palm_crown = Vector2(930, 230)
 	
 	# 1. 砂浜に落ちるヤシの木の葉の影（動画のように左側へ斜めに柔らかく広がるソフトシャドウ）
-	var shadow_origin = palm_base + Vector2(-120, -25)
+	var shadow_origin = palm_base + Vector2(-110, -25)
 	draw_line(palm_base, shadow_origin, Color(0.18, 0.20, 0.16, 0.24), 16.0)
 	
 	for i in range(7):
@@ -494,53 +543,59 @@ func _draw_beach_nature() -> void:
 		])
 		draw_colored_polygon(s_poly, Color(0.14, 0.17, 0.13, 0.18))
 
-	# 2. ヤシの木の幹（クォータービューで立体的に立ち上がる幹）
-	var trunk_pts = [
-		palm_base, Vector2(965, 360), Vector2(945, 295), palm_crown
-	]
-	for k in range(trunk_pts.size() - 1):
-		var p1 = trunk_pts[k]
-		var p2 = trunk_pts[k + 1]
-		draw_line(p1, p2, Color(0.42, 0.28, 0.18, 1.0), 22.0 - k * 3.0)
-		draw_line(p1 - Vector2(2, 0), p2 - Vector2(2, 0), Color(0.65, 0.48, 0.32, 1.0), 10.0)
-		draw_circle(p1, 11.0 - k * 1.5, Color(0.32, 0.20, 0.12, 1.0))
+	# 2. ヤシの木本体（HDイラストレーションまたはポリゴンフォールバック）
+	if tex_palm:
+		# 手描き風美麗HDヤシの木（ココナッツ・豊かな葉・南国の花）
+		var palm_rect = Rect2(775, 145, 345, 442)
+		draw_texture_rect(tex_palm, palm_rect, false)
+	else:
+		# ヤシの木の幹（クォータービューで立体的に立ち上がる幹）
+		var trunk_pts = [
+			palm_base, Vector2(965, 360), Vector2(945, 295), palm_crown
+		]
+		for k in range(trunk_pts.size() - 1):
+			var p1 = trunk_pts[k]
+			var p2 = trunk_pts[k + 1]
+			draw_line(p1, p2, Color(0.42, 0.28, 0.18, 1.0), 22.0 - k * 3.0)
+			draw_line(p1 - Vector2(2, 0), p2 - Vector2(2, 0), Color(0.65, 0.48, 0.32, 1.0), 10.0)
+			draw_circle(p1, 11.0 - k * 1.5, Color(0.32, 0.20, 0.12, 1.0))
 
-	# 3. 豊かなヤシの葉（動画のようなふんわりとリッチな扇状ポリゴン葉）
-	var leaf_dark = Color(0.14, 0.40, 0.18, 0.98)
-	var leaf_mid = Color(0.24, 0.58, 0.24, 0.98)
-	var leaf_bright = Color(0.48, 0.82, 0.32, 0.98)
-	
-	for i in range(8):
-		var base_angle = i * (PI / 4.0) - 1.25
-		var leaf_len = 125.0 + (i % 3) * 18.0
-		var curve_pt = palm_crown + Vector2(cos(base_angle) * (leaf_len * 0.55), sin(base_angle) * (leaf_len * 0.45) + 12.0)
-		var end_pt = palm_crown + Vector2(cos(base_angle) * leaf_len, sin(base_angle) * leaf_len * 0.75 + 28.0)
-		var perp_dir = Vector2(-sin(base_angle), cos(base_angle))
+		# 豊かなヤシの葉（動画のようなふんわりとリッチな扇状ポリゴン葉）
+		var leaf_dark = Color(0.14, 0.40, 0.18, 0.98)
+		var leaf_mid = Color(0.24, 0.58, 0.24, 0.98)
+		var leaf_bright = Color(0.48, 0.82, 0.32, 0.98)
 		
-		var leaf_poly_dark = PackedVector2Array([
-			palm_crown,
-			curve_pt + perp_dir * 22.0,
-			end_pt,
-			curve_pt - perp_dir * 10.0
-		])
-		draw_colored_polygon(leaf_poly_dark, leaf_dark)
+		for i in range(8):
+			var base_angle = i * (PI / 4.0) - 1.25
+			var leaf_len = 125.0 + (i % 3) * 18.0
+			var curve_pt = palm_crown + Vector2(cos(base_angle) * (leaf_len * 0.55), sin(base_angle) * (leaf_len * 0.45) + 12.0)
+			var end_pt = palm_crown + Vector2(cos(base_angle) * leaf_len, sin(base_angle) * leaf_len * 0.75 + 28.0)
+			var perp_dir = Vector2(-sin(base_angle), cos(base_angle))
+			
+			var leaf_poly_dark = PackedVector2Array([
+				palm_crown,
+				curve_pt + perp_dir * 22.0,
+				end_pt,
+				curve_pt - perp_dir * 10.0
+			])
+			draw_colored_polygon(leaf_poly_dark, leaf_dark)
 
-		var leaf_poly_light = PackedVector2Array([
-			palm_crown,
-			curve_pt + perp_dir * 18.0,
-			end_pt,
-			curve_pt + perp_dir * 2.0
-		])
-		draw_colored_polygon(leaf_poly_light, leaf_bright)
+			var leaf_poly_light = PackedVector2Array([
+				palm_crown,
+				curve_pt + perp_dir * 18.0,
+				end_pt,
+				curve_pt + perp_dir * 2.0
+			])
+			draw_colored_polygon(leaf_poly_light, leaf_bright)
 
-		draw_line(palm_crown, curve_pt, leaf_mid, 3.5)
-		draw_line(curve_pt, end_pt, leaf_bright, 2.0)
-		
-		for step in range(2, 7):
-			var t = float(step) / 7.0
-			var stem_pos = lerp(palm_crown, end_pt, t)
-			var side_v = perp_dir * (24.0 * (1.0 - t * 0.4))
-			draw_line(stem_pos, stem_pos + side_v + Vector2(0, 5.0), leaf_mid, 1.8)
+			draw_line(palm_crown, curve_pt, leaf_mid, 3.5)
+			draw_line(curve_pt, end_pt, leaf_bright, 2.0)
+			
+			for step in range(2, 7):
+				var t = float(step) / 7.0
+				var stem_pos = lerp(palm_crown, end_pt, t)
+				var side_v = perp_dir * (24.0 * (1.0 - t * 0.4))
+				draw_line(stem_pos, stem_pos + side_v + Vector2(0, 5.0), leaf_mid, 1.8)
 
 	# C. 砂浜の白砂に散らばる小石、桜貝
 	var beach_pebbles = [

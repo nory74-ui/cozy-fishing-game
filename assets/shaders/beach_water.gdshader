@@ -148,36 +148,44 @@ void fragment() {
     }
     
     // ----------------------------------------------------
-    // 6. 斜めの砂浜に打ち寄せる白波（動画通りの極細で繊細な白波泡ライン）
+    // 6. 斜めの砂浜に打ち寄せる白波（動画通りの極細で繊細な白波泡ライン＆レース気泡）
     // ----------------------------------------------------
     // 主波（水面の最先端を走る極細の白波ライン）
     float foam1_edge = 0.0;
-    if (water_dist < 0.0 && water_dist > -0.0035) {
-        foam1_edge = smoothstep(-0.0035, -0.0005, water_dist);
+    if (water_dist < 0.0 && water_dist > -0.0045) {
+        foam1_edge = smoothstep(-0.0045, -0.0005, water_dist);
     }
     
     // 副波（少し遅れて引いていく第2波の極細レースライン）
     float wave2_phase = sin(wave_cycle - 1.4);
-    float wave2_pos = water_line - 0.022 + wave2_phase * 0.008;
+    float wave2_pos = water_line - 0.024 + wave2_phase * 0.009;
     float foam2_dist = abs(uv.x - wave2_pos);
-    float foam2_edge = smoothstep(0.0020, 0.0, foam2_dist) * 0.45;
+    float foam2_edge = smoothstep(0.0025, 0.0, foam2_dist) * 0.55;
     
-    float foam_noise = (hash2(floor(uv * 220.0)).x - 0.5) * 0.3;
+    // 繊細な気泡レース網目（Micro Foam Bubbles）
+    vec2 foam_cell_uv = uv * 320.0;
+    float foam_cell = hash2(floor(foam_cell_uv)).x;
+    float foam_bubble_pattern = smoothstep(0.35, 0.85, foam_cell);
+    
+    float foam_noise = (foam_bubble_pattern - 0.5) * 0.45;
     float total_foam = clamp((foam1_edge + foam2_edge) * (1.0 + foam_noise), 0.0, 1.0);
     
     // ----------------------------------------------------
-    // 7. 砂浜（乾いた白砂 と 濡れた砂 Wet Sand）
+    // 7. 砂浜（乾いた白砂 と 濡れた砂 Wet Sand: しっとりとした艶と微細な砂の反射）
     // ----------------------------------------------------
-    float max_wave_reach = shore_base + 0.030;
-    float wet_factor = smoothstep(max_wave_reach + 0.02, shore_base - 0.01, uv.x);
-    vec4 sand = mix(dry_sand_color, wet_sand_color, wet_factor * 0.80);
+    float max_wave_reach = shore_base + 0.032;
+    float wet_factor = smoothstep(max_wave_reach + 0.025, shore_base - 0.012, uv.x);
+    vec4 sand = mix(dry_sand_color, wet_sand_color, wet_factor * 0.85);
     
-    if (wet_factor > 0.3 && uv.x > water_line) {
-        float wet_shine = pow(clamp(sin(uv.x * 25.0 + t * 0.5), 0.0, 1.0), 4.0) * 0.06;
-        sand.rgb += vec3(wet_shine);
+    // 濡れた砂の鏡面照り返し（太陽光のソフトスペキュラ）
+    if (wet_factor > 0.25 && uv.x > water_line) {
+        float wet_sheen = pow(clamp(sin(uv.x * 28.0 + uv.y * 14.0 + t * 0.6), 0.0, 1.0), 3.5) * 0.12 * wet_factor;
+        // 微細な水膜のハイライト
+        float water_film_glint = pow(hash2(floor(uv * 180.0)).x, 14.0) * 0.25 * wet_factor;
+        sand.rgb += vec3(wet_sheen + water_film_glint);
     }
     
-    float sand_grain = (hash2(floor(uv * 120.0)).x - 0.5) * 0.018;
+    float sand_grain = (hash2(floor(uv * 140.0)).x - 0.5) * 0.022;
     sand.rgb += vec3(sand_grain);
     
     // ----------------------------------------------------

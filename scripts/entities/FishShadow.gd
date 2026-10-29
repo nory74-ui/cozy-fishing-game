@@ -126,7 +126,7 @@ func _setup_sprite() -> void:
 			"magochi":  scale_val = Vector2(0.088, 0.065)
 			"hirame":   scale_val = Vector2(0.098, 0.095)
 			"kijihata": scale_val = Vector2(0.085, 0.080)
-			"madai":    scale_val = Vector2(0.105, 0.098)
+			"madai":    scale_val = Vector2(0.026, 0.026)
 			"suzuki":   scale_val = Vector2(0.120, 0.085)
 			"aoriika":  scale_val = Vector2(0.090, 0.082)
 

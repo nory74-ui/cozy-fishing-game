@@ -115,7 +115,11 @@ func _ready() -> void:
 
 func _run_capture_beach_book_test() -> void:
 	await get_tree().create_timer(0.4).timeout
+	GameData.record_fish_catch("madai", 68.5)
 	open_book()
+	if fish_book_modal:
+		fish_book_modal.selected_species = "madai"
+		fish_book_modal._refresh_ui()
 	await get_tree().create_timer(0.4).timeout
 	var dir_path = "/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/"
 	get_viewport().get_texture().get_image().save_png(dir_path + "view_beach_book.png")
