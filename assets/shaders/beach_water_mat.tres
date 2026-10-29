@@ -1,0 +1,14 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://assets/shaders/beach_water.gdshader" id="1_water"]
+
+[resource]
+shader = ExtResource("1_water")
+shader_parameter/shallow_color = Color(0.42, 0.88, 0.78, 1.0)
+shader_parameter/deep_color = Color(0.12, 0.62, 0.72, 1.0)
+shader_parameter/foam_color = Color(0.98, 1.0, 1.0, 0.96)
+shader_parameter/wet_sand_color = Color(0.84, 0.76, 0.60, 1.0)
+shader_parameter/dry_sand_color = Color(0.95, 0.90, 0.76, 1.0)
+shader_parameter/time_speed = 0.95
+shader_parameter/caustics_strength = 0.35
+shader_parameter/caustics_scale = 13.5

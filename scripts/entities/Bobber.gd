@@ -91,12 +91,21 @@ func _draw() -> void:
 		
 	var draw_pos = Vector2(0, bob_offset)
 	
-	# 1. 釣り糸（プレイヤーの竿先からウキへ）
+	# 1. 釣り糸（プレイヤーの竿先からウキへ、しなやかなカテナリー/ベジェ曲線）
 	if player_node and player_node.has_method("get_rod_tip_global_pos"):
 		var tip_pos = to_local(player_node.get_rod_tip_global_pos())
-		var mid = (tip_pos + draw_pos) * 0.5 + Vector2(0, 15)
-		draw_line(tip_pos, mid, Color(1, 1, 1, 0.45), 1.0)
-		draw_line(mid, draw_pos, Color(1, 1, 1, 0.45), 1.0)
+		var dist = tip_pos.distance_to(draw_pos)
+		# 糸のたわみ
+		var sag = minf(35.0, dist * 0.12)
+		var ctrl = (tip_pos + draw_pos) * 0.5 + Vector2(0, sag)
+		var prev_pt = tip_pos
+		var segments = 12
+		var line_col = Color(0.18, 0.22, 0.25, 0.75) # 動画のような細くリアルな釣り糸
+		for s in range(1, segments + 1):
+			var t = float(s) / float(segments)
+			var pt = (1.0 - t) * (1.0 - t) * tip_pos + 2.0 * (1.0 - t) * t * ctrl + t * t * draw_pos
+			draw_line(prev_pt, pt, line_col, 1.2)
+			prev_pt = pt
 
 	# 2. 波紋（淡い水色〜白の輪）
 	for r in ripples:

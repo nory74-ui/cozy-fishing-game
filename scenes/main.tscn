@@ -1,43 +1,19 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/Main.gd" id="1_main"]
-[ext_resource type="Script" path="res://scripts/world/MapField.gd" id="2_map"]
-[ext_resource type="Script" path="res://scripts/world/ShopBuilding.gd" id="3_shop_b"]
+[ext_resource type="Material" path="res://assets/shaders/beach_water_mat.tres" id="2_water_mat"]
+[ext_resource type="Script" path="res://scripts/world/BeachMapField.gd" id="2_map"]
 [ext_resource type="Script" path="res://scripts/entities/Bobber.gd" id="4_bob"]
 [ext_resource type="Script" path="res://scripts/entities/Player.gd" id="5_play"]
-[ext_resource type="Script" path="res://scripts/ui/Step1HUD.gd" id="6_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/beach_hud.tscn" id="6_hud"]
 [ext_resource type="Script" path="res://scripts/fishing/ReelMinigame.gd" id="7_reel"]
 [ext_resource type="Script" path="res://scripts/ui/CatchResultPopup.gd" id="8_popup"]
 [ext_resource type="Script" path="res://scripts/ui/ShopModal.gd" id="9_shop_m"]
 [ext_resource type="Material" path="res://assets/shaders/hd2d_filter_mat.tres" id="10_hd2d_mat"]
-[ext_resource type="Script" path="res://scripts/world/ShallowCrossing.gd" id="11_shallow"]
-[ext_resource type="Script" path="res://scripts/world/FallenLog.gd" id="12_log"]
-[ext_resource type="Script" path="res://scripts/world/BoatDock.gd" id="13_dock"]
 [ext_resource type="Script" path="res://scripts/ui/FishBookModal.gd" id="14_book_m"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_shop"]
-size = Vector2(90, 50)
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_shop_a"]
-radius = 65.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_p"]
 radius = 12.0
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_shallow_b"]
-size = Vector2(240, 80)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_shallow_t"]
-size = Vector2(180, 90)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_log_s"]
-size = Vector2(110, 28)
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_log_a"]
-radius = 55.0
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_dock"]
-radius = 60.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud"]
 bg_color = Color(0.99, 0.98, 0.95, 0.94)
@@ -58,115 +34,15 @@ content_margin_bottom = 10.0
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
 
+[node name="WaterBackground" type="ColorRect" parent="."]
+material = ExtResource("2_water_mat")
+custom_minimum_size = Vector2(1152, 648)
+offset_right = 1152.0
+offset_bottom = 648.0
+mouse_filter = 2
+
 [node name="MapField" type="Node2D" parent="."]
 script = ExtResource("2_map")
-
-[node name="ShallowCrossing" type="Node2D" parent="."]
-script = ExtResource("11_shallow")
-
-[node name="BarrierBody" type="StaticBody2D" parent="ShallowCrossing"]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="ShallowCrossing/BarrierBody"]
-position = Vector2(420, 1200)
-shape = SubResource("RectangleShape2D_shallow_b")
-
-[node name="TriggerArea" type="Area2D" parent="ShallowCrossing"]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="ShallowCrossing/TriggerArea"]
-position = Vector2(420, 1200)
-shape = SubResource("RectangleShape2D_shallow_t")
-
-[node name="PromptLabel" type="Label" parent="ShallowCrossing"]
-offset_left = 320.0
-offset_top = 1135.0
-offset_right = 520.0
-offset_bottom = 1160.0
-theme_override_colors/font_color = Color(0.15, 0.25, 0.35, 1)
-theme_override_font_sizes/font_size = 14
-text = "【浅瀬】長靴があれば渡れそうだ..."
-horizontal_alignment = 1
-
-[node name="FallenLog" type="Node2D" parent="."]
-position = Vector2(1100, 340)
-script = ExtResource("12_log")
-
-[node name="StaticBody2D" type="StaticBody2D" parent="FallenLog"]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="FallenLog/StaticBody2D"]
-shape = SubResource("RectangleShape2D_log_s")
-
-[node name="Area2D" type="Area2D" parent="FallenLog"]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="FallenLog/Area2D"]
-shape = SubResource("CircleShape2D_log_a")
-
-[node name="PromptLabel" type="Label" parent="FallenLog"]
-offset_left = -110.0
-offset_top = -55.0
-offset_right = 110.0
-offset_bottom = -30.0
-theme_override_colors/font_color = Color(0.15, 0.25, 0.35, 1)
-theme_override_font_sizes/font_size = 14
-text = "【倒木】オノがあれば壊せそう"
-horizontal_alignment = 1
-
-[node name="BoatDock" type="Node2D" parent="."]
-script = ExtResource("13_dock")
-
-[node name="ShoreArea" type="Area2D" parent="BoatDock"]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="BoatDock/ShoreArea"]
-position = Vector2(1840, 800)
-shape = SubResource("CircleShape2D_dock")
-
-[node name="IslandArea" type="Area2D" parent="BoatDock"]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="BoatDock/IslandArea"]
-position = Vector2(1540, 800)
-shape = SubResource("CircleShape2D_dock")
-
-[node name="PromptLabelShore" type="Label" parent="BoatDock"]
-offset_left = 1720.0
-offset_top = 750.0
-offset_right = 1960.0
-offset_bottom = 775.0
-theme_override_colors/font_color = Color(0.15, 0.25, 0.35, 1)
-theme_override_font_sizes/font_size = 14
-text = "【ボート乗り場】ボートがあれば渡れる"
-horizontal_alignment = 1
-
-[node name="PromptLabelIsland" type="Label" parent="BoatDock"]
-offset_left = 1420.0
-offset_top = 750.0
-offset_right = 1660.0
-offset_bottom = 775.0
-theme_override_colors/font_color = Color(0.15, 0.25, 0.35, 1)
-theme_override_font_sizes/font_size = 14
-text = "[E] 手漕ぎボートで岸へ戻る"
-horizontal_alignment = 1
-
-[node name="ShopBuilding" type="StaticBody2D" parent="."]
-position = Vector2(950, 700)
-script = ExtResource("3_shop_b")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="ShopBuilding"]
-position = Vector2(0, 5)
-shape = SubResource("RectangleShape2D_shop")
-
-[node name="Area2D" type="Area2D" parent="ShopBuilding"]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="ShopBuilding/Area2D"]
-shape = SubResource("CircleShape2D_shop_a")
-
-[node name="PromptLabel" type="Label" parent="ShopBuilding"]
-offset_left = -75.0
-offset_top = -85.0
-offset_right = 75.0
-offset_bottom = -60.0
-theme_override_colors/font_color = Color(0.15, 0.25, 0.35, 1)
-theme_override_font_sizes/font_size = 14
-text = "【よろず屋】[E] 店に入る"
-horizontal_alignment = 1
 
 [node name="FishContainer" type="Node2D" parent="."]
 
@@ -174,91 +50,20 @@ horizontal_alignment = 1
 script = ExtResource("4_bob")
 
 [node name="Player" type="CharacterBody2D" parent="."]
-position = Vector2(950, 800)
+position = Vector2(610, 135)
 script = ExtResource("5_play")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
 position = Vector2(0, 4)
 shape = SubResource("CircleShape2D_p")
 
-[node name="Camera2D" type="Camera2D" parent="Player"]
-position_smoothing_enabled = true
-position_smoothing_speed = 6.0
-limit_left = 0
-limit_top = 0
-limit_right = 2400
-limit_bottom = 1600
-limit_smoothed = true
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(576, 324)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 layer = 10
 
-[node name="Step1HUD" type="Control" parent="CanvasLayer"]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-script = ExtResource("6_hud")
-
-[node name="Card" type="PanelContainer" parent="CanvasLayer/Step1HUD"]
-layout_mode = 0
-offset_left = 24.0
-offset_top = 24.0
-offset_right = 730.0
-offset_bottom = 180.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_hud")
-
-[node name="VBox" type="VBoxContainer" parent="CanvasLayer/Step1HUD/Card"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="TitleLabel" type="Label" parent="CanvasLayer/Step1HUD/Card/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.2, 0.45, 0.35, 1)
-theme_override_font_sizes/font_size = 18
-text = "こもれびフィッシング"
-
-[node name="HBoxStats" type="HBoxContainer" parent="CanvasLayer/Step1HUD/Card/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="StatsLabel" type="Label" parent="CanvasLayer/Step1HUD/Card/VBox/HBoxStats"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.85, 0.55, 0.2, 1)
-theme_override_font_sizes/font_size = 15
-text = "所持金: 50 G | バケツ: 0匹"
-
-[node name="BookButton" type="Button" parent="CanvasLayer/Step1HUD/Card/VBox/HBoxStats"]
-layout_mode = 2
-text = "図鑑 [B]"
-
-[node name="ShopButton" type="Button" parent="CanvasLayer/Step1HUD/Card/VBox/HBoxStats"]
-layout_mode = 2
-text = "よろず屋"
-
-[node name="SaveButton" type="Button" parent="CanvasLayer/Step1HUD/Card/VBox/HBoxStats"]
-layout_mode = 2
-text = "セーブ"
-
-[node name="TitleButton" type="Button" parent="CanvasLayer/Step1HUD/Card/VBox/HBoxStats"]
-layout_mode = 2
-text = "タイトル"
-
-[node name="StatusLabel" type="Label" parent="CanvasLayer/Step1HUD/Card/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.18, 0.3, 0.35, 1)
-theme_override_font_sizes/font_size = 15
-text = "水辺を探して、魚影の近くにウキを投げてみよう"
-
-[node name="TipLabel" type="Label" parent="CanvasLayer/Step1HUD/Card/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.45, 0.5, 0.55, 1)
-theme_override_font_sizes/font_size = 13
-text = "【WASD / 矢印】歩く  |  【マウス左】キャスト・合わせ・リール巻き"
+[node name="Step1HUD" parent="CanvasLayer" instance=ExtResource("6_hud")]
 
 [node name="ReelMinigame" type="Control" parent="CanvasLayer"]
 layout_mode = 3

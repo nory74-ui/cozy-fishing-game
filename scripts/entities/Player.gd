@@ -82,17 +82,22 @@ func _physics_process(delta: float) -> void:
 	queue_redraw()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+	if event is InputEventMouseButton and event.pressed:
 		var main_node = get_parent()
 		var m_state = main_node.current_state if (main_node and "current_state" in main_node) else 0
-		# State.IDLE (0) の時のみキャスト可能、State.WAITING (2) の時のみウキ回収可能
-		# State.BITE (3) の時は Main._unhandled_input で「合わせ」を行うためここでは処理しない
-		if m_state == 2 and is_fishing:
-			stop_fishing()
-			get_viewport().set_input_as_handled()
-		elif m_state == 0 and can_cast_at_mouse:
-			start_fishing(mouse_world_pos)
-			get_viewport().set_input_as_handled()
+		# 左クリック: キャストまたはウキ回収
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			if m_state == 2 and is_fishing:
+				stop_fishing()
+				get_viewport().set_input_as_handled()
+			elif m_state == 0 and can_cast_at_mouse:
+				start_fishing(mouse_world_pos)
+				get_viewport().set_input_as_handled()
+		# 右クリック: ウキ回収（動画の「(右) 引く」ガイドに対応）
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			if is_fishing:
+				stop_fishing()
+				get_viewport().set_input_as_handled()
 
 func start_fishing(target: Vector2) -> void:
 	is_fishing = true
@@ -126,9 +131,11 @@ func _prevent_water_intrusion() -> void:
 	var foot_pos = cur_pos + Vector2(0, 10)
 	
 	var is_walkable = true
-	if map_field.is_in_water(foot_pos):
+	if map_field.has_method("is_point_walkable"):
+		is_walkable = map_field.is_point_walkable(foot_pos)
+	elif map_field.has_method("is_in_water") and map_field.is_in_water(foot_pos):
 		# 水域に入っている場合、桟橋の上、孤島の上、または長靴所持時の浅瀬なら歩行許可
-		if map_field.is_on_pier(foot_pos) or map_field.is_on_island(foot_pos):
+		if (map_field.has_method("is_on_pier") and map_field.is_on_pier(foot_pos)) or (map_field.has_method("is_on_island") and map_field.is_on_island(foot_pos)):
 			is_walkable = true
 		elif GameData.has_boots and foot_pos.y >= map_field.shallow_y_min - 15.0 and foot_pos.y <= map_field.shallow_y_max + 15.0:
 			is_walkable = true

@@ -11,12 +11,13 @@ signal book_updated(species: String, is_first: bool, is_record: bool)
 # プレイヤーのステータス
 var coins: int = 60 # 初期所持金
 var current_rod: String = "branch_rod"
-var current_bait: String = "worm"
+var current_bait: String = "mussel"
 
 # 所持品
 var inventory: Array[Dictionary] = [] # 釣った魚リスト
 var unlocked_rods: Array[String] = ["branch_rod"]
 var bait_counts: Dictionary = {
+	"mussel": 3,
 	"worm": 5,
 	"dumpling": 0,
 	"lure": 0
@@ -105,6 +106,14 @@ const TOOLS: Dictionary = {
 
 # エサカタログ
 const BAITS: Dictionary = {
+	"mussel": {
+		"id": "mussel",
+		"name": "ムール貝",
+		"pack_amount": 3,
+		"price": 20,
+		"rare_boost": 1.2,
+		"desc": "潮の香りがする新鮮なムール貝。浅瀬の魚たちの大好物。"
+	},
 	"worm": {
 		"id": "worm",
 		"name": "みみず",
@@ -493,7 +502,9 @@ func load_game() -> bool:
 	# データを復元
 	coins = data.get("coins", 60)
 	current_rod = data.get("current_rod", "branch_rod")
-	current_bait = data.get("current_bait", "worm")
+	current_bait = data.get("current_bait", "mussel")
+	if current_bait == "worm" and data.get("bait_counts", {}).get("mussel", 3) > 0:
+		current_bait = "mussel"
 	
 	# インベントリ
 	inventory.clear()
@@ -515,8 +526,10 @@ func load_game() -> bool:
 	# エサ所持数
 	var raw_baits = data.get("bait_counts", {})
 	if typeof(raw_baits) == TYPE_DICTIONARY:
-		for k in ["worm", "dumpling", "lure"]:
+		for k in ["mussel", "worm", "dumpling", "lure"]:
 			bait_counts[k] = int(raw_baits.get(k, 0))
+	if bait_counts.get("mussel", 0) == 0:
+		bait_counts["mussel"] = 3
 			
 	# 図鑑記録
 	fish_records.clear()
@@ -554,10 +567,11 @@ func reset_save_data() -> void:
 		DirAccess.remove_absolute(SAVE_PATH)
 	coins = 60
 	current_rod = "branch_rod"
-	current_bait = "worm"
+	current_bait = "mussel"
 	inventory.clear()
 	unlocked_rods = ["branch_rod"]
 	bait_counts = {
+		"mussel": 3,
 		"worm": 5,
 		"dumpling": 0,
 		"lure": 0

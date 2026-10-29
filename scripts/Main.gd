@@ -24,11 +24,10 @@ var current_state: State = State.IDLE
 @onready var catch_popup = $CanvasLayer/CatchResultPopup
 @onready var shop_modal = $CanvasLayer/ShopModal
 @onready var fish_book_modal = $CanvasLayer/FishBookModal
-@onready var shop_building = $ShopBuilding
-
-@onready var shallow_crossing = $ShallowCrossing
-@onready var fallen_log = $FallenLog
-@onready var boat_dock = $BoatDock
+@onready var shop_building = get_node_or_null("ShopBuilding")
+@onready var shallow_crossing = get_node_or_null("ShallowCrossing")
+@onready var fallen_log = get_node_or_null("FallenLog")
+@onready var boat_dock = get_node_or_null("BoatDock")
 
 var fish_shadow_script = preload("res://scripts/entities/FishShadow.gd")
 
@@ -38,7 +37,8 @@ var bite_timer: float = 0.0
 var bite_window: float = 1.4
 
 func _ready() -> void:
-	player.global_position = Vector2(950, 800)
+	# 動画に合わせた初期位置（砂浜の波打ち際）
+	player.global_position = Vector2(610, 135)
 	
 	player.cast_bobber.connect(_on_player_cast)
 	player.retrieve_bobber.connect(_on_player_retrieve)
@@ -51,17 +51,30 @@ func _ready() -> void:
 	catch_popup.confirmed.connect(_on_catch_confirmed)
 	
 	# ショップの連携
-	if shop_building:
+	if shop_building and shop_building.has_signal("shop_interacted"):
 		shop_building.shop_interacted.connect(open_shop)
+	if map_field and map_field.has_signal("shop_interacted"):
+		map_field.shop_interacted.connect(open_shop)
+		
 	if hud:
-		hud.open_shop_requested.connect(open_shop)
-		hud.open_book_requested.connect(open_book)
+		if hud.has_signal("open_shop_requested"):
+			hud.open_shop_requested.connect(open_shop)
+		if hud.has_signal("open_book_requested"):
+			hud.open_book_requested.connect(open_book)
+		if hud.has_signal("save_game_requested"):
+			hud.save_game_requested.connect(func(): GameData.save_game())
+		if hud.has_signal("title_requested"):
+			hud.title_requested.connect(func():
+				GameData.save_game()
+				get_tree().change_scene_to_file("res://scenes/title.tscn")
+			)
+			
 	if shop_modal:
 		shop_modal.closed.connect(_on_shop_closed)
 	if fish_book_modal:
 		fish_book_modal.closed.connect(_on_book_closed)
 		
-	# 探索ギミックの連携
+	# 探索ギミックの連携（存在する場合）
 	if boat_dock:
 		boat_dock.player_node = player
 		boat_dock.boat_ride_started.connect(_on_boat_ride_started)
@@ -76,11 +89,53 @@ func _ready() -> void:
 	_spawn_initial_fishes()
 	SoundManager.play_bgm("bgm_fishing", 1.5)
 
+	# 動画のように初期状態で海にウキをキャスト
+	if map_field and map_field.has_method("get_shore_x"):
+		player.start_fishing(Vector2(550, 480))
+
 	for arg in OS.get_cmdline_user_args():
 		if arg == "--capture-shadows":
 			_run_capture_shadows_test()
 		elif arg == "--capture-save":
 			_run_capture_save_test()
+		elif arg == "--capture-beach":
+			_run_capture_beach_test()
+		elif arg == "--capture-beach-book":
+			_run_capture_beach_book_test()
+		elif arg == "--capture-beach-shop":
+			_run_capture_beach_shop_test()
+
+func _run_capture_beach_book_test() -> void:
+	await get_tree().create_timer(0.4).timeout
+	open_book()
+	await get_tree().create_timer(0.4).timeout
+	var dir_path = "/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/"
+	get_viewport().get_texture().get_image().save_png(dir_path + "view_beach_book.png")
+	print("BEACH_BOOK_CAPTURE_SAVED_OK")
+	get_tree().quit()
+
+func _run_capture_beach_shop_test() -> void:
+	await get_tree().create_timer(0.4).timeout
+	open_shop()
+	await get_tree().create_timer(0.4).timeout
+	var dir_path = "/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/"
+	get_viewport().get_texture().get_image().save_png(dir_path + "view_beach_shop.png")
+	print("BEACH_SHOP_CAPTURE_SAVED_OK")
+	get_tree().quit()
+
+func _set_hud_status(text: String, is_alert: bool = false) -> void:
+	if not hud: return
+	if hud.has_method("set_status"):
+		hud.set_status(text, is_alert)
+	elif hud.has_method("show_notification"):
+		hud.show_notification(text)
+
+func _run_capture_beach_test() -> void:
+	await get_tree().create_timer(0.6).timeout
+	var dir_path = "/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/"
+	get_viewport().get_texture().get_image().save_png(dir_path + "view_beach_screen.png")
+	print("BEACH_CAPTURE_SAVED_OK")
+	get_tree().quit()
 
 func _run_capture_shadows_test() -> void:
 	await get_tree().create_timer(0.5).timeout
@@ -138,13 +193,13 @@ func open_book() -> void:
 	current_state = State.BOOK
 	player.set_physics_process(false)
 	fish_book_modal.open_book()
-	hud.set_status("お魚図鑑を閲覧中... これまでに釣った魚の記録を確認しよう")
+	_set_hud_status("お魚図鑑を閲覧中... これまでに釣った魚の記録を確認しよう")
 
 func _on_book_closed() -> void:
 	SoundManager.play_sfx("book")
 	current_state = State.IDLE
 	player.set_physics_process(true)
-	hud.set_status("図鑑を閉じた。まだ見ぬ大物を目指して釣りに出かけよう！")
+	_set_hud_status("図鑑を閉じた。まだ見ぬ大物を目指して釣りに出かけよう！")
 
 func open_shop() -> void:
 	if current_state == State.REELING or current_state == State.RESULT:
@@ -160,40 +215,71 @@ func open_shop() -> void:
 	current_state = State.SHOP
 	player.set_physics_process(false) # おじさんの移動を一時停止
 	shop_modal.open_shop()
-	hud.set_status("水辺のよろず屋で買い物中...")
+	_set_hud_status("水辺のよろず屋で買い物中...")
 
 func _on_shop_closed() -> void:
 	SoundManager.play_sfx("book")
 	current_state = State.IDLE
 	player.set_physics_process(true)
-	hud.set_status("店を出た。魚を釣るか、新しいスポットを探してみよう")
+	_set_hud_status("店を出た。魚を釣るか、新しいスポットを探してみよう")
 
 func _on_tool_unlocked(tool_id: String) -> void:
 	var tool_data = GameData.TOOLS.get(tool_id, {})
 	var t_name = tool_data.get("name", "道具")
 	SoundManager.play_sfx("catch", 0.05, 1.0)
-	hud.set_status("【" + t_name + "】を手に入れた！ 探索範囲が広がった！", true)
+	_set_hud_status("【" + t_name + "】を手に入れた！ 探索範囲が広がった！", true)
 
 func _on_shallow_entered(has_boots: bool) -> void:
 	if has_boots:
-		hud.set_status("長靴を履いて浅瀬を渡った！ 川の向こう『西の原生林』に到達！")
+		_set_hud_status("長靴を履いて浅瀬を渡った！ 川の向こう『西の原生林』に到達！")
 	else:
-		hud.set_status("浅瀬だ... 水が深くて渡れない。【ゴム長靴】があれば渡れそうだ！")
+		_set_hud_status("浅瀬だ... 水が深くて渡れない。【ゴム長靴】があれば渡れそうだ！")
 
 func _on_log_destroyed() -> void:
-	hud.set_status("木こりのオノで倒木を切り払った！ 北の『秘密のエメラルド滝壺』が開通！", true)
+	_set_hud_status("木こりのオノで倒木を切り払った！ 北の『秘密のエメラルド滝壺』が開通！", true)
 	map_field.queue_redraw()
 
 func _on_boat_ride_started() -> void:
-	hud.set_status("手漕ぎボートで湖をスイスイ進んでいる...")
+	_set_hud_status("手漕ぎボートで湖をスイスイ進んでいる...")
 
 func _on_boat_ride_finished(at_island: bool) -> void:
 	if at_island:
-		hud.set_status("湖の中央『神秘の孤島』へ上陸した！ 湖の底に眠る主の気配がする...", true)
+		_set_hud_status("湖の中央『神秘の孤島』へ上陸した！ 湖の底に眠る主の気配がする...", true)
 	else:
-		hud.set_status("岸のボート乗り場へ無事に戻ってきた。")
+		_set_hud_status("岸のボート乗り場へ無事に戻ってきた。")
 
 func _spawn_initial_fishes() -> void:
+	if map_field and map_field.has_method("get_shore_x"):
+		# 南国ビーチモード（動画のようなたくさんの魚影）
+		var beach_species = [
+			"yamame", "medaka", "medaka", "funa", "medaka",
+			"yamame", "funa", "koi", "rainbow_trout", "catfish",
+			"medaka", "yamame", "funa", "koi", "golden_koi",
+			"medaka", "yamame", "funa"
+		]
+		for i in range(beach_species.size()):
+			var fish = Node2D.new()
+			fish.set_script(fish_shadow_script)
+			fish.fish_species = beach_species[i]
+			fish_container.add_child(fish)
+			fish.setup(map_field)
+			
+			# エメラルドグリーンの浅瀬〜中深部にランダム配置
+			var py = randf_range(160, 600)
+			var max_x = map_field.get_shore_x(py) - 50.0
+			var px = randf_range(80, max_x)
+			fish.global_position = Vector2(px, py)
+			
+			fish.fish_reached_bobber.connect(func():
+				if current_state == State.WAITING:
+					var s_desc = fish.get_shadow_size_desc() if fish.has_method("get_shadow_size_desc") else "魚影"
+					_set_hud_status("【" + s_desc + "】がウキに近寄ってきた！ つついている...")
+			)
+			fish.fish_bit.connect(func():
+				biting_fish_node = fish
+			)
+		return
+
 	# 1. 川の魚（小川〜中流）
 	var river_fish_list = ["medaka", "medaka", "yamame", "yamame", "funa"]
 	for i in range(river_fish_list.size()):
@@ -253,7 +339,7 @@ func _spawn_single_fish(species: String, area: String, idx: int, total: int) -> 
 	fish.fish_reached_bobber.connect(func():
 		if current_state == State.WAITING:
 			var s_desc = fish.get_shadow_size_desc() if fish.has_method("get_shadow_size_desc") else "魚影"
-			hud.set_status("【" + s_desc + "】がウキに近寄ってきた！ つついている...")
+			_set_hud_status("【" + s_desc + "】がウキに近寄ってきた！ つついている...")
 	)
 	fish.fish_bit.connect(func():
 		biting_fish_node = fish
@@ -266,7 +352,7 @@ func _on_player_cast(target_pos: Vector2) -> void:
 	biting_fish_node = null
 	bobber.launch(target_pos, player)
 	SoundManager.play_sfx("cast", 0.08)
-	hud.set_status("ポチャ〜ン... ウキを投げ入れた。魚が気づくのを待とう")
+	_set_hud_status("ポチャ〜ン... ウキを投げ入れた。魚が気づくのを待とう")
 	
 	for fish in fish_container.get_children():
 		if fish.has_method("on_bobber_cast"):
@@ -280,7 +366,7 @@ func _on_player_retrieve() -> void:
 	bobber.retrieve()
 	reel_minigame.stop_minigame()
 	SoundManager.play_sfx("cast", 0.12, -4.0)
-	hud.set_status("ウキを回収した。移動して別の魚影を探してみよう")
+	_set_hud_status("ウキを回収した。移動して別の魚影を探してみよう")
 	
 	for fish in fish_container.get_children():
 		if fish.has_method("on_bobber_retrieved"):
@@ -290,13 +376,13 @@ func _on_bobber_fish_bitten() -> void:
 	current_state = State.BITE
 	bite_timer = bite_window
 	SoundManager.play_sfx("hit", 0.04, 2.0)
-	hud.set_status("【HIT!!】 水中の獲物が食いついた！ 今すぐ合わせろ！", true)
+	_set_hud_status("【HIT!!】 水中の獲物が食いついた！ 今すぐ合わせろ！", true)
 
 func _on_miss_bite() -> void:
 	current_state = State.IDLE
 	bobber.retrieve()
 	player.reset_fishing_state()
-	hud.set_status("ああ〜！合わせが遅れて逃げられちゃった... また挑戦しよう")
+	_set_hud_status("ああ〜！合わせが遅れて逃げられちゃった... また挑戦しよう")
 	for fish in fish_container.get_children():
 		if fish.has_method("on_bobber_retrieved"):
 			fish.on_bobber_retrieved()
@@ -315,7 +401,7 @@ func _start_reeling_fight() -> void:
 		"name": fish_name
 	}
 	reel_minigame.start_minigame(fish_info)
-	hud.set_status("ファイト開始！【長押し】でリールを巻き、緑の枠に魚影をキープしろ！")
+	_set_hud_status("ファイト開始！【長押し】でリールを巻き、緑の枠に魚影をキープしろ！")
 
 func _on_reel_success() -> void:
 	current_state = State.RESULT
@@ -345,18 +431,18 @@ func _on_reel_success() -> void:
 	
 	catch_popup.show_result(fish_dict)
 	if record_result.is_first:
-		hud.set_status("【新種発見！】" + fish_dict.name + " を初めて釣り上げた！図鑑に登録！", true)
+		_set_hud_status("【新種発見！】" + fish_dict.name + " を初めて釣り上げた！図鑑に登録！", true)
 	elif record_result.is_new_record:
-		hud.set_status("【大物記録更新！】" + fish_dict.name + " (" + str(fish_dict.size) + "cm) 自己ベスト！", true)
+		_set_hud_status("【大物記録更新！】" + fish_dict.name + " (" + str(fish_dict.size) + "cm) 自己ベスト！", true)
 	else:
-		hud.set_status("やったー！見事に " + fish_dict.name + " を釣り上げた！")
+		_set_hud_status("やったー！見事に " + fish_dict.name + " を釣り上げた！")
 
 func _on_reel_failed() -> void:
 	current_state = State.IDLE
 	reel_minigame.stop_minigame()
 	bobber.retrieve()
 	player.reset_fishing_state()
-	hud.set_status("糸が切れて逃げられちゃった...！ 次こそ釣り上げよう")
+	_set_hud_status("糸が切れて逃げられちゃった...！ 次こそ釣り上げよう")
 	for fish in fish_container.get_children():
 		if fish.has_method("on_bobber_retrieved"):
 			fish.on_bobber_retrieved()
@@ -365,7 +451,7 @@ func _on_reel_failed() -> void:
 func _on_catch_confirmed() -> void:
 	current_state = State.IDLE
 	SoundManager.play_sfx("coin", 0.08, -2.0)
-	hud.set_status("バケツに入れた！よろず屋で売ってお金を稼ごう！")
+	_set_hud_status("バケツに入れた！よろず屋で売ってお金を稼ごう！")
 	
 	# 釣られた魚の本来の生息エリアに新しい魚影を補充スポーン
 	if fish_container.get_child_count() < 15:
