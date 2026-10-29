@@ -117,17 +117,34 @@ func _run_capture_beach_book_test() -> void:
 	await get_tree().create_timer(0.4).timeout
 	GameData.record_fish_catch("aji", 25.4)
 	GameData.record_fish_catch("kisu", 21.0)
-	GameData.record_fish_catch("chinu", 45.2)
-	GameData.record_fish_catch("suzuki", 72.8)
+	GameData.record_fish_catch("arakabu", 27.5)
+	GameData.record_fish_catch("chinu", 48.2)
+	GameData.record_fish_catch("magochi", 55.0)
+	GameData.record_fish_catch("suzuki", 78.5)
+	GameData.record_fish_catch("kijihata", 36.2)
+	GameData.record_fish_catch("hirame", 62.0)
 	GameData.record_fish_catch("madai", 68.5)
 	GameData.record_fish_catch("aoriika", 38.0)
 	open_book()
+	var dir_path = "/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/"
+	
 	if fish_book_modal:
 		fish_book_modal.selected_species = "aji"
 		fish_book_modal._refresh_ui()
-	await get_tree().create_timer(0.4).timeout
-	var dir_path = "/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/"
+	await get_tree().create_timer(0.3).timeout
 	get_viewport().get_texture().get_image().save_png(dir_path + "view_beach_book_aji.png")
+	
+	if fish_book_modal:
+		fish_book_modal.selected_species = "chinu"
+		fish_book_modal._refresh_ui()
+	await get_tree().create_timer(0.3).timeout
+	get_viewport().get_texture().get_image().save_png(dir_path + "view_beach_book_chinu.png")
+	
+	if fish_book_modal:
+		fish_book_modal.selected_species = "suzuki"
+		fish_book_modal._refresh_ui()
+	await get_tree().create_timer(0.3).timeout
+	get_viewport().get_texture().get_image().save_png(dir_path + "view_beach_book_suzuki.png")
 	
 	if fish_book_modal:
 		fish_book_modal.selected_species = "madai"
@@ -314,21 +331,17 @@ func _spawn_initial_fishes() -> void:
 			
 			var spawn_pos = Vector2.ZERO
 			match data["area"]:
-				"north_port":
-					# 波止北側の穏やかな港内
-					spawn_pos = Vector2(randf_range(60, 480), randf_range(50, 170))
 				"south_open":
-					# 波止南側の外海・テトラ帯〜深場
-					spawn_pos = Vector2(randf_range(60, 520), randf_range(410, 600))
+					# 波止南側の外海・テトラ帯〜深場（マダイ、キジハタ、スズキ等）
+					spawn_pos = Vector2(randf_range(80, 520), randf_range(410, 600))
 				"east_surf":
-					# 白砂サーフの沖合・波打ち際ブレイクライン
-					if data["sp"] in ["kisu", "aji"] and randf() < 0.6:
-						# プレイヤー正面の浅瀬で泳ぐ小魚たち
-						spawn_pos = Vector2(randf_range(560, 670), randf_range(200, 360))
-					else:
-						var sy = randf_range(90, 570)
-						var sx = map_field.get_shore_x(sy) - randf_range(40, 160)
-						spawn_pos = Vector2(sx, sy)
+					# 白砂サーフの沖合ブレイクライン（シロギス、マアジ、ヒラメ等。桟橋南側の開けた海面）
+					var sy = randf_range(360, 590)
+					var sx = map_field.get_shore_x(sy) - randf_range(55, 170)
+					spawn_pos = Vector2(sx, sy)
+				_:
+					# デフォルト: サンゴ礁〜南側外海
+					spawn_pos = Vector2(randf_range(90, 480), randf_range(420, 590))
 					
 			fish.global_position = spawn_pos
 			
@@ -524,15 +537,13 @@ func _on_catch_confirmed() -> void:
 		fish.fish_species = next_sp
 		fish_container.add_child(fish)
 		fish.setup(map_field)
-		# ランダム海域
-		var ry = randf_range(60, 600)
+		# 安全な開けた海域（桟橋南側の深場〜サーフ沖合）
+		var ry = randf_range(380, 590)
 		var rx = 100.0
-		if ry < 180.0:
-			rx = randf_range(60, 480)
-		elif ry > 360.0:
-			rx = randf_range(60, 520)
+		if randf() < 0.5:
+			rx = randf_range(80, 500)
 		else:
-			rx = map_field.get_shore_x(ry) - randf_range(40, 150)
+			rx = map_field.get_shore_x(ry) - randf_range(55, 170)
 		fish.global_position = Vector2(rx, ry)
 
 func _generate_fish_loot(species: String, bait_boost: float = 1.0) -> Dictionary:

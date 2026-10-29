@@ -38,6 +38,7 @@ var max_nibbles: int = 2
 
 var map_field: Node2D = null
 var sprite: Sprite2D = null
+var shadow_sprite: Sprite2D = null
 
 func _ready() -> void:
 	_init_species_profile()
@@ -131,7 +132,7 @@ func _setup_sprite() -> void:
 			"aoriika":  scale_val = Vector2(0.036, 0.034)
 
 		# 水底に落ちる魚の影（Drop Shadow）
-		var shadow_sprite = Sprite2D.new()
+		shadow_sprite = Sprite2D.new()
 		shadow_sprite.texture = tex
 		shadow_sprite.scale = scale_val
 		shadow_sprite.position = Vector2(8, 12) # 水深分だけ右下に落ちる影
@@ -184,7 +185,23 @@ func _process(delta: float) -> void:
 		global_position = map_field.get_clamped_safe_water_pos(global_position)
 		
 	var wiggle = sin(tail_cycle) * 0.08
-	rotation = swim_direction.angle() + wiggle
+	var angle = swim_direction.angle()
+	
+	# 素材（fish_*.png）は「頭が右向き（+X方向）」
+	# 常に頭を進行方向（swim_direction）に向け、背中が上を維持する自然な遊泳制御
+	if abs(angle) > PI * 0.5:
+		# 左半球方向への遊泳: 水平反転（flip_h = true）して頭を左に向け、左基準の角度へ回転
+		# angle が PI（真左）のとき、rotation は 0（水平）
+		var left_angle = angle - PI if angle > 0.0 else angle + PI
+		rotation = left_angle + wiggle
+		if sprite: sprite.flip_h = true
+		if shadow_sprite: shadow_sprite.flip_h = true
+	else:
+		# 右半球方向への遊泳: 元の右向きスプライト（flip_h = false）で頭を右に向け、右基準の角度へ回転
+		# angle が 0（真右）のとき、rotation は 0（水平）
+		rotation = angle + wiggle
+		if sprite: sprite.flip_h = false
+		if shadow_sprite: shadow_sprite.flip_h = false
 		
 	queue_redraw()
 
@@ -203,12 +220,17 @@ func _process_wander(delta: float) -> void:
 			is_resting = true
 			rest_timer = randf_range(1.0, 2.5)
 
-	var next_pos = global_position + swim_direction * swim_speed * delta * 2.5
+	# 桟橋・陸地・浅瀬への接近を事前に検知して回避
+	var next_pos = global_position + swim_direction * (swim_speed * delta * 3.5)
 	if map_field and not map_field.is_in_safe_water(next_pos):
-		target_swim_dir = -swim_direction.rotated(randf_range(-0.5, 0.5))
+		# 開けた外海側（画面中央〜南側の安全な水域）へ滑らかに旋回
+		var safe_center = Vector2(380, 480)
+		var to_safe = (safe_center - global_position).normalized()
+		target_swim_dir = to_safe.rotated(randf_range(-0.4, 0.4))
+		wander_timer = randf_range(2.0, 4.0)
 		
-	swim_direction = swim_direction.slerp(target_swim_dir, delta * 3.0).normalized()
-	global_position += swim_direction * swim_speed * delta
+	swim_direction = swim_direction.slerp(target_swim_dir, delta * 3.5).normalized()
+	global_position += swim_direction * (swim_speed * delta)
 
 func on_bobber_cast(bobber_node: Node2D) -> void:
 	if current_state != State.WANDER and current_state != State.NOTICE:

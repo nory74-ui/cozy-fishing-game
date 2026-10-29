@@ -156,21 +156,50 @@ func is_castable_water(pos: Vector2) -> bool:
 		return false
 	return true
 
+# 魚が遊泳可能な水域（桟橋の下や周囲、陸地には絶対に入らない）
+func is_swimmable_water(pos: Vector2) -> bool:
+	# 1. 砂浜（陸地・波打ち際）は除外
+	var shore_x = get_shore_x(pos.y)
+	if pos.x >= shore_x - 30.0:
+		return false
+		
+	# 2. 桟橋ポリゴン（pier_walk_poly）の内部は完全除外
+	if Geometry2D.is_point_in_polygon(pos, pier_walk_poly):
+		return false
+		
+	# 3. 桟橋の木板の周囲（マージン）を除外して、魚が桟橋の下に潜り込まないようにする
+	# 桟橋の北側連絡通路（y: 40〜260, x: 0〜810）
+	if pos.y >= 40.0 and pos.y <= 260.0 and pos.x <= 810.0:
+		return false
+	# 沖合先端デッキ（x: 80〜310, y: 160〜360）
+	if pos.x <= 310.0 and pos.y <= 360.0:
+		return false
+		
+	# 4. 釣り小屋エリア（x < 130, y < 220）は除外
+	if pos.x < 130.0 and pos.y < 220.0:
+		return false
+		
+	# 5. 画面外マージン
+	if pos.x < 45.0 or pos.x > SCREEN_SIZE.x - 45.0 or pos.y < 45.0 or pos.y > SCREEN_SIZE.y - 45.0:
+		return false
+		
+	return true
+
 func is_in_safe_water(pos: Vector2) -> bool:
-	return is_castable_water(pos)
+	return is_swimmable_water(pos)
 
 func get_clamped_safe_water_pos(pos: Vector2) -> Vector2:
 	var res = pos
 	res.x = clampf(res.x, 50.0, SCREEN_SIZE.x - 50.0)
 	res.y = clampf(res.y, 50.0, SCREEN_SIZE.y - 50.0)
-	if not is_water(res):
+	if not is_swimmable_water(res):
+		# 開けた外海（画面南側〜中央の安全な深場）へ瞬時に押し出す
+		res.y = clampf(res.y, 380.0, SCREEN_SIZE.y - 50.0)
 		var shore_x = get_shore_x(res.y)
-		if res.x > shore_x - 40.0:
+		if res.x > shore_x - 50.0:
 			res.x = shore_x - 70.0
-		elif res.y < 280.0:
-			res.y = 150.0
-		else:
-			res.y = 420.0
+		if res.x < 60.0:
+			res.x = 80.0
 	return res
 
 func is_in_water(pos: Vector2) -> bool:
