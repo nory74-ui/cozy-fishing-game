@@ -150,14 +150,14 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.70, 0.28, 0.16, 1)
 theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 14
-text = "福岡 • 糸島 玄界灘"
+text = "日本全国お魚釣り旅"
 
 [node name="MainTitleLabel" type="Label" parent="CanvasLayer/TitleCard/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.12, 0.22, 0.32, 1)
 theme_override_fonts/font = ExtResource("3_font")
-theme_override_font_sizes/font_size = 32
-text = "玄界灘フィッシング"
+theme_override_font_sizes/font_size = 34
+text = "うみかぜ日和"
 
 [node name="HSeparator" type="HSeparator" parent="CanvasLayer/TitleCard/VBox"]
 layout_mode = 2
@@ -167,7 +167,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.40, 0.45, 0.50, 1)
 theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 13
-text = "〜 野北波止の海風とおじさんの釣り日誌 〜"
+text = "〜 福岡・糸島 野北編 〜"
 
 [node name="MenuCard" type="PanelContainer" parent="CanvasLayer"]
 offset_left = 48.0
@@ -260,7 +260,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.96, 0.98, 1)
 theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 12
-text = "糸島・野北波止スポット"
+text = "第一の海：糸島・野北波止"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -270,7 +270,7 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -320.0
+offset_left = -340.0
 offset_top = -32.0
 offset_right = -24.0
 offset_bottom = -10.0
@@ -279,7 +279,7 @@ grow_vertical = 0
 theme_override_colors/font_color = Color(0.20, 0.28, 0.35, 0.8)
 theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 12
-text = "玄界灘フィッシング Ver 2.0 • Inspired by Fork Dev"
+text = "うみかぜ日和 Ver 2.0 • 日本全国お魚釣り旅"
 horizontal_alignment = 2
 
 [node name="HelpModal" type="Control" parent="CanvasLayer"]
@@ -328,7 +328,7 @@ size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.12, 0.22, 0.32, 1)
 theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 20
-text = "野北波止フィッシングのあそびかた"
+text = "うみかぜ日和のあそびかた"
 
 [node name="CloseBtn" type="Button" parent="CanvasLayer/HelpModal/Card/VBox/HeaderHBox"]
 custom_minimum_size = Vector2(80, 32)
@@ -443,7 +443,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.12, 0.22, 0.32, 1)
 theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 20
-text = "玄界灘・糸島 お魚図鑑"
+text = "うみかぜ日和 お魚図鑑"
 
 [node name="ProgressLabel" type="Label" parent="CanvasLayer/FishBookModal/Card/VBox/HeaderHBox"]
 layout_mode = 2

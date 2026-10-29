@@ -90,7 +90,7 @@ func _ready() -> void:
 	SoundManager.play_bgm("bgm_fishing", 1.5)
 
 	# 初期状態: 堤防の上でスタンバイ（海をクリックでキャスト、WASDで自由に移動可能）
-	_set_hud_status("糸島・野北波止へ到着。海面をクリックして仕掛けを投げよう！")
+	_set_hud_status("うみかぜ日和：糸島・野北波止へ到着。海面をクリックして仕掛けを投げよう！")
 
 	var all_args = OS.get_cmdline_args() + OS.get_cmdline_user_args()
 	for arg in all_args:

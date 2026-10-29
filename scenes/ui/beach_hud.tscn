@@ -277,7 +277,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.70, 0.28, 0.16, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 15
-text = "糸島 • 野北海岸 (玄界灘)"
+text = "うみかぜ日和 • 糸島 野北編"
 
 [node name="HSeparator" type="HSeparator" parent="TopRight/QuestCard/VBox"]
 layout_mode = 2
@@ -465,6 +465,6 @@ grow_vertical = 2
 theme_override_colors/font_color = Color(0.2, 0.28, 0.35, 0.8)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 11
-text = "福岡・糸島 野北フィッシング • 玄界灘の海"
+text = "うみかぜ日和 〜 日本全国お魚釣り旅：福岡・糸島編 〜"
 horizontal_alignment = 1
 vertical_alignment = 1

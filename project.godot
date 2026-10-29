@@ -6,8 +6,8 @@ config_version=5
 
 [application]
 
-config/name="こもれびフィッシング"
-config/description="ほのぼの系釣りゲーム"
+config/name="うみかぜ日和"
+config/description="うみかぜ日和 〜 日本全国お魚釣り旅：福岡・糸島編 〜"
 run/main_scene="res://scenes/title.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 boot_splash/bg_color=Color(0.91, 0.96, 0.93, 1)
