@@ -50,7 +50,7 @@ script = ExtResource("2_map")
 script = ExtResource("4_bob")
 
 [node name="Player" type="CharacterBody2D" parent="."]
-position = Vector2(610, 135)
+position = Vector2(260, 275)
 script = ExtResource("5_play")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
@@ -234,7 +234,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.18, 0.25, 0.3, 1)
 theme_override_font_sizes/font_size = 20
-text = "水辺のよろず屋"
+text = "野北波止 釣具・エサ店"
 
 [node name="CloseBtn" type="Button" parent="CanvasLayer/ShopModal/Card/VBox/HeaderHBox"]
 custom_minimum_size = Vector2(80, 32)
@@ -337,14 +337,14 @@ layout_mode = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(0.18, 0.25, 0.3, 1)
 theme_override_font_sizes/font_size = 20
-text = "こもれびお魚図鑑"
+text = "玄界灘・糸島 お魚図鑑"
 
 [node name="ProgressLabel" type="Label" parent="CanvasLayer/FishBookModal/Card/VBox/HeaderHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.2, 0.55, 0.45, 1)
 theme_override_font_sizes/font_size = 15
-text = "発見度: 0 / 8 種 (0%)"
+text = "発見度: 0 / 10 種 (0%)"
 horizontal_alignment = 1
 
 [node name="CloseBtn" type="Button" parent="CanvasLayer/FishBookModal/Card/VBox/HeaderHBox"]

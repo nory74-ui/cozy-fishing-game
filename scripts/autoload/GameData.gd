@@ -10,30 +10,31 @@ signal book_updated(species: String, is_first: bool, is_record: bool)
 
 # プレイヤーのステータス
 var coins: int = 60 # 初期所持金
-var current_rod: String = "branch_rod"
-var current_bait: String = "mussel"
+var current_rod: String = "starter_rod"
+var current_bait: String = "isome"
 
 # 所持品
 var inventory: Array[Dictionary] = [] # 釣った魚リスト
-var unlocked_rods: Array[String] = ["branch_rod"]
+var unlocked_rods: Array[String] = ["starter_rod"]
 var bait_counts: Dictionary = {
+	"isome": 5,
+	"okiami": 5,
 	"mussel": 3,
-	"worm": 5,
-	"dumpling": 0,
+	"shrimp": 0,
 	"lure": 0
 }
 
 # ★図鑑記録: species -> { "caught_count": int, "max_size": float }
 var fish_records: Dictionary = {}
 
-# ★探索道具（Key Items）の所持状況
-var has_boots: bool = false # ゴム長靴（浅瀬を渡れる）
-var has_axe: bool = false   # 木こりのオノ（倒木を壊せる）
-var has_boat: bool = false  # 手漕ぎボート（湖の沖へ出られる）
+# ★探索・釣り具（Key Items）の所持状況
+var has_boots: bool = false   # フェルトスパイク靴（濡れたテトラや磯でも安全）
+var has_axe: bool = false     # 玉網・タモ網（大物を確実に引き上げる）
+var has_boat: bool = false    # プレジャーボート（玄界灘沖合へ出られる）
 
 # マップギミック解放状況
-var is_log_cleared: bool = false # 倒木が破壊されたか
-var is_on_island: bool = false   # 孤島にいるか
+var is_log_cleared: bool = false
+var is_on_island: bool = false
 
 # セーブファイルパス (Web/Local両対応のuser://)
 const SAVE_PATH = "user://save_data.json"
@@ -43,184 +44,212 @@ signal game_loaded()
 
 # --- マスターデータ ---
 
-# 釣り竿カタログ
+# 釣り竿カタログ（福岡・玄界灘仕様）
 const RODS: Dictionary = {
-	"branch_rod": {
-		"id": "branch_rod",
-		"name": "木の枝竿",
+	"starter_rod": {
+		"id": "starter_rod",
+		"name": "波止のべ竿",
 		"price": 0,
 		"power": 1.0,
 		"stability": 1.0,
-		"desc": "拾った丈夫な枝で作った手製の竿。素朴で手になじむ。"
+		"desc": "堤防でのサビキやちょい投げに最適な万能のべ竿。素直な曲がりで扱いやすい。"
 	},
-	"bamboo_rod": {
-		"id": "bamboo_rod",
-		"name": "竹のしなやか竿",
-		"price": 120,
-		"power": 1.35,
+	"surf_cast_rod": {
+		"id": "surf_cast_rod",
+		"name": "糸島サーフ投竿",
+		"price": 130,
+		"power": 1.4,
 		"stability": 1.25,
-		"desc": "よくしなる竹で作られた竿。アタリの引きをいなしやすい。"
+		"desc": "白砂の海岸から遠投できる弾力のある投竿。砂底に潜むキスやマゴチを狙い撃つ。"
 	},
-	"carbon_rod": {
-		"id": "carbon_rod",
-		"name": "炭素繊維の清流竿",
+	"isogame_rod": {
+		"id": "isogame_rod",
+		"name": "玄界磯チヌ竿",
 		"price": 380,
-		"power": 1.8,
-		"stability": 1.5,
-		"desc": "軽くて強靭な素材の竿。大きな魚もしっかり引き寄せる。"
+		"power": 1.85,
+		"stability": 1.55,
+		"desc": "粘り強い胴調子の本格磯竿。荒磯やテトラに潜むチヌやアラカブの突っ込みを受け止める。"
 	},
-	"master_rod": {
-		"id": "master_rod",
-		"name": "名人の月影竿",
+	"master_sea_rod": {
+		"id": "master_sea_rod",
+		"name": "玄界灘・大物専用剛竿",
 		"price": 950,
-		"power": 2.4,
-		"stability": 2.0,
-		"desc": "夜光塗料が施された名工の逸品。巨大な主をも引き上げる。"
+		"power": 2.5,
+		"stability": 2.1,
+		"desc": "大型マダイや座布団ヒラメの強烈な引きを圧倒的なパワーでねじ伏せるプロ仕様の剛竿。"
 	}
 }
 
-# 探索道具カタログ
+# 釣り具・アイテムカタログ
 const TOOLS: Dictionary = {
 	"boots": {
 		"id": "boots",
-		"name": "ゴム長靴",
+		"name": "フェルトスパイク靴",
 		"icon": "",
 		"price": 100,
-		"desc": "膝下まである丈夫な長靴。川の浅瀬をジャブジャブ歩いて渡れる！"
+		"desc": "濡れたテトラポッドや滑りやすい磯場でもガッチリ踏ん張れる安全ブーツ。"
 	},
 	"axe": {
 		"id": "axe",
-		"name": "木こりのオノ",
+		"name": "カーボン玉網",
 		"icon": "",
 		"price": 250,
-		"desc": "切れ味の良い手斧。道をふさぐ倒木を壊して秘密のスポットを開拓！"
+		"desc": "軽量で頑丈なランディングネット。足場の高い波止から大型魚を確実に掬い上げる。"
 	},
 	"boat": {
 		"id": "boat",
-		"name": "手漕ぎボート",
+		"name": "プレジャーボート",
 		"icon": "",
 		"price": 600,
-		"desc": "小さな木製ボート。湖の沖合へ漕ぎ出し、未知の主が住む孤島へ！"
+		"desc": "野北漁港から出船できる小型ボート。玄界灘の沖合、大鯛が回遊する深淵へ！"
 	}
 }
 
-# エサカタログ
+# エサカタログ（福岡・海釣り実戦仕様）
 const BAITS: Dictionary = {
-	"mussel": {
-		"id": "mussel",
-		"name": "ムール貝",
-		"pack_amount": 3,
-		"price": 20,
-		"rare_boost": 1.2,
-		"desc": "潮の香りがする新鮮なムール貝。浅瀬の魚たちの大好物。"
-	},
-	"worm": {
-		"id": "worm",
-		"name": "みみず",
+	"isome": {
+		"id": "isome",
+		"name": "アオイソメ",
 		"pack_amount": 5,
 		"price": 15,
 		"rare_boost": 1.0,
-		"desc": "元気なミミズ。どんな魚も好む定番のエサ。"
+		"desc": "活きの良い青虫。動く光と匂いでシロギスやアジ、アラカブを惹きつける堤防の万能エサ。"
 	},
-	"dumpling": {
-		"id": "dumpling",
-		"name": "だんごエサ",
+	"okiami": {
+		"id": "okiami",
+		"name": "生オキアミ",
 		"pack_amount": 5,
-		"price": 40,
-		"rare_boost": 1.4,
-		"desc": "香ばしい香りが広がる練り餌。池や湖の魚が集まる。"
+		"price": 25,
+		"rare_boost": 1.25,
+		"desc": "粒ぞろいの新鮮なオキアミ。アジの群れやチヌ、マダイがたまらず口を使う定番の海エサ。"
+	},
+	"mussel": {
+		"id": "mussel",
+		"name": "ムール貝 (イガイ)",
+		"pack_amount": 3,
+		"price": 35,
+		"rare_boost": 1.5,
+		"desc": "堤防壁面に付着する天然の貝。硬い殻ごと砕いて食べる年無しチヌ（クロダイ）の特効薬。"
+	},
+	"shrimp": {
+		"id": "shrimp",
+		"name": "活きエビ",
+		"pack_amount": 3,
+		"price": 60,
+		"rare_boost": 1.8,
+		"desc": "元気に跳ねる活シラサエビ。高級魚キジハタ（アコウ）やスズキが猛烈にアタックする。"
 	},
 	"lure": {
 		"id": "lure",
-		"name": "きらめくルアー",
+		"name": "メタルジグ",
 		"pack_amount": 3,
 		"price": 90,
-		"rare_boost": 2.0,
-		"desc": "光を反射してキラキラ輝く擬似餌。珍しい魚が大興奮！"
+		"rare_boost": 2.2,
+		"desc": "光を乱反射してイワシの逃走を演出するルアー。砂底のヒラメや回遊するフィッシュイーター用。"
 	}
 }
 
-# 魚データベース（実在の魚類学的サイズ・生態・生息環境に基づく設定）
+# 魚データベース（福岡県・糸島 玄界灘の実在の海洋生態系・サイズ・生態に基づく設定）
 const FISH_DATABASE: Dictionary = {
-	"medaka": {
-		"id": "medaka",
-		"name": "メダカ",
+	"aji": {
+		"id": "aji",
+		"name": "マアジ",
 		"rarity": "Common",
-		"base_price": 10,
-		"min_size": 2.8,
-		"max_size": 4.5,
-		"habitat": "平地の小川・水生植物の茂る浅瀬",
-		"desc": "水面近くを群れで泳ぐ日本固有の小魚。上向きの小さな口で水面のプランクトンを捕食する。成魚でも4cm前後の愛らしい姿。"
-	},
-	"yamame": {
-		"id": "yamame",
-		"name": "ヤマメ",
-		"rarity": "Rare",
-		"base_price": 55,
-		"min_size": 18.0,
+		"base_price": 20,
+		"min_size": 12.0,
 		"max_size": 34.0,
-		"habitat": "清流の中・上流域、早瀬や落ち込み",
-		"desc": "「渓流の女王」と称されるサケ科の美魚。体側に並ぶ小判型のパーマークが特徴。警戒心が極めて強く、30cm（尺）超えは釣り人の憧れ。"
+		"habitat": "野北漁港・大波止先端（潮通しの良い回遊層）",
+		"desc": "玄界灘の激しい潮流で育つマアジは身が引き締まり脂乗りが抜群。初夏から秋にかけて堤防周りに大群で回遊する。夕マズメや夜間の常夜灯下に集まる習性があり、30cmを超えるものは「尺アジ」と呼ばれる。"
 	},
-	"funa": {
-		"id": "funa",
-		"name": "ギンブナ",
+	"kisu": {
+		"id": "kisu",
+		"name": "シロギス",
 		"rarity": "Common",
 		"base_price": 25,
-		"min_size": 16.0,
-		"max_size": 35.0,
-		"habitat": "中央広場の池・水草の生える緩やかな岸辺",
-		"desc": "体高が高く銀色に輝く日本の代表的な淡水魚。池底の泥をついばみ藻類やミミズを食べる。「釣りはフナに始まりフナに終わる」の言葉で有名。"
+		"min_size": 12.0,
+		"max_size": 26.5,
+		"habitat": "野北サーフ（白砂海岸の波打ち際・駆け上がり）",
+		"desc": "「砂浜の貴婦人」と称される透き通る美しい魚体。糸島の大口海岸などの白砂底に生息し、砂の中に潜むゴカイ類を吸い込むように捕食する。繊細なアタリと上品で甘みのある白身が釣り人に愛されている。"
 	},
-	"koi": {
-		"id": "koi",
-		"name": "ニシキゴイ",
-		"rarity": "Epic",
+	"arakabu": {
+		"id": "arakabu",
+		"name": "アラカブ (カサゴ)",
+		"rarity": "Common",
+		"base_price": 30,
+		"min_size": 14.0,
+		"max_size": 28.5,
+		"habitat": "波止の基礎石・テトラポッドの隙間",
+		"desc": "九州で「アラカブ」と呼ばれる根魚の代表。堤防の足元や消波ブロックの暗がりにじっと潜み、落ちてくるエサを一瞬でひったくる。大きな口とトゲのあるヒレを持ち、煮付けや味噌汁にすると濃厚な出汁が出る。"
+	},
+	"chinu": {
+		"id": "chinu",
+		"name": "チヌ (クロダイ)",
+		"rarity": "Rare",
+		"base_price": 75,
+		"min_size": 22.0,
+		"max_size": 54.0,
+		"habitat": "波止のケーソン足元・テトラ帯",
+		"desc": "警戒心が極めて強く、知恵比べが楽しめる名ターゲット。福岡では小型を「メイタ」と呼ぶ。堤防に付着したイガイやカニを頑丈な歯で噛み砕く。50cmを超える「年無し（としなし）」の銀鱗と強烈な引きは圧巻。"
+	},
+	"magochi": {
+		"id": "magochi",
+		"name": "マゴチ",
+		"rarity": "Rare",
+		"base_price": 95,
+		"min_size": 35.0,
+		"max_size": 62.0,
+		"habitat": "野北サーフの浅場〜ブレイクライン",
+		"desc": "上から押しつぶされたような平たい体を持つ砂地のハンター。「照りゴチ」と呼ばれ初夏〜夏にサーフの浅場へ寄る。砂に身を隠して目の前を通る小魚やエビを豪快に捕食し、強烈な首振りダンスで竿を揺らす。"
+	},
+	"suzuki": {
+		"id": "suzuki",
+		"name": "スズキ (シーバス)",
+		"rarity": "Rare",
 		"base_price": 120,
 		"min_size": 45.0,
-		"max_size": 82.0,
-		"habitat": "中央広場の池・水深のある静かな深み",
-		"desc": "「泳ぐ宝石」と称えられる観賞鯉。口元に2対のヒゲを持ち、白地に鮮やかな朱赤と墨の斑紋が優雅。肉厚で力強い引きを見せる。"
+		"max_size": 88.0,
+		"habitat": "波打ち際のサラシ・潮目・離岸流",
+		"desc": "白波が砕けるサラシや潮通しの良い潮流帯を回遊する大型フィッシュイーター。フッキングすると水面を割って高くジャンプし、頭を激しく振る「エラ洗い」で針を外そうとする。80cm超のランカーサイズは迫力満点。"
 	},
-	"catfish": {
-		"id": "catfish",
-		"name": "ナマズ",
+	"kijihata": {
+		"id": "kijihata",
+		"name": "キジハタ (アコウ)",
 		"rarity": "Epic",
-		"base_price": 140,
-		"min_size": 42.0,
-		"max_size": 75.0,
-		"habitat": "中央広場の池・水底の暗がりや泥底",
-		"desc": "上下に平たい大きな頭と4本のヒゲを持つ夜行性の捕食者。ウロコがなく滑らかな体で、水底の暗がりに潜み獲物を一気に吸い込む。"
+		"base_price": 160,
+		"min_size": 22.0,
+		"max_size": 48.0,
+		"habitat": "大波止沖合の沈み瀬・深場の岩礁帯",
+		"desc": "「夏のフグ」とも称される玄界灘の超高級根魚。福岡・九州では「アコウ」と呼ばれる。鮮やかな赤橙色の体に散らばる青い斑点が宝石のように美しい。強烈な力で一気に海底の岩穴に潜り込もうとする。"
 	},
-	"iwana": {
-		"id": "iwana",
-		"name": "イワナ",
-		"rarity": "Rare",
-		"base_price": 85,
-		"min_size": 20.0,
-		"max_size": 42.0,
-		"habitat": "西の原生林（長靴で渡った最源流部）",
-		"desc": "原生林の冷たい岩陰に潜む「渓流の王者」。背中の白斑とヒレの前縁を走る純白のラインが特徴。昆虫から小魚まで貪欲に丸呑みする。"
-	},
-	"rainbow_trout": {
-		"id": "rainbow_trout",
-		"name": "ニジマス",
+	"hirame": {
+		"id": "hirame",
+		"name": "ヒラメ",
 		"rarity": "Epic",
-		"base_price": 175,
-		"min_size": 28.0,
-		"max_size": 62.0,
-		"habitat": "秘密の滝壺（オノで開通した深淵）",
-		"desc": "冷たく深い滝壺に生息する大型トラウト。体側に輝く鮮烈な紅紫色の帯と全身の黒点が特徴。掛かると水面を割って豪快に跳ねる。"
+		"base_price": 180,
+		"min_size": 32.0,
+		"max_size": 78.0,
+		"habitat": "野北サーフ沖合の深み・海底の砂地",
+		"desc": "砂底に完璧に擬態するサーフの頂点捕食者。鋭い歯を持ち、頭上を通るキスやアジに電光石火の速さで襲いかかる。肉厚な70cm超の「座布団ヒラメ」は糸島サーフに通うアングラーすべての夢。"
 	},
-	"golden_koi": {
-		"id": "golden_koi",
-		"name": "黄金の主",
+	"madai": {
+		"id": "madai",
+		"name": "マダイ (真鯛)",
+		"rarity": "Epic",
+		"base_price": 220,
+		"min_size": 25.0,
+		"max_size": 76.0,
+		"habitat": "大波止先端の沖合本流・深場",
+		"desc": "玄界灘の荒波と豊富な潮流に育まれた「百魚の王」。鮮やかな桜色の魚体にエメラルドグリーンの斑点が美しく輝く。波止の先端から沖の潮目へ流すとヒットし、竿先を激しく叩く独特の三段引きで魅了する。"
+	},
+	"aoriika": {
+		"id": "aoriika",
+		"name": "アオリイカ (ミズイカ)",
 		"rarity": "Legendary",
-		"base_price": 600,
-		"min_size": 85.0,
-		"max_size": 118.0,
-		"habitat": "神秘の孤島沖（ボートで渡った深淵）",
-		"desc": "神秘の孤島の深みに何十年も生き続ける伝説の巨鯉。全身の鱗が純金のように神々しく輝き、メーターを超える圧倒的な巨躯を誇る。"
+		"base_price": 500,
+		"min_size": 20.0,
+		"max_size": 45.0,
+		"habitat": "大波止周りのホンダワラ藻場・深淵",
+		"desc": "「イカの王様」と称えられる最高峰ターゲット。九州では「ミズイカ」と呼ばれる。水晶のように透き通る肉厚な胴体と、光の加減で虹色に変化する美しい体色が特徴。キロアップの親イカはジェット噴射でドラグを唸らせる。"
 	}
 }
 
@@ -409,7 +438,7 @@ func consume_current_bait() -> float:
 	if bait_counts.get(current_bait, 0) > 0:
 		bait_counts[current_bait] -= 1
 		if bait_counts[current_bait] <= 0:
-			for k in ["lure", "dumpling", "worm"]:
+			for k in ["isome", "okiami", "mussel", "shrimp", "lure"]:
 				if bait_counts.get(k, 0) > 0:
 					current_bait = k
 					break
@@ -501,10 +530,12 @@ func load_game() -> bool:
 		
 	# データを復元
 	coins = data.get("coins", 60)
-	current_rod = data.get("current_rod", "branch_rod")
-	current_bait = data.get("current_bait", "mussel")
-	if current_bait == "worm" and data.get("bait_counts", {}).get("mussel", 3) > 0:
-		current_bait = "mussel"
+	current_rod = data.get("current_rod", "starter_rod")
+	if not RODS.has(current_rod):
+		current_rod = "starter_rod"
+	current_bait = data.get("current_bait", "isome")
+	if not BAITS.has(current_bait):
+		current_bait = "isome"
 	
 	# インベントリ
 	inventory.clear()
@@ -515,20 +546,24 @@ func load_game() -> bool:
 				inventory.append(item)
 				
 	# 解放済みの竿
-	var raw_rods = data.get("unlocked_rods", ["branch_rod"])
+	var raw_rods = data.get("unlocked_rods", ["starter_rod"])
 	if typeof(raw_rods) == TYPE_ARRAY:
 		unlocked_rods.clear()
 		for rod in raw_rods:
-			unlocked_rods.append(str(rod))
+			var s_rod = str(rod)
+			if RODS.has(s_rod):
+				unlocked_rods.append(s_rod)
 	if unlocked_rods.is_empty():
-		unlocked_rods.append("branch_rod")
+		unlocked_rods.append("starter_rod")
 		
 	# エサ所持数
 	var raw_baits = data.get("bait_counts", {})
 	if typeof(raw_baits) == TYPE_DICTIONARY:
-		for k in ["mussel", "worm", "dumpling", "lure"]:
+		for k in ["isome", "okiami", "mussel", "shrimp", "lure"]:
 			bait_counts[k] = int(raw_baits.get(k, 0))
-	if bait_counts.get("mussel", 0) == 0:
+	if bait_counts.get("isome", 0) <= 0 and bait_counts.get("mussel", 0) <= 0:
+		bait_counts["isome"] = 5
+		bait_counts["okiami"] = 5
 		bait_counts["mussel"] = 3
 			
 	# 図鑑記録
@@ -566,14 +601,15 @@ func reset_save_data() -> void:
 	if FileAccess.file_exists(SAVE_PATH):
 		DirAccess.remove_absolute(SAVE_PATH)
 	coins = 60
-	current_rod = "branch_rod"
-	current_bait = "mussel"
+	current_rod = "starter_rod"
+	current_bait = "isome"
 	inventory.clear()
-	unlocked_rods = ["branch_rod"]
+	unlocked_rods = ["starter_rod"]
 	bait_counts = {
+		"isome": 5,
+		"okiami": 5,
 		"mussel": 3,
-		"worm": 5,
-		"dumpling": 0,
+		"shrimp": 0,
 		"lure": 0
 	}
 	fish_records.clear()

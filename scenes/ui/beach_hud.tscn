@@ -1,34 +1,80 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/BeachHUD.gd" id="1_hud"]
 [ext_resource type="FontFile" path="res://assets/fonts/ZenMaruGothic-Medium.ttf" id="2_font"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bait_circle"]
-bg_color = Color(0.95, 0.92, 0.84, 0.95)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.35, 0.28, 0.22, 1)
-corner_radius_top_left = 42
-corner_radius_top_right = 42
-corner_radius_bottom_right = 42
-corner_radius_bottom_left = 42
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_badge"]
-bg_color = Color(0.2, 0.18, 0.16, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pill"]
-bg_color = Color(0.96, 0.94, 0.88, 0.95)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass_circle"]
+bg_color = Color(0.10, 0.15, 0.20, 0.85)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.4, 0.32, 0.25, 0.9)
+border_color = Color(1, 1, 1, 0.25)
+corner_radius_top_left = 42
+corner_radius_top_right = 42
+corner_radius_bottom_right = 42
+corner_radius_bottom_left = 42
+shadow_color = Color(0, 0, 0, 0.25)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass_pill"]
+bg_color = Color(0.12, 0.16, 0.22, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.20)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+content_margin_left = 10.0
+content_margin_top = 3.0
+content_margin_right = 10.0
+content_margin_bottom = 3.0
+shadow_color = Color(0, 0, 0, 0.2)
+shadow_size = 3
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_badge"]
+bg_color = Color(0.18, 0.24, 0.32, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.4)
+corner_radius_top_left = 11
+corner_radius_top_right = 11
+corner_radius_bottom_right = 11
+corner_radius_bottom_left = 11
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_quest_card"]
+bg_color = Color(0.98, 0.96, 0.92, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.65, 0.55, 0.45, 0.9)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+shadow_color = Color(0, 0, 0, 0.18)
+shadow_size = 6
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_key_cap"]
+bg_color = Color(0.94, 0.93, 0.90, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 3
+border_color = Color(0.50, 0.46, 0.42, 1)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
@@ -38,37 +84,62 @@ content_margin_top = 2.0
 content_margin_right = 8.0
 content_margin_bottom = 2.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_quest"]
-bg_color = Color(0.96, 0.94, 0.88, 0.96)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_btn"]
+bg_color = Color(0.92, 0.89, 0.82, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.70, 0.62, 0.52, 0.9)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 8.0
+content_margin_top = 2.0
+content_margin_right = 8.0
+content_margin_bottom = 2.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_chest_frame"]
+bg_color = Color(0.10, 0.15, 0.20, 0.85)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.55, 0.45, 0.35, 0.9)
+border_color = Color(1, 1, 1, 0.25)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.25)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_alert_badge"]
+bg_color = Color(0.92, 0.25, 0.20, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
-content_margin_left = 14.0
-content_margin_top = 8.0
-content_margin_right = 14.0
-content_margin_bottom = 8.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_key"]
-bg_color = Color(0.94, 0.92, 0.86, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.45, 0.4, 0.35, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
-content_margin_left = 6.0
-content_margin_top = 2.0
-content_margin_right = 6.0
-content_margin_bottom = 2.0
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_notif"]
+bg_color = Color(0.12, 0.16, 0.22, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.25)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+content_margin_left = 18.0
+content_margin_top = 6.0
+content_margin_right = 18.0
+content_margin_bottom = 6.0
+shadow_color = Color(0, 0, 0, 0.25)
+shadow_size = 5
+shadow_offset = Vector2(0, 3)
 
 [node name="BeachHUD" type="Control"]
 layout_mode = 3
@@ -87,7 +158,7 @@ anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 24.0
 offset_top = -140.0
-offset_right = 380.0
+offset_right = 420.0
 offset_bottom = -16.0
 grow_vertical = 0
 mouse_filter = 2
@@ -99,7 +170,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 14
 alignment = 0
 
 [node name="BaitContainer" type="VBoxContainer" parent="BottomLeft/HBox"]
@@ -108,12 +179,12 @@ theme_override_constants/separation = 4
 alignment = 2
 
 [node name="BaitCircle" type="PanelContainer" parent="BottomLeft/HBox/BaitContainer"]
-custom_minimum_size = Vector2(80, 80)
+custom_minimum_size = Vector2(76, 76)
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_bait_circle")
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass_circle")
 
 [node name="BaitIcon" type="TextureRect" parent="BottomLeft/HBox/BaitContainer/BaitCircle"]
-custom_minimum_size = Vector2(60, 60)
+custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
@@ -136,43 +207,42 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 13
-text = "3"
+theme_override_font_sizes/font_size = 12
+text = "5"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="NameLabel" type="Label" parent="BottomLeft/HBox/BaitContainer"]
+[node name="BtnSwitchBait" type="Button" parent="BottomLeft/HBox/BaitContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.25, 0.2, 0.15, 1)
+theme_override_colors/font_color = Color(0.95, 0.96, 0.98, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 13
-theme_override_styles/normal = SubResource("StyleBoxFlat_pill")
-text = "ムール貝"
-horizontal_alignment = 1
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = SubResource("StyleBoxFlat_glass_pill")
+text = "アオイソメ [E]"
 
 [node name="ControlsGuideHBox" type="HBoxContainer" parent="BottomLeft/HBox"]
 layout_mode = 2
 size_flags_vertical = 8
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
 [node name="LeftClickGuide" type="PanelContainer" parent="BottomLeft/HBox/ControlsGuideHBox"]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_pill")
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass_pill")
 
 [node name="Label" type="Label" parent="BottomLeft/HBox/ControlsGuideHBox/LeftClickGuide"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.22, 0.2, 0.18, 1)
+theme_override_colors/font_color = Color(0.95, 0.96, 0.98, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 13
 text = "(左) 投げる"
 
 [node name="RightClickGuide" type="PanelContainer" parent="BottomLeft/HBox/ControlsGuideHBox"]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_pill")
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass_pill")
 
 [node name="Label" type="Label" parent="BottomLeft/HBox/ControlsGuideHBox/RightClickGuide"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.22, 0.2, 0.18, 1)
+theme_override_colors/font_color = Color(0.95, 0.96, 0.98, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 13
 text = "(右) 引く"
@@ -182,10 +252,10 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -260.0
+offset_left = -280.0
 offset_top = 20.0
 offset_right = -20.0
-offset_bottom = 120.0
+offset_bottom = 124.0
 grow_horizontal = 0
 mouse_filter = 2
 
@@ -196,7 +266,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_quest")
+theme_override_styles/panel = SubResource("StyleBoxFlat_quest_card")
 
 [node name="VBox" type="VBoxContainer" parent="TopRight/QuestCard"]
 layout_mode = 2
@@ -204,10 +274,10 @@ theme_override_constants/separation = 4
 
 [node name="TitleLabel" type="Label" parent="TopRight/QuestCard/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.72, 0.28, 0.18, 1)
+theme_override_colors/font_color = Color(0.70, 0.28, 0.16, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 16
-text = "漂着"
+theme_override_font_sizes/font_size = 15
+text = "糸島 • 野北海岸 (玄界灘)"
 
 [node name="HSeparator" type="HSeparator" parent="TopRight/QuestCard/VBox"]
 layout_mode = 2
@@ -221,16 +291,16 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.25, 0.25, 0.25, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 13
 text = "[  ] 釣った魚を見る"
 
 [node name="BtnViewFish" type="Button" parent="TopRight/QuestCard/VBox/HBoxQuest"]
-custom_minimum_size = Vector2(48, 26)
+custom_minimum_size = Vector2(46, 24)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.25, 0.25, 0.25, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 12
-theme_override_styles/normal = SubResource("StyleBoxFlat_key")
+theme_override_styles/normal = SubResource("StyleBoxFlat_key_cap")
 text = "Tab"
 
 [node name="HBoxSys" type="HBoxContainer" parent="TopRight/QuestCard/VBox"]
@@ -244,7 +314,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 0.3, 0.3, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 11
-theme_override_styles/normal = SubResource("StyleBoxFlat_pill")
+theme_override_styles/normal = SubResource("StyleBoxFlat_card_btn")
 text = "セーブ"
 
 [node name="BtnTitle" type="Button" parent="TopRight/QuestCard/VBox/HBoxSys"]
@@ -253,7 +323,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 0.3, 0.3, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 11
-theme_override_styles/normal = SubResource("StyleBoxFlat_pill")
+theme_override_styles/normal = SubResource("StyleBoxFlat_card_btn")
 text = "タイトル"
 
 [node name="BottomRight" type="Control" parent="."]
@@ -265,7 +335,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -160.0
 offset_top = -90.0
-offset_right = -20.0
+offset_right = -24.0
 offset_bottom = -20.0
 grow_horizontal = 0
 grow_vertical = 0
@@ -278,55 +348,53 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 alignment = 2
 
-[node name="KeyBadge" type="PanelContainer" parent="BottomRight/HBox"]
+[node name="KeyCapK" type="PanelContainer" parent="BottomRight/HBox"]
 layout_mode = 2
 size_flags_vertical = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_key")
+theme_override_styles/panel = SubResource("StyleBoxFlat_key_cap")
 
-[node name="Label" type="Label" parent="BottomRight/HBox/KeyBadge"]
+[node name="Label" type="Label" parent="BottomRight/HBox/KeyCapK"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.25, 0.25, 0.25, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 13
 text = "K"
 
-[node name="ChestContainer" type="Control" parent="BottomRight/HBox"]
-custom_minimum_size = Vector2(56, 56)
+[node name="ChestContainer" type="PanelContainer" parent="BottomRight/HBox"]
+custom_minimum_size = Vector2(60, 60)
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_chest_frame")
 
 [node name="BtnChest" type="Button" parent="BottomRight/HBox/ChestContainer"]
-custom_minimum_size = Vector2(56, 56)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 2
 flat = true
 
 [node name="TextureRect" type="TextureRect" parent="BottomRight/HBox/ChestContainer/BtnChest"]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
 grow_horizontal = 2
 grow_vertical = 2
 expand_mode = 1
 stretch_mode = 5
 
 [node name="AlertBadge" type="Panel" parent="BottomRight/HBox/ChestContainer"]
-custom_minimum_size = Vector2(18, 18)
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -16.0
-offset_bottom = 16.0
-grow_horizontal = 0
-theme_override_styles/panel = SubResource("StyleBoxFlat_badge")
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_alert_badge")
 
 [node name="Label" type="Label" parent="BottomRight/HBox/ChestContainer/AlertBadge"]
 layout_mode = 1
@@ -335,9 +403,9 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(0.95, 0.3, 0.2, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 11
 text = "!"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -347,9 +415,9 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -200.0
-offset_top = 20.0
-offset_right = 200.0
+offset_left = -260.0
+offset_top = 18.0
+offset_right = 260.0
 offset_bottom = 60.0
 grow_horizontal = 2
 mouse_filter = 2
@@ -361,42 +429,42 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_quest")
+theme_override_styles/panel = SubResource("StyleBoxFlat_notif")
 
 [node name="NotificationLabel" type="Label" parent="TopCenter/NotificationCard"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.2, 0.4, 0.35, 1)
+theme_override_colors/font_color = Color(0.96, 0.98, 1, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 14
-text = "セーブ完了！冒険の記録を保存しました"
+theme_override_font_sizes/font_size = 13
+text = "糸島・野北波止へ到着。海面をクリックして仕掛けを投げよう！"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="BottomCenter" type="Control" parent="."]
+[node name="CenterBottomCredit" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -250.0
+offset_left = -200.0
 offset_top = -28.0
-offset_right = 250.0
+offset_right = 200.0
 offset_bottom = -8.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
 
-[node name="CreditLabel" type="Label" parent="BottomCenter"]
+[node name="Label" type="Label" parent="CenterBottomCredit"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(0.3, 0.45, 0.45, 0.75)
+theme_override_colors/font_color = Color(0.2, 0.28, 0.35, 0.8)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 12
-text = "こもれびビーチフィッシング • Inspired by Fork Dev"
+theme_override_font_sizes/font_size = 11
+text = "福岡・糸島 野北フィッシング • 玄界灘の海"
 horizontal_alignment = 1
 vertical_alignment = 1

@@ -89,21 +89,26 @@ func _ready() -> void:
 	_spawn_initial_fishes()
 	SoundManager.play_bgm("bgm_fishing", 1.5)
 
-	# 動画のように初期状態で海にウキをキャスト
-	if map_field and map_field.has_method("get_shore_x"):
-		player.start_fishing(Vector2(550, 480))
+	# 初期状態: 堤防の上でスタンバイ（海をクリックでキャスト、WASDで自由に移動可能）
+	_set_hud_status("糸島・野北波止へ到着。海面をクリックして仕掛けを投げよう！")
 
-	for arg in OS.get_cmdline_user_args():
+	var all_args = OS.get_cmdline_args() + OS.get_cmdline_user_args()
+	for arg in all_args:
 		if arg == "--capture-shadows":
 			_run_capture_shadows_test()
+			break
 		elif arg == "--capture-save":
 			_run_capture_save_test()
+			break
 		elif arg == "--capture-beach":
 			_run_capture_beach_test()
+			break
 		elif arg == "--capture-beach-book":
 			_run_capture_beach_book_test()
+			break
 		elif arg == "--capture-beach-shop":
 			_run_capture_beach_shop_test()
+			break
 
 func _run_capture_beach_book_test() -> void:
 	await get_tree().create_timer(0.4).timeout
@@ -250,25 +255,49 @@ func _on_boat_ride_finished(at_island: bool) -> void:
 
 func _spawn_initial_fishes() -> void:
 	if map_field and map_field.has_method("get_shore_x"):
-		# 南国ビーチモード（動画のようなたくさんの魚影）
-		var beach_species = [
-			"yamame", "medaka", "medaka", "funa", "medaka",
-			"yamame", "funa", "koi", "rainbow_trout", "catfish",
-			"medaka", "yamame", "funa", "koi", "golden_koi",
-			"medaka", "yamame", "funa"
+		# 福岡・糸島（玄界灘）実在海洋生物の魚影スポーン
+		# 内港浅瀬（波止北側）、外海テトラ帯（波止南側）、白砂サーフ沖（東側）に生態系に合わせて配置
+		var sea_fishes = [
+			# 魚種, スポーンエリア ("north_port", "south_open", "east_surf")
+			{"sp": "aji", "area": "north_port"},
+			{"sp": "aji", "area": "north_port"},
+			{"sp": "kisu", "area": "east_surf"},
+			{"sp": "kisu", "area": "east_surf"},
+			{"sp": "arakabu", "area": "south_open"},
+			{"sp": "arakabu", "area": "south_open"},
+			{"sp": "chinu", "area": "south_open"},
+			{"sp": "chinu", "area": "north_port"},
+			{"sp": "magochi", "area": "east_surf"},
+			{"sp": "hirame", "area": "east_surf"},
+			{"sp": "kijihata", "area": "south_open"},
+			{"sp": "madai", "area": "south_open"},
+			{"sp": "suzuki", "area": "east_surf"},
+			{"sp": "aoriika", "area": "south_open"},
+			{"sp": "aji", "area": "south_open"},
+			{"sp": "kisu", "area": "east_surf"}
 		]
-		for i in range(beach_species.size()):
+		for data in sea_fishes:
 			var fish = Node2D.new()
 			fish.set_script(fish_shadow_script)
-			fish.fish_species = beach_species[i]
+			fish.fish_species = data["sp"]
 			fish_container.add_child(fish)
 			fish.setup(map_field)
 			
-			# エメラルドグリーンの浅瀬〜中深部にランダム配置
-			var py = randf_range(160, 600)
-			var max_x = map_field.get_shore_x(py) - 50.0
-			var px = randf_range(80, max_x)
-			fish.global_position = Vector2(px, py)
+			var spawn_pos = Vector2.ZERO
+			match data["area"]:
+				"north_port":
+					# 波止北側の穏やかな港内
+					spawn_pos = Vector2(randf_range(60, 480), randf_range(50, 170))
+				"south_open":
+					# 波止南側の外海・テトラ帯〜深場
+					spawn_pos = Vector2(randf_range(60, 520), randf_range(410, 600))
+				"east_surf":
+					# 白砂サーフの沖合・ブレイクライン
+					var sy = randf_range(80, 580)
+					var sx = map_field.get_shore_x(sy) - randf_range(40, 180)
+					spawn_pos = Vector2(sx, sy)
+					
+			fish.global_position = spawn_pos
 			
 			fish.fish_reached_bobber.connect(func():
 				if current_state == State.WAITING:
@@ -453,28 +482,28 @@ func _on_catch_confirmed() -> void:
 	SoundManager.play_sfx("coin", 0.08, -2.0)
 	_set_hud_status("バケツに入れた！よろず屋で売ってお金を稼ごう！")
 	
-	# 釣られた魚の本来の生息エリアに新しい魚影を補充スポーン
-	if fish_container.get_child_count() < 15:
-		match last_caught_species:
-			"golden_koi":
-				_spawn_fixed_fish("golden_koi", Vector2(1450 + randf_range(-50, 50), 680 + randf_range(-20, 20)))
-			"rainbow_trout":
-				_spawn_fixed_fish("rainbow_trout", Vector2(1100 + randf_range(-40, 40), 170 + randf_range(-20, 20)))
-			"iwana":
-				_spawn_fixed_fish("iwana", Vector2(420 + randf_range(-20, 20), 1200 + randf_range(-120, 120)))
-			"koi", "catfish":
-				var p_pool = ["funa", "koi", "catfish"]
-				_spawn_single_fish(p_pool[randi() % p_pool.size()], "pond", randi() % 5, 5)
-			"medaka", "yamame":
-				var r_pool = ["medaka", "yamame", "funa"]
-				_spawn_single_fish(r_pool[randi() % r_pool.size()], "river", randi() % 5, 5)
-			_:
-				var area = "pond" if randf() > 0.5 else "river"
-				_spawn_single_fish("funa", area, randi() % 5, 5)
+	# 釣られた魚の補充スポーン
+	if fish_container.get_child_count() < 14:
+		var species_pool = ["aji", "kisu", "arakabu", "chinu", "magochi", "hirame", "kijihata", "madai", "suzuki", "aoriika"]
+		var next_sp = species_pool[randi() % species_pool.size()]
+		var fish = Node2D.new()
+		fish.set_script(fish_shadow_script)
+		fish.fish_species = next_sp
+		fish_container.add_child(fish)
+		fish.setup(map_field)
+		# ランダム海域
+		var ry = randf_range(60, 600)
+		var rx = 100.0
+		if ry < 180.0:
+			rx = randf_range(60, 480)
+		elif ry > 360.0:
+			rx = randf_range(60, 520)
+		else:
+			rx = map_field.get_shore_x(ry) - randf_range(40, 150)
+		fish.global_position = Vector2(rx, ry)
 
 func _generate_fish_loot(species: String, bait_boost: float = 1.0) -> Dictionary:
-	var base_data = GameData.FISH_DATABASE.get(species, GameData.FISH_DATABASE["funa"])
-	# エサのレア補正が高いほど大きなサイズが釣れやすくなる（複数回ロールして最大値を採用）
+	var base_data = GameData.FISH_DATABASE.get(species, GameData.FISH_DATABASE["aji"])
 	var rolls = 1
 	if bait_boost >= 1.9:
 		rolls = 3

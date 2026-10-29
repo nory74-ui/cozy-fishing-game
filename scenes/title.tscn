@@ -1,16 +1,17 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/TitleScreen.gd" id="1_title"]
-[ext_resource type="Material" path="res://assets/shaders/hd2d_filter_mat.tres" id="2_hd2d"]
-[ext_resource type="Script" path="res://scripts/ui/FishBookModal.gd" id="3_book"]
+[ext_resource type="Material" path="res://assets/shaders/beach_water_mat.tres" id="2_water_mat"]
+[ext_resource type="FontFile" path="res://assets/fonts/ZenMaruGothic-Medium.ttf" id="3_font"]
+[ext_resource type="Script" path="res://scripts/ui/FishBookModal.gd" id="4_book"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
-bg_color = Color(0.99, 0.98, 0.95, 0.94)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_quest_card"]
+bg_color = Color(0.98, 0.96, 0.92, 0.96)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.85, 0.72, 0.55, 0.9)
+border_color = Color(0.65, 0.55, 0.45, 0.9)
 corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_right = 12
@@ -19,92 +20,161 @@ content_margin_left = 20.0
 content_margin_top = 16.0
 content_margin_right = 20.0
 content_margin_bottom = 16.0
+shadow_color = Color(0, 0, 0, 0.22)
+shadow_size = 8
+shadow_offset = Vector2(0, 4)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_n"]
-bg_color = Color(0.96, 0.94, 0.89, 0.9)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.82, 0.72, 0.58, 0.85)
+bg_color = Color(0.95, 0.93, 0.88, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 3
+border_color = Color(0.55, 0.48, 0.40, 0.95)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 content_margin_left = 16.0
-content_margin_top = 10.0
+content_margin_top = 8.0
 content_margin_right = 16.0
-content_margin_bottom = 10.0
+content_margin_bottom = 8.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_h"]
-bg_color = Color(0.99, 0.97, 0.92, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.92, 0.58, 0.32, 0.95)
+bg_color = Color(0.99, 0.98, 0.94, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 3
+border_color = Color(0.85, 0.45, 0.25, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 content_margin_left = 16.0
-content_margin_top = 10.0
+content_margin_top = 8.0
 content_margin_right = 16.0
-content_margin_bottom = 10.0
+content_margin_bottom = 8.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_p"]
-bg_color = Color(0.90, 0.86, 0.78, 1)
-border_width_left = 2
+bg_color = Color(0.88, 0.85, 0.78, 1)
+border_width_left = 1
 border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.72, 0.52, 0.38, 0.9)
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.45, 0.40, 0.35, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 content_margin_left = 16.0
-content_margin_top = 10.0
+content_margin_top = 9.0
 content_margin_right = 16.0
-content_margin_bottom = 10.0
+content_margin_bottom = 7.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_continue"]
+bg_color = Color(0.92, 0.96, 0.92, 1)
+border_width_left = 2
+border_width_top = 1
+border_width_right = 2
+border_width_bottom = 3
+border_color = Color(0.25, 0.60, 0.45, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_key_cap"]
+bg_color = Color(0.94, 0.93, 0.90, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 3
+border_color = Color(0.50, 0.46, 0.42, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 8.0
+content_margin_top = 2.0
+content_margin_right = 8.0
+content_margin_bottom = 2.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pill"]
+bg_color = Color(0.12, 0.16, 0.22, 0.82)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.20)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
 
 [node name="Title" type="Node2D"]
 script = ExtResource("1_title")
+
+[node name="WaterBackground" type="ColorRect" parent="."]
+material = ExtResource("2_water_mat")
+custom_minimum_size = Vector2(1152, 648)
+offset_right = 1152.0
+offset_bottom = 648.0
+mouse_filter = 2
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 layer = 5
 
 [node name="TitleCard" type="PanelContainer" parent="CanvasLayer"]
-offset_left = 40.0
-offset_top = 32.0
-offset_right = 480.0
-offset_bottom = 196.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+offset_left = 48.0
+offset_top = 36.0
+offset_right = 490.0
+offset_bottom = 200.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_quest_card")
 
 [node name="VBox" type="VBoxContainer" parent="CanvasLayer/TitleCard"]
 layout_mode = 2
 theme_override_constants/separation = 4
 alignment = 1
 
-[node name="TitleLogoRect" type="TextureRect" parent="CanvasLayer/TitleCard/VBox"]
-custom_minimum_size = Vector2(0, 116)
+[node name="SubHeaderLabel" type="Label" parent="CanvasLayer/TitleCard/VBox"]
 layout_mode = 2
-expand_mode = 1
-stretch_mode = 5
+theme_override_colors/font_color = Color(0.70, 0.28, 0.16, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = "福岡 • 糸島 玄界灘"
+
+[node name="MainTitleLabel" type="Label" parent="CanvasLayer/TitleCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.12, 0.22, 0.32, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 32
+text = "玄界灘フィッシング"
+
+[node name="HSeparator" type="HSeparator" parent="CanvasLayer/TitleCard/VBox"]
+layout_mode = 2
 
 [node name="SubTitleLabel" type="Label" parent="CanvasLayer/TitleCard/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.48, 0.42, 0.35, 1)
+theme_override_colors/font_color = Color(0.40, 0.45, 0.50, 1)
+theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 13
-text = "〜 水彩の世界とおじさんの釣り日誌 〜"
-horizontal_alignment = 1
+text = "〜 野北波止の海風とおじさんの釣り日誌 〜"
 
 [node name="MenuCard" type="PanelContainer" parent="CanvasLayer"]
-offset_left = 75.0
-offset_top = 220.0
-offset_right = 445.0
-offset_bottom = 525.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+offset_left = 48.0
+offset_top = 224.0
+offset_right = 440.0
+offset_bottom = 548.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_quest_card")
 
 [node name="VBox" type="VBoxContainer" parent="CanvasLayer/MenuCard"]
 layout_mode = 2
@@ -112,54 +182,87 @@ theme_override_constants/separation = 10
 alignment = 1
 
 [node name="BtnStart" type="Button" parent="CanvasLayer/MenuCard/VBox"]
-custom_minimum_size = Vector2(0, 42)
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.18, 0.25, 0.3, 1)
+theme_override_colors/font_color = Color(0.15, 0.35, 0.25, 1)
+theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 16
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_n")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_continue")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_h")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_p")
 text = "つづきから"
 
-[node name="BtnNewGame" type="Button" parent="CanvasLayer/MenuCard/VBox"]
-custom_minimum_size = Vector2(0, 42)
+[node name="SaveInfoLabel" type="Label" parent="CanvasLayer/MenuCard/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.18, 0.25, 0.3, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.35, 0.40, 0.45, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 11
+text = "所持金: 60 G  |  図鑑: 0 / 10 種"
+horizontal_alignment = 1
+
+[node name="BtnNewGame" type="Button" parent="CanvasLayer/MenuCard/VBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.20, 0.25, 0.30, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_n")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_h")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_p")
 text = "はじめから"
 
 [node name="BtnBook" type="Button" parent="CanvasLayer/MenuCard/VBox"]
-custom_minimum_size = Vector2(0, 42)
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.18, 0.25, 0.3, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.20, 0.25, 0.30, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_n")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_h")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_p")
-text = "お魚図鑑"
+text = "玄界灘お魚図鑑 (Tab)"
 
 [node name="BtnHelp" type="Button" parent="CanvasLayer/MenuCard/VBox"]
-custom_minimum_size = Vector2(0, 42)
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.18, 0.25, 0.3, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.20, 0.25, 0.30, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_n")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_h")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_p")
 text = "あそびかた"
 
 [node name="BtnQuit" type="Button" parent="CanvasLayer/MenuCard/VBox"]
-custom_minimum_size = Vector2(0, 42)
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.55, 0.25, 0.25, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.60, 0.30, 0.30, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_n")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_h")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_p")
 text = "ゲームをおわる"
+
+[node name="LocationBadge" type="PanelContainer" parent="CanvasLayer"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -260.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = 60.0
+grow_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_pill")
+
+[node name="Label" type="Label" parent="CanvasLayer/LocationBadge"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.96, 0.98, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 12
+text = "糸島・野北波止スポット"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="VersionLabel" type="Label" parent="CanvasLayer"]
 anchors_preset = 3
@@ -167,15 +270,16 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -220.0
+offset_left = -320.0
 offset_top = -32.0
-offset_right = -16.0
+offset_right = -24.0
 offset_bottom = -10.0
 grow_horizontal = 0
 grow_vertical = 0
-theme_override_colors/font_color = Color(0.45, 0.5, 0.55, 0.8)
-theme_override_font_sizes/font_size = 13
-text = "Ver 1.0 | Godot 4.6"
+theme_override_colors/font_color = Color(0.20, 0.28, 0.35, 0.8)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 12
+text = "玄界灘フィッシング Ver 2.0 • Inspired by Fork Dev"
 horizontal_alignment = 2
 
 [node name="HelpModal" type="Control" parent="CanvasLayer"]
@@ -194,7 +298,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.45)
+color = Color(0.08, 0.12, 0.16, 0.6)
 
 [node name="Card" type="PanelContainer" parent="CanvasLayer/HelpModal"]
 layout_mode = 1
@@ -209,7 +313,7 @@ offset_right = 380.0
 offset_bottom = 240.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+theme_override_styles/panel = SubResource("StyleBoxFlat_quest_card")
 
 [node name="VBox" type="VBoxContainer" parent="CanvasLayer/HelpModal/Card"]
 layout_mode = 2
@@ -221,13 +325,15 @@ layout_mode = 2
 [node name="TitleLabel" type="Label" parent="CanvasLayer/HelpModal/Card/VBox/HeaderHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.18, 0.25, 0.3, 1)
+theme_override_colors/font_color = Color(0.12, 0.22, 0.32, 1)
+theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 20
-text = "こもれびフィッシングのあそびかた"
+text = "野北波止フィッシングのあそびかた"
 
 [node name="CloseBtn" type="Button" parent="CanvasLayer/HelpModal/Card/VBox/HeaderHBox"]
 custom_minimum_size = Vector2(80, 32)
 layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 14
 text = "閉じる"
 
@@ -238,54 +344,57 @@ size_flags_vertical = 3
 [node name="ContentVBox" type="VBoxContainer" parent="CanvasLayer/HelpModal/Card/VBox/Scroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 12
+theme_override_constants/separation = 14
 
 [node name="Step1" type="Label" parent="CanvasLayer/HelpModal/Card/VBox/Scroll/ContentVBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.2, 0.3, 0.35, 1)
-theme_override_font_sizes/font_size = 15
-text = "1. 探索しよう！
-【WASD】または【矢印キー】でデフォルメされたおじさんを移動。
-小川、池、滝壺など、魚たちが泳ぐ水辺を探そう！"
+theme_override_colors/font_color = Color(0.2, 0.28, 0.35, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = "【1. 大波止・白砂サーフを歩こう】
+【WASD】または【矢印キー】で移動。
+野北漁港の白い大波止の上、先端の常夜灯、なだらかなスロープから野北サーフの砂浜まで自由に歩き回れます。"
 autowrap_mode = 3
 
 [node name="Step2" type="Label" parent="CanvasLayer/HelpModal/Card/VBox/Scroll/ContentVBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.2, 0.3, 0.35, 1)
-theme_override_font_sizes/font_size = 15
-text = "2. 魚影を狙ってキャスト！
-水辺の魚影の近くにマウスカーソルを合わせ、【左クリック】でウキを投げ入れます。
-魚がウキをつつき、激しく沈んだ【HIT!!】の瞬間にすかさずクリック！"
+theme_override_colors/font_color = Color(0.2, 0.28, 0.35, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = "【2. 海面を狙ってキャスト】
+海面をクリックすると、竿を振って仕掛け（ウキ）を投げ込みます。
+投げ直したいときは【右クリック】で瞬時に仕掛けを回収できます。"
 autowrap_mode = 3
 
 [node name="Step3" type="Label" parent="CanvasLayer/HelpModal/Card/VBox/Scroll/ContentVBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.2, 0.3, 0.35, 1)
-theme_override_font_sizes/font_size = 15
-text = "3. リール巻き上げミニゲーム！
-魚がかかったらファイト開始！ 【マウス左ボタンを長押し】すると緑の枠が右へ動きます。
-暴れる魚を緑枠の中にキープし続け、進行度ゲージを100%まで溜めるとキャッチ！"
+theme_override_colors/font_color = Color(0.2, 0.28, 0.35, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = "【3. アタリとリールファイト】
+透明な水中から魚が寄ってきてウキをつつきます。
+ウキが沈み込み【HIT!!】が出たら、すかさず左クリック！
+リールミニゲームが始まったら、左クリック長押しで緑のバーを動かし、魚のアイコンを捉え続けよう！"
 autowrap_mode = 3
 
 [node name="Step4" type="Label" parent="CanvasLayer/HelpModal/Card/VBox/Scroll/ContentVBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.2, 0.3, 0.35, 1)
-theme_override_font_sizes/font_size = 15
-text = "4. よろず屋で道具を手に入れて開拓！
-釣った魚をショップで売ってコインを獲得！
-・ゴム長靴: 川の南の浅瀬をジャブジャブ渡り「西の原生林」へ！
-・木こりのオノ: 北の倒木を切り払い「秘密のエメラルド滝壺」へ！
-・手漕ぎボート: 湖を漕ぎ出して中央の「神秘の孤島」へ！
-強力な釣り竿や良いエサも購入して、大物や主を狙おう！"
+theme_override_colors/font_color = Color(0.2, 0.28, 0.35, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = "【4. エサの変更・釣具店】
+【E】キーで所持しているエサ（アオイソメ、生オキアミ、ムール貝、活きエビ等）を瞬時に切り替え。
+【K】キーまたは波止の案内看板をクリックすると「釣具・エサ店」が開き、魚の売却や新しい竿・エサを購入できます。"
 autowrap_mode = 3
 
 [node name="Step5" type="Label" parent="CanvasLayer/HelpModal/Card/VBox/Scroll/ContentVBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.2, 0.3, 0.35, 1)
-theme_override_font_sizes/font_size = 15
-text = "5. お魚図鑑をコンプリートしよう！
-全8種類の実在魚を発見しよう！ 【Bキー】または画面左上のボタンでいつでも開けます。
-同じ魚でも大物を釣り上げると自己ベスト記録が更新されるぞ！"
+theme_override_colors/font_color = Color(0.2, 0.28, 0.35, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = "【5. 図鑑とセーブ】
+【Tab】キーで「玄界灘・糸島 お魚図鑑」を開き、全10種の実在魚の生態や最大サイズ記録を閲覧できます。
+ゲーム画面右上の「セーブ」ボタンでいつでも手動セーブが可能です。"
 autowrap_mode = 3
 
 [node name="FishBookModal" type="Control" parent="CanvasLayer"]
@@ -296,7 +405,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("3_book")
+script = ExtResource("4_book")
 
 [node name="Backdrop" type="ColorRect" parent="CanvasLayer/FishBookModal"]
 layout_mode = 1
@@ -305,7 +414,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.45)
+color = Color(0.08, 0.12, 0.16, 0.6)
 
 [node name="Card" type="PanelContainer" parent="CanvasLayer/FishBookModal"]
 layout_mode = 1
@@ -320,7 +429,7 @@ offset_right = 440.0
 offset_bottom = 260.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+theme_override_styles/panel = SubResource("StyleBoxFlat_quest_card")
 
 [node name="VBox" type="VBoxContainer" parent="CanvasLayer/FishBookModal/Card"]
 layout_mode = 2
@@ -331,21 +440,24 @@ layout_mode = 2
 
 [node name="TitleLabel" type="Label" parent="CanvasLayer/FishBookModal/Card/VBox/HeaderHBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.18, 0.25, 0.3, 1)
+theme_override_colors/font_color = Color(0.12, 0.22, 0.32, 1)
+theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 20
-text = "こもれびお魚図鑑"
+text = "玄界灘・糸島 お魚図鑑"
 
 [node name="ProgressLabel" type="Label" parent="CanvasLayer/FishBookModal/Card/VBox/HeaderHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.2, 0.55, 0.45, 1)
+theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 15
-text = "発見度: 0 / 8 種 (0%)"
+text = "発見度: 0 / 10 種 (0%)"
 horizontal_alignment = 1
 
 [node name="CloseBtn" type="Button" parent="CanvasLayer/FishBookModal/Card/VBox/HeaderHBox"]
 custom_minimum_size = Vector2(80, 32)
 layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 14
 text = "閉じる"
 
@@ -355,7 +467,7 @@ size_flags_vertical = 3
 theme_override_constants/separation = 16
 
 [node name="LeftScroll" type="ScrollContainer" parent="CanvasLayer/FishBookModal/Card/VBox/BodyHBox"]
-custom_minimum_size = Vector2(290, 0)
+custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
 size_flags_vertical = 3
 
@@ -382,14 +494,16 @@ stretch_mode = 5
 [node name="NameLabel" type="Label" parent="CanvasLayer/FishBookModal/Card/VBox/BodyHBox/DetailCard/DetailVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.18, 0.25, 0.3, 1)
+theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 20
-text = "ヤマメ"
+text = "マアジ"
 horizontal_alignment = 1
 
 [node name="RarityLabel" type="Label" parent="CanvasLayer/FishBookModal/Card/VBox/BodyHBox/DetailCard/DetailVBox"]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 14
-text = "【レア度: Rare】"
+text = "【レア度: Common】"
 horizontal_alignment = 1
 
 [node name="StatsHBox" type="HBoxContainer" parent="CanvasLayer/FishBookModal/Card/VBox/BodyHBox/DetailCard/DetailVBox"]
@@ -399,42 +513,34 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.85, 0.45, 0.15, 1)
+theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 15
-text = "最大記録: 24.5 cm"
+text = "最大記録: 0.0 cm"
 horizontal_alignment = 1
 
 [node name="CountLabel" type="Label" parent="CanvasLayer/FishBookModal/Card/VBox/BodyHBox/DetailCard/DetailVBox/StatsHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.25, 0.45, 0.55, 1)
+theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 15
-text = "累計釣果: 3 匹"
+text = "累計釣果: 0 匹"
 horizontal_alignment = 1
 
 [node name="HabitatLabel" type="Label" parent="CanvasLayer/FishBookModal/Card/VBox/BodyHBox/DetailCard/DetailVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.35, 0.4, 0.45, 1)
+theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 14
-text = "主な生息地: 川の中流・桟橋付近"
+text = "主な生息地: 野北漁港・大波止先端"
 
 [node name="DescLabel" type="Label" parent="CanvasLayer/FishBookModal/Card/VBox/BodyHBox/DetailCard/DetailVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.45, 0.5, 0.55, 1)
+theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 14
-text = "渓流の女王と呼ばれる美しい斑紋の川魚。警戒心が強い。"
+text = "玄界灘の激しい潮流で育つマアジは身が引き締まり脂乗りが抜群。"
 autowrap_mode = 3
-
-[node name="WatercolorOverlay" type="CanvasLayer" parent="."]
-layer = 1
-
-[node name="PaperFilter" type="ColorRect" parent="WatercolorOverlay"]
-material = ExtResource("2_hd2d")
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
 
 [node name="FadeLayer" type="CanvasLayer" parent="."]
 layer = 10

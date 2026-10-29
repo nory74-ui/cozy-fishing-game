@@ -1,6 +1,6 @@
 extends Control
 
-# 南国ビーチ風 HUD（動画「I Just Wanted to Fish」完全再現UI）
+# 福岡・糸島 野北フィッシング HUD（動画の質感・透明感を再現したモダンUI）
 
 signal open_shop_requested()
 signal open_book_requested()
@@ -11,7 +11,7 @@ signal title_requested()
 @onready var bait_circle: PanelContainer = $BottomLeft/HBox/BaitContainer/BaitCircle
 @onready var bait_count_label: Label = $BottomLeft/HBox/BaitContainer/BaitCircle/Badge/CountLabel
 @onready var bait_icon_rect: TextureRect = $BottomLeft/HBox/BaitContainer/BaitCircle/BaitIcon
-@onready var bait_name_label: Label = $BottomLeft/HBox/BaitContainer/NameLabel
+@onready var btn_switch_bait: Button = $BottomLeft/HBox/BaitContainer/BtnSwitchBait
 
 # 右上 クエストカード
 @onready var quest_card: PanelContainer = $TopRight/QuestCard
@@ -30,8 +30,6 @@ signal title_requested()
 var notif_timer: float = 0.0
 
 func _ready() -> void:
-	if bait_icon_rect:
-		bait_icon_rect.texture = GameData.load_texture("res://assets/mussel_bait.png")
 	var chest_rect = get_node_or_null("BottomRight/HBox/ChestContainer/BtnChest/TextureRect")
 	if chest_rect:
 		chest_rect.texture = GameData.load_texture("res://assets/chest_icon.png")
@@ -56,6 +54,9 @@ func _ready() -> void:
 			GameData.save_game()
 			title_requested.emit()
 		)
+		
+	if btn_switch_bait:
+		btn_switch_bait.pressed.connect(_cycle_bait)
 		
 	GameData.coins_changed.connect(func(_val): update_ui())
 	GameData.inventory_changed.connect(func(): update_ui())
@@ -83,19 +84,45 @@ func _unhandled_input(event: InputEvent) -> void:
 			SoundManager.play_sfx("coin")
 			open_shop_requested.emit()
 			get_viewport().set_input_as_handled()
+		elif event.keycode == KEY_E:
+			_cycle_bait()
+			get_viewport().set_input_as_handled()
+
+func _cycle_bait() -> void:
+	var bait_keys = ["isome", "okiami", "mussel", "shrimp", "lure"]
+	var cur_idx = bait_keys.find(GameData.current_bait)
+	if cur_idx < 0:
+		cur_idx = 0
+		
+	for i in range(1, bait_keys.size() + 1):
+		var next_key = bait_keys[(cur_idx + i) % bait_keys.size()]
+		if GameData.bait_counts.get(next_key, 0) > 0:
+			GameData.equip_bait(next_key)
+			var b_name = GameData.BAITS.get(next_key, {}).get("name", next_key)
+			show_notification("エサを【" + b_name + "】に変更しました")
+			return
+			
+	show_notification("他のエサがありません（よろず屋で購入できます）")
 
 func update_ui() -> void:
 	# 1. エサの表示更新
 	var bait_id = GameData.current_bait
 	var b_count = GameData.bait_counts.get(bait_id, 0)
-	var b_name = GameData.BAITS.get(bait_id, {}).get("name", "ムール貝")
+	var b_name = GameData.BAITS.get(bait_id, {}).get("name", "アオイソメ")
 	
 	if bait_count_label:
 		bait_count_label.text = str(b_count)
-	if bait_name_label:
-		bait_name_label.text = b_name
+	if btn_switch_bait:
+		btn_switch_bait.text = b_name + " [E]"
 		
-	# 2. 宝箱のアラートバッジ（釣った魚がある場合やお金がある場合に点灯）
+	# エサアイコン更新
+	if bait_icon_rect:
+		var tex = GameData.load_texture("res://assets/" + bait_id + "_bait.png")
+		if not tex:
+			tex = GameData.load_texture("res://assets/mussel_bait.png")
+		bait_icon_rect.texture = tex
+		
+	# 2. 宝箱のアラートバッジ
 	if chest_alert_badge:
 		chest_alert_badge.visible = GameData.inventory.size() > 0
 		
@@ -114,12 +141,12 @@ func show_notification(text: String, duration: float = 2.5) -> void:
 	notif_timer = duration
 
 func _on_game_saved() -> void:
-	show_notification("セーブ完了！冒険の記録を保存しました")
+	show_notification("セーブ完了！玄界灘の釣果記録を保存しました")
 
 func _on_save_button_pressed() -> void:
 	SoundManager.play_sfx("coin", 0.05, 1.5)
 	GameData.save_game()
 	save_game_requested.emit()
 
-func set_status(text: String, is_alert: bool = false) -> void:
+func set_status(text: String, _is_alert: bool = false) -> void:
 	show_notification(text, 3.0)

@@ -23,9 +23,9 @@ signal closed()
 @onready var detail_habitat: Label = $Card/VBox/BodyHBox/DetailCard/DetailVBox/HabitatLabel
 @onready var detail_desc: Label = $Card/VBox/BodyHBox/DetailCard/DetailVBox/DescLabel
 
-var selected_species: String = "medaka"
+var selected_species: String = "aji"
 const SPECIES_ORDER: Array[String] = [
-	"medaka", "yamame", "funa", "koi", "catfish", "iwana", "rainbow_trout", "golden_koi"
+	"aji", "kisu", "arakabu", "chinu", "magochi", "suzuki", "kijihata", "hirame", "madai", "aoriika"
 ]
 
 func _ready() -> void:

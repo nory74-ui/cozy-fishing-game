@@ -132,7 +132,7 @@ func _render_sell_tab() -> void:
 
 	if GameData.inventory.size() == 0:
 		var empty_lbl = Label.new()
-		empty_lbl.text = "バケツは空っぽです。川や池で魚を釣って持ってこよう！"
+		empty_lbl.text = "クーラーボックスは空っぽです。野北波止やサーフで魚を釣って持ってこよう！"
 		empty_lbl.add_theme_color_override("font_color", Color("#5c677d"))
 		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		content_list.add_child(empty_lbl)
@@ -237,8 +237,9 @@ func _render_rods_tab() -> void:
 	status_bar.add_theme_color_override("font_color", Color("#2b2d42"))
 	status_bar.text = "所持金: " + str(GameData.coins) + " G  |  竿が良いほど魚が引きやすく、緑枠が広がります。"
 	
-	for rod_key in ["branch_rod", "bamboo_rod", "carbon_rod", "master_rod"]:
+	for rod_key in ["starter_rod", "surf_cast_rod", "isogame_rod", "master_sea_rod"]:
 		var rod = GameData.RODS.get(rod_key)
+		if not rod: continue
 		var is_unlocked = rod_key in GameData.unlocked_rods
 		var is_equipped = (GameData.current_rod == rod_key)
 		
@@ -282,8 +283,9 @@ func _render_baits_tab() -> void:
 	status_bar.add_theme_color_override("font_color", Color("#2b2d42"))
 	status_bar.text = "所持金: " + str(GameData.coins) + " G  |  良いエサほど珍しい魚や大物が集まります。"
 	
-	for bait_key in ["worm", "dumpling", "lure"]:
+	for bait_key in ["isome", "okiami", "mussel", "shrimp", "lure"]:
 		var bait = GameData.BAITS.get(bait_key)
+		if not bait: continue
 		var count = GameData.bait_counts.get(bait_key, 0)
 		var is_equipped = (GameData.current_bait == bait_key and count > 0)
 		
