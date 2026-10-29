@@ -117,18 +117,18 @@ func _setup_sprite() -> void:
 		tex = GameData.load_texture("res://assets/hd2d_fish_" + fish_species + ".png")
 		
 	if tex:
-		var scale_val = Vector2(0.07, 0.07)
+		var scale_val = Vector2(0.035, 0.035)
 		match fish_species:
-			"kisu":     scale_val = Vector2(0.045, 0.040)
-			"aji":      scale_val = Vector2(0.052, 0.048)
-			"arakabu":  scale_val = Vector2(0.056, 0.054)
-			"chinu":    scale_val = Vector2(0.082, 0.078)
-			"magochi":  scale_val = Vector2(0.088, 0.065)
-			"hirame":   scale_val = Vector2(0.098, 0.095)
-			"kijihata": scale_val = Vector2(0.085, 0.080)
-			"madai":    scale_val = Vector2(0.026, 0.026)
-			"suzuki":   scale_val = Vector2(0.120, 0.085)
-			"aoriika":  scale_val = Vector2(0.090, 0.082)
+			"kisu":     scale_val = Vector2(0.028, 0.026)
+			"aji":      scale_val = Vector2(0.032, 0.030)
+			"arakabu":  scale_val = Vector2(0.034, 0.032)
+			"chinu":    scale_val = Vector2(0.038, 0.036)
+			"magochi":  scale_val = Vector2(0.040, 0.034)
+			"hirame":   scale_val = Vector2(0.042, 0.040)
+			"kijihata": scale_val = Vector2(0.038, 0.036)
+			"madai":    scale_val = Vector2(0.030, 0.030)
+			"suzuki":   scale_val = Vector2(0.048, 0.044)
+			"aoriika":  scale_val = Vector2(0.036, 0.034)
 
 		# 水底に落ちる魚の影（Drop Shadow）
 		var shadow_sprite = Sprite2D.new()

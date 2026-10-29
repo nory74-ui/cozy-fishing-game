@@ -37,8 +37,8 @@ var bite_timer: float = 0.0
 var bite_window: float = 1.4
 
 func _ready() -> void:
-	# 動画に合わせた初期位置（砂浜の波打ち際）
-	player.global_position = Vector2(610, 135)
+	# 砂浜の安全な白砂の上（桟橋正面の広い白砂。目の前の桟橋へ直結して自由に歩いて行ける）
+	player.global_position = Vector2(830, 185)
 	
 	player.cast_bobber.connect(_on_player_cast)
 	player.retrieve_bobber.connect(_on_player_retrieve)
@@ -115,13 +115,24 @@ func _ready() -> void:
 
 func _run_capture_beach_book_test() -> void:
 	await get_tree().create_timer(0.4).timeout
+	GameData.record_fish_catch("aji", 25.4)
+	GameData.record_fish_catch("kisu", 21.0)
+	GameData.record_fish_catch("chinu", 45.2)
+	GameData.record_fish_catch("suzuki", 72.8)
 	GameData.record_fish_catch("madai", 68.5)
+	GameData.record_fish_catch("aoriika", 38.0)
 	open_book()
 	if fish_book_modal:
-		fish_book_modal.selected_species = "madai"
+		fish_book_modal.selected_species = "aji"
 		fish_book_modal._refresh_ui()
 	await get_tree().create_timer(0.4).timeout
 	var dir_path = "/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/"
+	get_viewport().get_texture().get_image().save_png(dir_path + "view_beach_book_aji.png")
+	
+	if fish_book_modal:
+		fish_book_modal.selected_species = "madai"
+		fish_book_modal._refresh_ui()
+	await get_tree().create_timer(0.3).timeout
 	get_viewport().get_texture().get_image().save_png(dir_path + "view_beach_book.png")
 	print("BEACH_BOOK_CAPTURE_SAVED_OK")
 	get_tree().quit()

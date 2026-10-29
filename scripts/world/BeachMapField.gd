@@ -28,21 +28,17 @@ var butterflies: Array[Dictionary] = []
 const SCREEN_SIZE = Vector2(1152, 648)
 
 # クォータービュー歩行可能エリア
-# 1. 斜め木造ウッドデッキ桟橋（小屋の前から海へせり出すデッキ）
-# ポリゴン判定用
-var deck_walk_poly: PackedVector2Array = PackedVector2Array([
-	Vector2(0, 95),
-	Vector2(330, 140),
-	Vector2(295, 275),
-	Vector2(0, 235)
-])
-
-# 2. デッキから砂浜への連絡スロープ
-var slope_walk_poly: PackedVector2Array = PackedVector2Array([
-	Vector2(295, 170),
-	Vector2(480, 195),
-	Vector2(470, 265),
-	Vector2(285, 240)
+# 1. 砂浜から海へダイナミックに繋がる一本の大型木造ウッドデッキ桟橋
+var pier_walk_poly: PackedVector2Array = PackedVector2Array([
+	Vector2(0, 65),       # 小屋奥左上
+	Vector2(190, 75),     # 小屋右
+	Vector2(795, 130),    # 砂浜側・桟橋北端（砂浜にしっかりめり込む）
+	Vector2(790, 240),    # 砂浜側・桟橋南端（砂浜側からそのまま乗れる）
+	Vector2(285, 190),    # 連絡桟橋と先端デッキの合流点
+	Vector2(280, 335),    # 沖合先端デッキ南東（大波止先端）
+	Vector2(115, 315),    # 沖合先端デッキ南西
+	Vector2(125, 200),    # 沖合デッキ西側
+	Vector2(0, 185)       # 小屋手前左下
 ])
 
 func _ready() -> void:
@@ -123,34 +119,31 @@ func get_shore_x(y: float) -> float:
 
 # プレイヤーの歩行可能エリア判定
 func is_point_walkable(pos: Vector2) -> bool:
-	if pos.x < 20.0 or pos.x > SCREEN_SIZE.x - 25.0 or pos.y < 25.0 or pos.y > SCREEN_SIZE.y - 25.0:
+	if pos.x < 25.0 or pos.x > SCREEN_SIZE.x - 25.0 or pos.y < 30.0 or pos.y > SCREEN_SIZE.y - 30.0:
 		return false
 
-	# 1. 斜め木造ウッドデッキ
-	if Geometry2D.is_point_in_polygon(pos, deck_walk_poly):
+	# 1. 砂浜から海へダイナミックに伸びる大型木造ウッドデッキ桟橋
+	if Geometry2D.is_point_in_polygon(pos, pier_walk_poly):
 		# 小屋の壁面
-		if pos.x < 140 and pos.y < 165:
+		if pos.x < 110 and pos.y < 125:
 			return false
 		# 白灯台ポール
-		if (pos - Vector2(305, 175)).length() < 18.0:
+		if (pos - Vector2(250, 290)).length() < 16.0:
 			return false
 		return true
 
-	# 2. デッキから砂浜へのスロープ
-	if Geometry2D.is_point_in_polygon(pos, slope_walk_poly):
-		return true
-
-	# 3. 白砂サーフ（斜めの波打ち際より陸地側）
+	# 2. 白砂サーフ（波打ち際より確実に陸地側の砂浜。おじさんは水の中には絶対に入れない！）
 	var shore_x = get_shore_x(pos.y)
-	if pos.x >= shore_x - 18.0:
-		# 海岸の大岩への衝突
+	if pos.x >= shore_x + 12.0:
+		# 海岸の大岩への衝突（描画位置 725, 275 に正確に一致）
 		if (pos - Vector2(725, 275)).length() < 28.0:
 			return false
 		# ヤシの木の幹への衝突
-		if (pos - Vector2(980, 420)).length() < 24.0:
+		if (pos - Vector2(980, 420)).length() < 26.0:
 			return false
 		return true
 
+	# それ以外（水の中・海）は一切立ち入れない
 	return false
 
 func is_water(pos: Vector2) -> bool:
@@ -184,7 +177,7 @@ func is_in_water(pos: Vector2) -> bool:
 	return is_water(pos)
 
 func is_on_pier(pos: Vector2) -> bool:
-	return Geometry2D.is_point_in_polygon(pos, deck_walk_poly)
+	return Geometry2D.is_point_in_polygon(pos, pier_walk_poly)
 
 func is_on_island(pos: Vector2) -> bool:
 	return false
@@ -201,10 +194,9 @@ func _draw() -> void:
 	_draw_submerged_structures()
 
 	# =========================================================================
-	# レイヤー 3: アイソメトリック斜めウッドデッキ桟橋＆釣り小屋・スロープ
+	# レイヤー 3: アイソメトリック大型木造ウッドデッキ桟橋＆釣り小屋（砂浜直結）
 	# =========================================================================
 	_draw_isometric_pier_and_shack()
-	_draw_slope()
 
 	# =========================================================================
 	# レイヤー 4: 砂浜の自然（海岸の大岩、ヤシの木、ソフトシャドウ、貝殻）
@@ -310,13 +302,14 @@ func _draw_submerged_structures() -> void:
 		draw_arc(Vector2(tx, ty - 2), 14.0 + foam_phase, 0.0, TAU, 12, Color(1.0, 1.0, 1.0, 0.45), 2.0)
 
 # -----------------------------------------------------------------------------
-# レイヤー 3: アイソメトリック斜めウッドデッキ桟橋＆釣り小屋（Beach Shack & Pier）
+# レイヤー 3: アイソメトリック大型木造ウッドデッキ桟橋＆釣り小屋（砂浜直結）
 # -----------------------------------------------------------------------------
 func _draw_isometric_pier_and_shack() -> void:
 	# A. 水中に突き刺さる木製の立体柱（Pillars / Piles）
 	var pillars = [
-		Vector2(50, 250), Vector2(130, 262), Vector2(210, 274), Vector2(290, 286),
-		Vector2(325, 160)
+		Vector2(115, 315), Vector2(195, 325), Vector2(275, 335), # 沖合先端デッキ南
+		Vector2(125, 200), Vector2(285, 195),
+		Vector2(380, 225), Vector2(480, 220), Vector2(570, 215)  # 連絡桟橋（海上部分）
 	]
 	for p in pillars:
 		# 水中影
@@ -328,119 +321,114 @@ func _draw_isometric_pier_and_shack() -> void:
 		var p_foam = abs(sin(time_counter * 2.2 + p.x)) * 2.2
 		draw_circle(p + Vector2(0, 5), 7.5 + p_foam, Color(1.0, 1.0, 1.0, 0.70))
 
-	# B. クォータービュー・ウッドデッキ桟橋（斜めアイソメトリック木床）
-	# デッキ全体の影（斜め下へ）
-	var deck_shadow = PackedVector2Array([
-		Vector2(0, 105),
-		Vector2(335, 150),
-		Vector2(305, 290),
-		Vector2(0, 250)
-	])
-	draw_colored_polygon(deck_shadow, Color(0.12, 0.22, 0.24, 0.35))
+	# B. 桟橋全体の影（斜め下へ）
+	var shadow_offset = Vector2(6, 14)
+	var shadow_poly = PackedVector2Array()
+	for pt in pier_walk_poly:
+		shadow_poly.append(pt + shadow_offset)
+	draw_colored_polygon(shadow_poly, Color(0.10, 0.20, 0.22, 0.35))
 
-	# デッキ手前側面（厚み14pxの板張り側面）
-	var deck_side = PackedVector2Array([
-		Vector2(0, 235),
-		Vector2(295, 275),
-		Vector2(295, 289),
-		Vector2(0, 249)
+	# C. デッキ手前側面（厚み14pxの板張り側面）
+	# 1. 沖合先端デッキ手前
+	var side_front1 = PackedVector2Array([
+		Vector2(115, 315), Vector2(280, 335), Vector2(280, 349), Vector2(115, 329)
 	])
-	draw_colored_polygon(deck_side, Color(0.46, 0.30, 0.18, 1.0))
-	draw_line(Vector2(0, 249), Vector2(295, 289), Color(0.30, 0.18, 0.10, 1.0), 2.0)
+	draw_colored_polygon(side_front1, Color(0.44, 0.28, 0.16, 1.0))
+	draw_line(Vector2(115, 329), Vector2(280, 349), Color(0.28, 0.16, 0.08, 1.0), 2.0)
 
-	# デッキ上面（アイソメトリック斜め板張り床）
-	draw_colored_polygon(deck_walk_poly, Color(0.76, 0.58, 0.38, 1.0))
+	# 2. メイン連絡桟橋手前（砂浜まで直結）
+	var side_front2 = PackedVector2Array([
+		Vector2(285, 190), Vector2(790, 240), Vector2(790, 252), Vector2(285, 202)
+	])
+	draw_colored_polygon(side_front2, Color(0.48, 0.32, 0.18, 1.0))
+	draw_line(Vector2(285, 202), Vector2(790, 252), Color(0.30, 0.18, 0.10, 1.0), 2.0)
+
+	# D. デッキ上面（アイソメトリック木板張り床）
+	draw_colored_polygon(pier_walk_poly, Color(0.76, 0.58, 0.38, 1.0))
 	
-	# 斜めに張られた木板の目地ライン
-	for i in range(1, 15):
-		var t = float(i) / 14.0
-		var p_top = lerp(Vector2(0, 95), Vector2(330, 140), t)
-		var p_bot = lerp(Vector2(0, 235), Vector2(295, 275), t)
-		draw_line(p_top, p_bot, Color(0.52, 0.36, 0.22, 0.85), 1.6)
-		# 釘の頭
-		draw_circle(lerp(p_top, p_bot, 0.15), 1.2, Color(0.32, 0.20, 0.10, 0.9))
-		draw_circle(lerp(p_top, p_bot, 0.85), 1.2, Color(0.32, 0.20, 0.10, 0.9))
+	# 木板の目地ライン（メイン桟橋: 砂浜側から沖合まで均等に板を張る）
+	for x_pos in range(20, 795, 18):
+		# 桟橋の範囲内にクリップして線を描画
+		if x_pos < 120:
+			draw_line(Vector2(x_pos, 65), Vector2(x_pos, 185), Color(0.55, 0.38, 0.24, 0.85), 1.6)
+		elif x_pos <= 285:
+			draw_line(Vector2(x_pos, 75), Vector2(x_pos, 325), Color(0.55, 0.38, 0.24, 0.85), 1.6)
+			# 釘の頭
+			draw_circle(Vector2(x_pos, 95), 1.2, Color(0.32, 0.20, 0.10, 0.9))
+			draw_circle(Vector2(x_pos, 315), 1.2, Color(0.32, 0.20, 0.10, 0.9))
+		else:
+			var t_span = float(x_pos - 285) / 505.0
+			var y1 = lerpf(75, 130, float(x_pos - 190) / 605.0)
+			var y2 = lerpf(190, 240, t_span)
+			draw_line(Vector2(x_pos, y1), Vector2(x_pos - 6, y2), Color(0.55, 0.38, 0.24, 0.85), 1.6)
+			# 釘の頭
+			draw_circle(Vector2(x_pos, y1 + 10), 1.2, Color(0.32, 0.20, 0.10, 0.9))
+			draw_circle(Vector2(x_pos - 6, y2 - 10), 1.2, Color(0.32, 0.20, 0.10, 0.9))
 
-	# 先端の野北縁石ライン（黄黒警戒ライン）
-	var curb_start = Vector2(330, 140)
-	var curb_end = Vector2(295, 275)
+	# 砂浜との接合部のリアルな砂の被り・固定木枠（x: 720〜795）
+	var sand_blend_poly = PackedVector2Array([
+		Vector2(730, 125), Vector2(795, 130), Vector2(790, 240), Vector2(725, 235)
+	])
+	draw_colored_polygon(sand_blend_poly, Color(0.77, 0.73, 0.55, 0.45)) # 砂が乗った質感
+	draw_line(Vector2(793, 130), Vector2(788, 240), Color(0.38, 0.26, 0.16, 1.0), 5.0) # 固定の太い止め木
+	# 砂浜側への固定杭
+	draw_circle(Vector2(793, 134), 3.5, Color(0.30, 0.20, 0.12, 1.0))
+	draw_circle(Vector2(788, 236), 3.5, Color(0.30, 0.20, 0.12, 1.0))
+
+	# E. 先端の野北縁石ライン（黄黒警戒ライン: 沖合南端デッキ）
+	var curb_start = Vector2(115, 315)
+	var curb_end = Vector2(280, 335)
 	draw_line(curb_start, curb_end, Color(0.95, 0.78, 0.15, 1.0), 6.0)
-	for k in range(8):
+	for k in range(9):
 		if k % 2 == 1:
-			var ck1 = lerp(curb_start, curb_end, float(k) / 8.0)
-			var ck2 = lerp(curb_start, curb_end, float(k + 1) / 8.0)
+			var ck1 = lerp(curb_start, curb_end, float(k) / 9.0)
+			var ck2 = lerp(curb_start, curb_end, float(k + 1) / 9.0)
 			draw_line(ck1, ck2, Color(0.22, 0.24, 0.26, 1.0), 6.0)
 
-	# デッキ手すりロープ
-	draw_line(Vector2(0, 95), Vector2(330, 140), Color(0.50, 0.34, 0.20, 1.0), 3.0)
+	# F. デッキ手すりロープ
+	draw_line(Vector2(190, 75), Vector2(740, 125), Color(0.50, 0.34, 0.20, 1.0), 3.0)
+	draw_line(Vector2(0, 65), Vector2(190, 75), Color(0.50, 0.34, 0.20, 1.0), 3.0)
 
-	# C. アイソメトリック釣り小屋（Beach Shack 本体：左上）
+	# G. アイソメトリック釣り小屋（Beach Shack 本体：左上）
 	if tex_shack:
 		# 小屋の自然な接地影
-		draw_ellipse(Vector2(78, 120), 72.0, 18.0, Color(0.12, 0.16, 0.18, 0.32))
+		draw_ellipse(Vector2(75, 115), 70.0, 18.0, Color(0.12, 0.16, 0.18, 0.32))
 		# 美麗木造釣り小屋イラスト（建物・オーニング・煙突・木箱・樽）
-		var shack_draw_rect = Rect2(-6, 2, 168, 122)
+		var shack_draw_rect = Rect2(-10, -5, 175, 126)
 		draw_texture_rect(tex_shack, shack_draw_rect, false)
 	else:
-		# 小屋の影
-		draw_rect(Rect2(25, 48, 130, 85), Color(0.15, 0.15, 0.15, 0.35))
-		
-		# 小屋の壁面
-		var shack_rect = Rect2(15, 40, 130, 85)
+		var shack_rect = Rect2(15, 35, 130, 85)
 		draw_rect(shack_rect, Color(0.70, 0.50, 0.34, 1.0))
-		draw_rect(Rect2(19, 43, 122, 78), Color(0.82, 0.64, 0.46, 1.0))
-		for x in range(30, 140, 14):
-			draw_line(Vector2(x, 43), Vector2(x, 121), Color(0.62, 0.44, 0.28, 0.7), 1.2)
-		
-		# 青い木製ドア
-		var door_rect = Rect2(60, 75, 30, 48)
-		draw_rect(door_rect, Color(0.24, 0.48, 0.65, 1.0))
-		draw_rect(Rect2(62, 77, 26, 44), Color(0.34, 0.60, 0.78, 1.0))
-		draw_circle(Vector2(65, 99), 2.2, Color(0.95, 0.85, 0.40, 1.0))
+		draw_rect(Rect2(19, 38, 122, 78), Color(0.82, 0.64, 0.46, 1.0))
 
-		# 小屋の立体屋根（庇）
-		var roof_poly = PackedVector2Array([
-			Vector2(8, 43), Vector2(155, 43), Vector2(145, 28), Vector2(18, 28)
-		])
-		draw_colored_polygon(roof_poly, Color(0.52, 0.30, 0.18, 1.0))
-		draw_line(Vector2(8, 43), Vector2(155, 43), Color(0.38, 0.22, 0.12, 1.0), 2.5)
-
-		# 救命浮輪
-		var r_center = Vector2(118, 72)
-		draw_circle(r_center, 9.0, Color(0.92, 0.30, 0.18, 1.0))
-		draw_circle(r_center, 4.5, Color(0.82, 0.64, 0.46, 1.0))
-		draw_circle(r_center + Vector2(-4, 0), 2.5, Color(1.0, 1.0, 1.0, 0.95))
-		draw_circle(r_center + Vector2(4, 0), 2.5, Color(1.0, 1.0, 1.0, 0.95))
-
-	# D. デッキ上の小物（立体木箱、樽、漁網）
+	# H. デッキ上の小物（立体木箱、樽、漁網）
 	# 木製樽
-	var barrel_pos = Vector2(165, 125)
+	var barrel_pos = Vector2(205, 115)
 	draw_ellipse(barrel_pos + Vector2(2, 4), 10.0, 7.0, Color(0.15, 0.15, 0.15, 0.30))
 	draw_ellipse(barrel_pos, 9.0, 7.5, Color(0.55, 0.36, 0.22, 1.0))
 	draw_ellipse(barrel_pos, 7.5, 6.0, Color(0.68, 0.48, 0.32, 1.0))
 	draw_arc(barrel_pos, 8.0, 0, TAU, 12, Color(0.32, 0.32, 0.35, 1.0), 2.0)
 
 	# 積まれた立体木箱
-	var crate_pos1 = Vector2(185, 135)
-	var crate_pos2 = Vector2(195, 122)
+	var crate_pos1 = Vector2(225, 125)
+	var crate_pos2 = Vector2(235, 112)
 	draw_rect(Rect2(crate_pos1 + Vector2(2, 4), Vector2(22, 20)), Color(0.15, 0.15, 0.15, 0.25))
 	draw_rect(Rect2(crate_pos1, Vector2(22, 20)), Color(0.72, 0.54, 0.36, 1.0))
 	draw_rect(Rect2(crate_pos1, Vector2(22, 6)), Color(0.82, 0.64, 0.44, 1.0))
 	draw_line(crate_pos1, crate_pos1 + Vector2(22, 20), Color(0.52, 0.36, 0.22, 0.8), 1.5)
-	
 	draw_rect(Rect2(crate_pos2, Vector2(18, 16)), Color(0.80, 0.62, 0.42, 1.0))
 	draw_line(crate_pos2, crate_pos2 + Vector2(18, 16), Color(0.58, 0.42, 0.26, 0.8), 1.5)
 
 	# 巻き網・ロープ
-	var net_pos = Vector2(230, 130)
+	var net_pos = Vector2(265, 120)
 	draw_circle(net_pos + Vector2(2, 3), 12.0, Color(0.15, 0.15, 0.15, 0.20))
 	draw_circle(net_pos, 11.0, Color(0.48, 0.52, 0.44, 0.85))
 	for r in range(3):
 		draw_arc(net_pos, 4.0 + r * 3.0, 0, TAU, 10, Color(0.75, 0.65, 0.45, 0.9), 1.5)
 
-	# E. 野北波止のシンボル設備（白灯台ポール・ボラード・案内看板）
-	# 白灯台ポール
-	var pole_pos = Vector2(305, 175)
+	# I. 野北波止のシンボル設備（白灯台ポール・ボラード・案内看板）
+	# 白灯台ポール（沖合先端デッキ）
+	var pole_pos = Vector2(250, 290)
 	draw_ellipse(pole_pos + Vector2(5, 8), 16.0, 6.0, Color(0.2, 0.2, 0.2, 0.35))
 	draw_circle(pole_pos, 13.0, Color(0.75, 0.78, 0.82, 1.0))
 	draw_circle(pole_pos, 9.0, Color(0.92, 0.94, 0.96, 1.0))
@@ -451,35 +439,18 @@ func _draw_isometric_pier_and_shack() -> void:
 	draw_line(Vector2(pole_pos.x - 8, pole_pos.y - 53), Vector2(pole_pos.x + 8, pole_pos.y - 53), Color(0.25, 0.45, 0.75, 1.0), 3.0)
 
 	# 係留ボラード
-	var bollard_pos = Vector2(285, 255)
+	var bollard_pos = Vector2(150, 305)
 	draw_ellipse(bollard_pos + Vector2(2, 4), 7.0, 3.5, Color(0.2, 0.2, 0.2, 0.35))
 	draw_circle(bollard_pos, 5.5, Color(0.28, 0.30, 0.32, 1.0))
 	draw_circle(bollard_pos + Vector2(-1, -1), 3.5, Color(0.48, 0.50, 0.52, 1.0))
 
 	# 「野北波止 釣具店」案内看板
-	var sign_pos = Vector2(185, 215)
+	var sign_pos = Vector2(200, 160)
 	draw_rect(Rect2(sign_pos + Vector2(2, 3), Vector2(68, 34)), Color(0.2, 0.2, 0.2, 0.25))
 	draw_rect(Rect2(sign_pos, Vector2(68, 34)), Color(0.25, 0.42, 0.55, 0.95))
 	draw_rect(Rect2(sign_pos + Vector2(2, 2), Vector2(64, 30)), Color(0.96, 0.97, 0.98, 1.0))
 	draw_string(ThemeDB.fallback_font, sign_pos + Vector2(8, 15), "野北波止", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.15, 0.25, 0.35, 1.0))
 	draw_string(ThemeDB.fallback_font, sign_pos + Vector2(8, 26), "釣具・店", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.75, 0.40, 0.20, 1.0))
-
-func _draw_slope() -> void:
-	# 桟橋から白砂サーフへの斜めスロープ
-	var shadow_poly = PackedVector2Array([
-		Vector2(285, 240),
-		Vector2(470, 265),
-		Vector2(475, 275),
-		Vector2(285, 250)
-	])
-	draw_colored_polygon(shadow_poly, Color(0.2, 0.2, 0.2, 0.25))
-	draw_colored_polygon(slope_walk_poly, Color(0.78, 0.62, 0.44, 1.0))
-	
-	for i in range(5):
-		var t = float(i) / 4.0
-		var p1 = lerp(Vector2(295, 170), Vector2(480, 195), t)
-		var p2 = lerp(Vector2(285, 240), Vector2(470, 265), t)
-		draw_line(p1, p2, Color(0.58, 0.42, 0.26, 0.85), 1.5)
 
 # -----------------------------------------------------------------------------
 # レイヤー 4: 砂浜の自然（海岸の大岩、ヤシの木、ソフトシャドウ、貝殻）

@@ -22,7 +22,7 @@ var rod_swing_anim: float = 0.0
 
 var mouse_world_pos: Vector2 = Vector2.ZERO
 var can_cast_at_mouse: bool = false
-var last_safe_pos: Vector2 = Vector2(950, 800)
+var last_safe_pos: Vector2 = Vector2(830, 185)
 
 @onready var map_field = get_parent().get_node_or_null("MapField")
 
