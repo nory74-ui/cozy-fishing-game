@@ -89,8 +89,8 @@ func _ready() -> void:
 	_spawn_initial_fishes()
 	SoundManager.play_bgm("bgm_fishing", 1.5)
 
-	# 初期状態: 堤防の上でスタンバイ（海をクリックでキャスト、WASDで自由に移動可能）
-	_set_hud_status("うみかぜ日和：糸島・野北波止へ到着。海面をクリックして仕掛けを投げよう！")
+	# 初期状態: 砂浜・波打ち際でスタンバイ（海をクリックでキャスト、WASDで波止や小屋へ自由に移動可能）
+	_set_hud_status("うみかぜ日和：糸島・野北海岸へ到着。海面をクリックして仕掛けを投げよう！")
 
 	var all_args = OS.get_cmdline_args() + OS.get_cmdline_user_args()
 	for arg in all_args:
@@ -102,6 +102,9 @@ func _ready() -> void:
 			break
 		elif arg == "--capture-beach":
 			_run_capture_beach_test()
+			break
+		elif arg == "--capture-casting":
+			_run_capture_casting_test()
 			break
 		elif arg == "--capture-beach-book":
 			_run_capture_beach_book_test()
@@ -140,6 +143,17 @@ func _run_capture_beach_test() -> void:
 	var dir_path = "/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/"
 	get_viewport().get_texture().get_image().save_png(dir_path + "view_beach_screen.png")
 	print("BEACH_CAPTURE_SAVED_OK")
+	get_tree().quit()
+
+func _run_capture_casting_test() -> void:
+	await get_tree().create_timer(0.3).timeout
+	# プレイヤーの正面・海面に向かってキャスト
+	var cast_target = Vector2(580, 340)
+	_on_player_cast(cast_target)
+	await get_tree().create_timer(0.5).timeout
+	var dir_path = "/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/"
+	get_viewport().get_texture().get_image().save_png(dir_path + "view_beach_casting.png")
+	print("CASTING_CAPTURE_SAVED_OK")
 	get_tree().quit()
 
 func _run_capture_shadows_test() -> void:
@@ -292,10 +306,14 @@ func _spawn_initial_fishes() -> void:
 					# 波止南側の外海・テトラ帯〜深場
 					spawn_pos = Vector2(randf_range(60, 520), randf_range(410, 600))
 				"east_surf":
-					# 白砂サーフの沖合・ブレイクライン
-					var sy = randf_range(80, 580)
-					var sx = map_field.get_shore_x(sy) - randf_range(40, 180)
-					spawn_pos = Vector2(sx, sy)
+					# 白砂サーフの沖合・波打ち際ブレイクライン
+					if data["sp"] in ["kisu", "aji"] and randf() < 0.6:
+						# プレイヤー正面の浅瀬で泳ぐ小魚たち
+						spawn_pos = Vector2(randf_range(560, 670), randf_range(200, 360))
+					else:
+						var sy = randf_range(90, 570)
+						var sx = map_field.get_shore_x(sy) - randf_range(40, 160)
+						spawn_pos = Vector2(sx, sy)
 					
 			fish.global_position = spawn_pos
 			

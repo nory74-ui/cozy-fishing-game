@@ -130,6 +130,14 @@ func _setup_sprite() -> void:
 			"suzuki":   scale_val = Vector2(0.120, 0.085)
 			"aoriika":  scale_val = Vector2(0.090, 0.082)
 
+		# 水底に落ちる魚の影（Drop Shadow）
+		var shadow_sprite = Sprite2D.new()
+		shadow_sprite.texture = tex
+		shadow_sprite.scale = scale_val
+		shadow_sprite.position = Vector2(8, 12) # 水深分だけ右下に落ちる影
+		shadow_sprite.modulate = Color(0.06, 0.16, 0.20, 0.28)
+		add_child(shadow_sprite)
+
 		sprite = Sprite2D.new()
 		sprite.texture = tex
 		sprite.scale = scale_val
@@ -139,21 +147,21 @@ func _setup_sprite() -> void:
 			var mat = ShaderMaterial.new()
 			mat.shader = shadow_shader
 			
-			var shadow_col = Color(0.10, 0.22, 0.32, 0.70)
+			var shadow_col = Color(0.12, 0.26, 0.36, 0.75)
 			var glow_col = Color(0.0, 0.0, 0.0, 0.0)
 			
 			if fish_species == "aoriika":
-				shadow_col = Color(0.15, 0.32, 0.38, 0.65)
+				shadow_col = Color(0.15, 0.35, 0.40, 0.70)
 				glow_col = Color(0.2, 0.8, 0.7, 0.25)
 			elif fish_species == "madai":
 				glow_col = Color(0.9, 0.4, 0.5, 0.20)
 				
 			mat.set_shader_parameter("shadow_color", shadow_col)
 			mat.set_shader_parameter("glow_color", glow_col)
-			mat.set_shader_parameter("depth_fade", 0.30)
+			mat.set_shader_parameter("depth_fade", 0.25)
 			sprite.material = mat
 		else:
-			sprite.modulate = Color(0.10, 0.22, 0.32, 0.70)
+			sprite.modulate = Color(0.12, 0.26, 0.36, 0.75)
 			
 		add_child(sprite)
 
@@ -318,9 +326,11 @@ func _draw() -> void:
 		draw_circle(q_pos, 2.0, Color.WHITE)
 
 func _draw_procedural_fish_shadow() -> void:
-	var shadow_col = Color(0.12, 0.24, 0.32, 0.65)
+	var drop_shadow_col = Color(0.06, 0.16, 0.20, 0.28)
+	var shadow_col = Color(0.12, 0.26, 0.36, 0.75)
 	var body_len = 24.0
 	var body_w = 8.0
+	var shadow_off = Vector2(8, 12)
 	
 	match fish_species:
 		"kisu":
@@ -348,18 +358,27 @@ func _draw_procedural_fish_shadow() -> void:
 			body_len = 38.0
 			body_w = 16.0
 		"aoriika":
-			# イカ型
+			# 水底の影
+			draw_ellipse(shadow_off + Vector2(-2, 0), 16.0, 9.0, drop_shadow_col)
+			# 本体
 			draw_ellipse(Vector2(-2, 0), 16.0, 9.0, shadow_col)
-			# エンペラ
 			draw_colored_polygon(PackedVector2Array([
 				Vector2(-12, 0), Vector2(-22, -10), Vector2(-22, 10)
 			]), shadow_col)
-			# ゲソ
 			draw_line(Vector2(12, -2), Vector2(24, -4), shadow_col, 2.0)
 			draw_line(Vector2(12, 2), Vector2(24, 4), shadow_col, 2.0)
 			return
 
-	# 魚体（楕円）
+	# 水底の影（Drop Shadow）
+	draw_ellipse(shadow_off, body_len * 0.5, body_w * 0.5, drop_shadow_col)
+	var tail_x_s = -body_len * 0.5 + shadow_off.x
+	draw_colored_polygon(PackedVector2Array([
+		Vector2(tail_x_s, shadow_off.y),
+		Vector2(tail_x_s - 8, shadow_off.y - body_w * 0.6),
+		Vector2(tail_x_s - 8, shadow_off.y + body_w * 0.6)
+	]), drop_shadow_col)
+
+	# 魚体本体（楕円）
 	draw_ellipse(Vector2.ZERO, body_len * 0.5, body_w * 0.5, shadow_col)
 	# 尾ビレ
 	var tail_x = -body_len * 0.5

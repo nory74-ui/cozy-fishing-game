@@ -50,7 +50,7 @@ script = ExtResource("2_map")
 script = ExtResource("4_bob")
 
 [node name="Player" type="CharacterBody2D" parent="."]
-position = Vector2(260, 275)
+position = Vector2(715, 235)
 script = ExtResource("5_play")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]

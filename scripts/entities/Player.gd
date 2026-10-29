@@ -27,6 +27,7 @@ var last_safe_pos: Vector2 = Vector2(950, 800)
 @onready var map_field = get_parent().get_node_or_null("MapField")
 
 func _ready() -> void:
+	current_dir = Direction.LEFT # 海（西側）を向いて構える
 	last_safe_pos = global_position
 
 func _physics_process(delta: float) -> void:
