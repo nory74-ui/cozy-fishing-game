@@ -3,13 +3,16 @@ extends Node
 # --- サウンド管理シングルトン (Autoload: SoundManager) ---
 
 var bgm_player: AudioStreamPlayer
+var ambient_player: AudioStreamPlayer
 var current_bgm_name: String = ""
 var bgm_volume_db: float = -6.0
+var ambient_volume_db: float = -12.0
 
 var sfx_players: Array[AudioStreamPlayer] = []
 const SFX_POOL_SIZE: int = 12
 
 var audio_cache: Dictionary = {}
+var seagull_timer: float = 18.0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -18,6 +21,10 @@ func _ready() -> void:
 	bgm_player.bus = "Master"
 	add_child(bgm_player)
 	
+	ambient_player = AudioStreamPlayer.new()
+	ambient_player.bus = "Master"
+	add_child(ambient_player)
+	
 	for i in range(SFX_POOL_SIZE):
 		var p = AudioStreamPlayer.new()
 		p.bus = "Master"
@@ -25,6 +32,13 @@ func _ready() -> void:
 		sfx_players.append(p)
 		
 	_preload_all()
+
+func _process(delta: float) -> void:
+	# たまに空から聞こえる海猫・カモメの鳴き声
+	seagull_timer -= delta
+	if seagull_timer <= 0.0:
+		seagull_timer = randf_range(25.0, 50.0)
+		play_sfx("seagull", 0.12, -8.0)
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_PREDELETE:
@@ -37,6 +51,9 @@ func cleanup() -> void:
 	if is_instance_valid(bgm_player):
 		bgm_player.stop()
 		bgm_player.stream = null
+	if is_instance_valid(ambient_player):
+		ambient_player.stop()
+		ambient_player.stream = null
 	for p in sfx_players:
 		if is_instance_valid(p):
 			p.stop()
@@ -48,6 +65,9 @@ func _preload_all() -> void:
 	_load_sound("bgm_title", "res://assets/audio/bgm_title.ogg", true)
 	_load_sound("bgm_fishing", "res://assets/audio/bgm_fishing.ogg", true)
 	
+	# 環境音
+	_load_sound("ambient_waves", "res://assets/audio/ambient_waves.wav", true)
+	
 	# SFX
 	_load_sound("cast", "res://assets/audio/sfx_cast.wav")
 	_load_sound("hit", "res://assets/audio/sfx_hit.wav")
@@ -56,6 +76,16 @@ func _preload_all() -> void:
 	_load_sound("coin", "res://assets/audio/sfx_coin.wav")
 	_load_sound("book", "res://assets/audio/sfx_book.wav")
 	_load_sound("step", "res://assets/audio/sfx_step.wav")
+	_load_sound("pickup", "res://assets/audio/sfx_pickup.wav")
+	_load_sound("seagull", "res://assets/audio/sfx_seagull.wav")
+	_load_sound("fanfare", "res://assets/audio/sfx_fanfare.wav")
+
+func play_ambient(ambient_id: String, fade_time: float = 1.5) -> void:
+	var stream: AudioStream = audio_cache.get(ambient_id)
+	if not stream: return
+	ambient_player.stream = stream
+	ambient_player.volume_db = ambient_volume_db
+	ambient_player.play()
 
 func _load_sound(sound_id: String, res_path: String, is_loop: bool = false) -> void:
 	var stream: AudioStream = null

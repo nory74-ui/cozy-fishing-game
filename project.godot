@@ -8,7 +8,7 @@ config_version=5
 
 config/name="うみかぜ日和"
 config/description="うみかぜ日和 〜 日本全国お魚釣り旅：福岡・糸島編 〜"
-run/main_scene="res://scenes/title.tscn"
+run/main_scene="res://scenes/world3d/World3D.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 boot_splash/bg_color=Color(0.91, 0.96, 0.93, 1)
 
@@ -35,6 +35,6 @@ theme/custom_font="res://assets/fonts/ZenMaruGothic-Medium.ttf"
 
 [rendering]
 
-renderer/rendering_method="gl_compatibility"
-renderer/rendering_method.mobile="gl_compatibility"
+renderer/rendering_method="forward_plus"
+renderer/rendering_method.mobile="forward_plus"
 environment/defaults/default_clear_color=Color(0.91, 0.96, 0.93, 1)

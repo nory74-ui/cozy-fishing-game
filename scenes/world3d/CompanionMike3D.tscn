@@ -1,0 +1,25 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/player3d/CompanionMike3D.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://assets/models/fbx/mike_companion.glb" id="2_mesh"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_root"]
+radius = 0.22
+height = 0.65
+
+[node name="CompanionMike3D" type="CharacterBody3D"]
+collision_layer = 4
+collision_mask = 2
+floor_constant_speed = true
+floor_max_angle = 0.872665
+floor_snap_length = 0.45
+script = ExtResource("1_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
+shape = SubResource("CapsuleShape3D_root")
+
+[node name="VisualRoot" type="Node3D" parent="."]
+
+[node name="Model3D" parent="VisualRoot" instance=ExtResource("2_mesh")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)

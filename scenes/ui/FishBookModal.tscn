@@ -1,0 +1,158 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/FishBookModal.gd" id="1_modal"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud"]
+bg_color = Color(0.99, 0.98, 0.95, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.85, 0.72, 0.55, 0.9)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+shadow_size = 12
+shadow_offset = Vector2(0, 4)
+
+[node name="FishBookModal" type="Control"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_modal")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.55)
+
+[node name="Card" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -460.0
+offset_top = -280.0
+offset_right = 460.0
+offset_bottom = 280.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud")
+
+[node name="VBox" type="VBoxContainer" parent="Card"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HeaderHBox" type="HBoxContainer" parent="Card/VBox"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="Card/VBox/HeaderHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.18, 0.25, 0.3, 1)
+theme_override_font_sizes/font_size = 20
+text = "📖 うみかぜ日和 お魚図鑑 〜糸島・野北海岸編〜"
+
+[node name="ProgressLabel" type="Label" parent="Card/VBox/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.2, 0.55, 0.45, 1)
+theme_override_font_sizes/font_size = 15
+text = "発見度: 0 / 10 種 (0%)"
+horizontal_alignment = 1
+
+[node name="CloseBtn" type="Button" parent="Card/VBox/HeaderHBox"]
+custom_minimum_size = Vector2(80, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "閉じる"
+
+[node name="BodyHBox" type="HBoxContainer" parent="Card/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="LeftScroll" type="ScrollContainer" parent="Card/VBox/BodyHBox"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="FishList" type="VBoxContainer" parent="Card/VBox/BodyHBox/LeftScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="DetailCard" type="PanelContainer" parent="Card/VBox/BodyHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="DetailVBox" type="VBoxContainer" parent="Card/VBox/BodyHBox/DetailCard"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="FishTextureRect" type="TextureRect" parent="Card/VBox/BodyHBox/DetailCard/DetailVBox"]
+custom_minimum_size = Vector2(0, 115)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="Card/VBox/BodyHBox/DetailCard/DetailVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.18, 0.25, 0.3, 1)
+theme_override_font_sizes/font_size = 20
+text = "マアジ"
+horizontal_alignment = 1
+
+[node name="RarityLabel" type="Label" parent="Card/VBox/BodyHBox/DetailCard/DetailVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "【レア度: Common】"
+horizontal_alignment = 1
+
+[node name="StatsHBox" type="HBoxContainer" parent="Card/VBox/BodyHBox/DetailCard/DetailVBox"]
+layout_mode = 2
+
+[node name="MaxSizeLabel" type="Label" parent="Card/VBox/BodyHBox/DetailCard/DetailVBox/StatsHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.85, 0.45, 0.15, 1)
+theme_override_font_sizes/font_size = 15
+text = "最大記録: 24.5 cm"
+horizontal_alignment = 1
+
+[node name="CountLabel" type="Label" parent="Card/VBox/BodyHBox/DetailCard/DetailVBox/StatsHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.25, 0.45, 0.55, 1)
+theme_override_font_sizes/font_size = 15
+text = "累計釣果: 3 匹"
+horizontal_alignment = 1
+
+[node name="HabitatLabel" type="Label" parent="Card/VBox/BodyHBox/DetailCard/DetailVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.45, 0.6, 1)
+theme_override_font_sizes/font_size = 14
+text = "主な生息地: 野北漁港・大波止先端"
+
+[node name="DescLabel" type="Label" parent="Card/VBox/BodyHBox/DetailCard/DetailVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.35, 0.38, 0.42, 1)
+theme_override_font_sizes/font_size = 13
+text = "魚の生態解説"
+autowrap_mode = 3

@@ -91,16 +91,14 @@ func _draw() -> void:
 		
 	var draw_pos = Vector2(0, bob_offset)
 	
-	# 1. 釣り糸（プレイヤーの竿先からウキへ、しなやかなカテナリー/ベジェ曲線）
+	# 1. 釣り糸（プレイヤーの竿先からウキへ、動画完全一致のしなやかな曲線）
 	if player_node and player_node.has_method("get_rod_tip_global_pos"):
 		var tip_pos = to_local(player_node.get_rod_tip_global_pos())
-		var dist = tip_pos.distance_to(draw_pos)
-		# 糸のたわみ
-		var sag = minf(35.0, dist * 0.12)
-		var ctrl = (tip_pos + draw_pos) * 0.5 + Vector2(0, sag)
+		# 動画のように右側（風側）へほんのりしなる曲線
+		var ctrl = (tip_pos + draw_pos) * 0.5 + Vector2(16.0, 0.0)
 		var prev_pt = tip_pos
-		var segments = 12
-		var line_col = Color(0.18, 0.22, 0.25, 0.75) # 動画のような細くリアルな釣り糸
+		var segments = 16
+		var line_col = Color(0.12, 0.14, 0.16, 0.85) # 動画の極細ブラックライン
 		for s in range(1, segments + 1):
 			var t = float(s) / float(segments)
 			var pt = (1.0 - t) * (1.0 - t) * tip_pos + 2.0 * (1.0 - t) * t * ctrl + t * t * draw_pos

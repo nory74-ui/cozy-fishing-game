@@ -64,6 +64,9 @@ func _on_backdrop_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		close_shop()
 
+func open() -> void:
+	open_shop()
+
 func open_shop() -> void:
 	visible = true
 	switch_tab(Tab.SELL)

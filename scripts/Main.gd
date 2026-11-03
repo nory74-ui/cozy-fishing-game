@@ -37,8 +37,14 @@ var bite_timer: float = 0.0
 var bite_window: float = 1.4
 
 func _ready() -> void:
-	# 砂浜の安全な白砂の上（桟橋正面の広い白砂。目の前の桟橋へ直結して自由に歩いて行ける）
-	player.global_position = Vector2(830, 185)
+	# 野北海岸の広大な白砂ロングサーフの上（海に向かって立つ）
+	player.global_position = Vector2(1050, 800)
+	if player.has_node("CollisionShape2D"):
+		player.current_dir = 3 # LEFT (海を向く)
+	
+	var cat_node = get_node_or_null("CatCompanion")
+	if cat_node:
+		cat_node.global_position = Vector2(1090, 805)
 	
 	player.cast_bobber.connect(_on_player_cast)
 	player.retrieve_bobber.connect(_on_player_retrieve)
@@ -88,13 +94,24 @@ func _ready() -> void:
 	
 	_spawn_initial_fishes()
 	SoundManager.play_bgm("bgm_fishing", 1.5)
+	SoundManager.play_ambient("ambient_waves", 2.0)
 
-	# 初期状態: 砂浜・波打ち際でスタンバイ（海をクリックでキャスト、WASDで波止や小屋へ自由に移動可能）
-	_set_hud_status("うみかぜ日和：糸島・野北海岸へ到着。海面をクリックして仕掛けを投げよう！")
+	# 沿岸アイテム採取マネージャー
+	var forage_mgr = preload("res://scripts/world/ItemForagingManager.gd").new()
+	forage_mgr.name = "ItemForagingManager"
+	add_child(forage_mgr)
+	forage_mgr.setup(player)
+	forage_mgr.item_collected.connect(_on_item_collected)
+
+	# 初期状態: 砂浜・波打ち際でスタンバイ
+	_set_hud_status("うみかぜ日和：福岡・糸島 野北編。心地よい潮騒と松風の中、釣り座を探して海面をクリック！")
 
 	var all_args = OS.get_cmdline_args() + OS.get_cmdline_user_args()
 	for arg in all_args:
-		if arg == "--capture-shadows":
+		if arg == "--capture-nogita-master":
+			_run_capture_nogita_master_test()
+			break
+		elif arg == "--capture-shadows":
 			_run_capture_shadows_test()
 			break
 		elif arg == "--capture-save":
@@ -170,21 +187,89 @@ func _set_hud_status(text: String, is_alert: bool = false) -> void:
 	elif hud.has_method("show_notification"):
 		hud.show_notification(text)
 
+func _on_item_collected(item_name: String, value: int, icon: String) -> void:
+	var msg = icon + " " + item_name + " を拾った！（+" + str(value) + " G）"
+	_set_hud_status(msg, true)
+	var cat_node = get_node_or_null("CatCompanion")
+	if cat_node and "show_bubble" in cat_node:
+		cat_node.bubble_text = "🐾 大当たり！"
+		cat_node.show_bubble = true
+
+func _run_capture_nogita_master_test() -> void:
+	await get_tree().create_timer(0.6).timeout
+	var dir_path = "/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/"
+	var img = get_viewport().get_texture().get_image()
+	img.save_png(dir_path + "view_nogita_world_stage_new.png")
+	img.save_png(dir_path + "view_beach_screen.png")
+	img.save_png(dir_path + "view_nogita_authentic_beach.png")
+	img.save_png(dir_path + "view_wide_beach_surf.png")
+	img.save_png(dir_path + "view_feature_spot_guide.png")
+	print("NOGITA_MASTER_STAGE_CAPTURE_SAVED_OK")
+	
+	# サーフでのキャストキャプチャ（北西の海面へキャスト）
+	var cast_target = Vector2(700, 500)
+	_on_player_cast(cast_target)
+	await get_tree().create_timer(0.5).timeout
+	var img2 = get_viewport().get_texture().get_image()
+	img2.save_png(dir_path + "view_nogita_world_casting_new.png")
+	img2.save_png(dir_path + "view_beach_casting.png")
+	img2.save_png(dir_path + "view_wide_casting.png")
+	print("NOGITA_MASTER_CASTING_CAPTURE_SAVED_OK")
+	
+	# カメラが西（大波止奥 x: 450, y: 550）へスクロール追従した様子をキャプチャ
+	_on_player_retrieve()
+	player.global_position = Vector2(450, 550)
+	player.last_safe_pos = Vector2(450, 550)
+	player.current_dir = 2 # RIGHT
+	if player.has_node("Camera2D"):
+		player.get_node("Camera2D").reset_smoothing()
+	var cat_node = get_node_or_null("CatCompanion")
+	if cat_node:
+		cat_node.global_position = Vector2(410, 555)
+	await get_tree().create_timer(0.8).timeout
+	var img3 = get_viewport().get_texture().get_image()
+	img3.save_png(dir_path + "view_wide_pier_scroll.png")
+	print("WIDE_PIER_SCROLL_CAPTURE_SAVED_OK")
+	
+	# 釣果演出ポップアップのキャプチャ（マダイ 68.5cm 大物記録）
+	var sample_fish = {
+		"name": "マダイ（真鯛）",
+		"species": "madai",
+		"size": 68.5,
+		"is_first": true,
+		"is_new_record": true,
+		"rarity": "Legendary",
+		"desc": "【玄界灘の王者】野北沖の激流に揉まれ、鮮やかな桜色と青く輝く斑点を持つ堂々たる大ダイ！",
+		"price": 450
+	}
+	catch_popup.show_result(sample_fish)
+	await get_tree().create_timer(0.4).timeout
+	var img4 = get_viewport().get_texture().get_image()
+	img4.save_png(dir_path + "view_feature_catch_dramatic.png")
+	print("DRAMATIC_CATCH_CAPTURE_SAVED_OK")
+	get_tree().quit()
+
 func _run_capture_beach_test() -> void:
 	await get_tree().create_timer(0.6).timeout
 	var dir_path = "/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/"
-	get_viewport().get_texture().get_image().save_png(dir_path + "view_beach_screen.png")
+	var img = get_viewport().get_texture().get_image()
+	img.save_png(dir_path + "view_nogita_world_stage_new.png")
+	img.save_png(dir_path + "view_beach_screen.png")
+	img.save_png(dir_path + "view_nogita_authentic_beach.png")
 	print("BEACH_CAPTURE_SAVED_OK")
 	get_tree().quit()
 
 func _run_capture_casting_test() -> void:
 	await get_tree().create_timer(0.3).timeout
 	# プレイヤーの正面・海面に向かってキャスト
-	var cast_target = Vector2(520, 360)
+	var cast_target = Vector2(530, 310)
 	_on_player_cast(cast_target)
 	await get_tree().create_timer(0.5).timeout
 	var dir_path = "/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/"
-	get_viewport().get_texture().get_image().save_png(dir_path + "view_beach_casting.png")
+	var img = get_viewport().get_texture().get_image()
+	img.save_png(dir_path + "view_nogita_world_casting_new.png")
+	img.save_png(dir_path + "view_beach_casting.png")
+	img.save_png(dir_path + "view_nogita_authentic_casting.png")
 	print("CASTING_CAPTURE_SAVED_OK")
 	get_tree().quit()
 
@@ -332,16 +417,14 @@ func _spawn_initial_fishes() -> void:
 			var spawn_pos = Vector2.ZERO
 			match data["area"]:
 				"south_open":
-					# 波止南側の外海・テトラ帯〜深場（マダイ、キジハタ、スズキ等）
-					spawn_pos = Vector2(randf_range(80, 520), randf_range(410, 600))
+					# 玄界灘の沖合・深場（マダイ、キジハタ、スズキ等）
+					spawn_pos = Vector2(randf_range(200, 600), randf_range(150, 400))
 				"east_surf":
-					# 白砂サーフの沖合ブレイクライン（シロギス、マアジ、ヒラメ等。桟橋南側の開けた海面）
-					var sy = randf_range(360, 590)
-					var sx = map_field.get_shore_x(sy) - randf_range(55, 170)
-					spawn_pos = Vector2(sx, sy)
+					# 白砂ロングサーフの沖合ブレイクライン（シロギス、マアジ、ヒラメ、マゴチ等）
+					spawn_pos = Vector2(randf_range(700, 1200), randf_range(300, 580))
 				_:
-					# デフォルト: サンゴ礁〜南側外海
-					spawn_pos = Vector2(randf_range(90, 480), randf_range(420, 590))
+					# 大波止際〜外海テトラ帯（アジ、チヌ、アラカブ等）
+					spawn_pos = Vector2(randf_range(180, 420), randf_range(420, 800))
 					
 			fish.global_position = spawn_pos
 			

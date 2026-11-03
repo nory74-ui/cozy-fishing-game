@@ -11,7 +11,7 @@ signal book_updated(species: String, is_first: bool, is_record: bool)
 # プレイヤーのステータス
 var coins: int = 60 # 初期所持金
 var current_rod: String = "starter_rod"
-var current_bait: String = "isome"
+var current_bait: String = "mussel"
 
 # 所持品
 var inventory: Array[Dictionary] = [] # 釣った魚リスト
@@ -125,7 +125,7 @@ const BAITS: Dictionary = {
 	},
 	"mussel": {
 		"id": "mussel",
-		"name": "ムール貝 (イガイ)",
+		"name": "ムール貝",
 		"pack_amount": 3,
 		"price": 35,
 		"rare_boost": 1.5,
@@ -149,107 +149,117 @@ const BAITS: Dictionary = {
 	}
 }
 
-# 魚データベース（福岡県・糸島 玄界灘の実在の海洋生態系・サイズ・生態に基づく設定）
+# 魚データベース（福岡県・糸島 玄界灘の実在の海洋生態系・学名・詳細な生態記録）
 const FISH_DATABASE: Dictionary = {
 	"aji": {
 		"id": "aji",
 		"name": "マアジ",
+		"scientific_name": "Trachurus japonicus",
 		"rarity": "Common",
 		"base_price": 20,
 		"min_size": 12.0,
 		"max_size": 34.0,
 		"habitat": "野北漁港・大波止先端（潮通しの良い回遊層）",
-		"desc": "玄界灘の激しい潮流で育つマアジは身が引き締まり脂乗りが抜群。初夏から秋にかけて堤防周りに大群で回遊する。夕マズメや夜間の常夜灯下に集まる習性があり、30cmを超えるものは「尺アジ」と呼ばれる。"
+		"desc": "スズキ目アジ科。玄界灘の激しい潮流と豊富な動物プランクトンで育つアジは身が引き締まり脂乗りが抜群。沿岸の岩礁帯に居つく「黄アジ（瀬付きアジ）」は体高が高く金色を帯びる。体側に稜鱗（ぜいご）と呼ばれる硬い骨板を持つ。夕マズメから夜間に常夜灯の明かりへ集まる習性があり、30cmを超えるものは「尺アジ」と呼ばれる。"
 	},
 	"kisu": {
 		"id": "kisu",
 		"name": "シロギス",
+		"scientific_name": "Sillago japonica",
 		"rarity": "Common",
 		"base_price": 25,
 		"min_size": 12.0,
 		"max_size": 26.5,
 		"habitat": "野北サーフ（白砂海岸の波打ち際・駆け上がり）",
-		"desc": "「砂浜の貴婦人」と称される透き通る美しい魚体。糸島の大口海岸などの白砂底に生息し、砂の中に潜むゴカイ類を吸い込むように捕食する。繊細なアタリと上品で甘みのある白身が釣り人に愛されている。"
+		"desc": "スズキ目キス科。「砂浜の貴婦人」と称される真珠のように透き通る美しい魚体。糸島・野北サーフの清澄な白砂底を好み、底面すれすれをホバリングしながら泳ぐ。伸縮自在の口先で砂中の多毛類（ゴカイ類）やヨコエビを砂ごと吸い込み、エラから砂だけを排出する。天敵を察知すると一瞬で砂中に潜り込む隠遁習性を持つ。"
 	},
 	"arakabu": {
 		"id": "arakabu",
 		"name": "アラカブ (カサゴ)",
+		"scientific_name": "Sebastiscus marmoratus",
 		"rarity": "Common",
 		"base_price": 30,
 		"min_size": 14.0,
 		"max_size": 28.5,
 		"habitat": "波止の基礎石・テトラポッドの隙間",
-		"desc": "九州で「アラカブ」と呼ばれる根魚の代表。堤防の足元や消波ブロックの暗がりにじっと潜み、落ちてくるエサを一瞬でひったくる。大きな口とトゲのあるヒレを持ち、煮付けや味噌汁にすると濃厚な出汁が出る。"
+		"desc": "カサゴ目メバル科。九州では「アラカブ」の名で愛される沿岸性根魚の代表種。卵胎生であり、雌の体内で受精・孵化した仔魚を海中に産み落とす。夜行性で、昼間はテトラポッドや敷石の暗がりに腹をつけてじっと潜み、目の前を通る小魚やエビを大きな口で一瞬で丸呑みする。強い縄張り意識を持ち、煮付けや味噌汁にすると濃厚な出汁が出る。"
 	},
 	"chinu": {
 		"id": "chinu",
 		"name": "チヌ (クロダイ)",
+		"scientific_name": "Acanthopagrus schlegelii",
 		"rarity": "Rare",
 		"base_price": 75,
 		"min_size": 22.0,
 		"max_size": 54.0,
 		"habitat": "波止のケーソン足元・テトラ帯",
-		"desc": "警戒心が極めて強く、知恵比べが楽しめる名ターゲット。福岡では小型を「メイタ」と呼ぶ。堤防に付着したイガイやカニを頑丈な歯で噛み砕く。50cmを超える「年無し（としなし）」の銀鱗と強烈な引きは圧巻。"
+		"desc": "スズキ目タイ科。警戒心と知性が極めて高い名ターゲット。成長に伴い雄から雌へと性転換する雄性先熟の生態を持つ。雑食性で、堤防の壁面に付着したイガイやフジツボ、カニを石臼のような頑丈な奥歯で殻ごと噛み砕く。糸島の波止では50cmを超え十数年以上生き抜いた歴戦の個体が「年無し（としなし）」と呼ばれ、強烈な引きで竿を絞り込む。"
 	},
 	"magochi": {
 		"id": "magochi",
 		"name": "マゴチ",
+		"scientific_name": "Platycephalus sp.",
 		"rarity": "Rare",
 		"base_price": 95,
 		"min_size": 35.0,
 		"max_size": 62.0,
 		"habitat": "野北サーフの浅場〜ブレイクライン",
-		"desc": "上から押しつぶされたような平たい体を持つ砂地のハンター。「照りゴチ」と呼ばれ初夏〜夏にサーフの浅場へ寄る。砂に身を隠して目の前を通る小魚やエビを豪快に捕食し、強烈な首振りダンスで竿を揺らす。"
+		"desc": "カサゴ目コチ科。砂泥底に特化した上下に平たい体（縦扁）を持つ底生フィッシュイーター。体色を砂肌に完璧に同化させ、目だけを出して浅瀬に潜み、頭上を通過するキスや小アジを猛烈な瞬発力で急襲する。雄性先熟で大型個体（45cm以上）はほぼすべて雌。初夏から夏の産卵期にサーフの浅場へ大挙接岸し、「照りゴチ」として知られる。"
 	},
 	"suzuki": {
 		"id": "suzuki",
 		"name": "スズキ (シーバス)",
+		"scientific_name": "Lateolabrax japonicus",
 		"rarity": "Rare",
 		"base_price": 120,
 		"min_size": 45.0,
 		"max_size": 88.0,
 		"habitat": "波打ち際のサラシ・潮目・離岸流",
-		"desc": "白波が砕けるサラシや潮通しの良い潮流帯を回遊する大型フィッシュイーター。フッキングすると水面を割って高くジャンプし、頭を激しく振る「エラ洗い」で針を外そうとする。80cm超のランカーサイズは迫力満点。"
+		"desc": "スズキ目スズキ科。日本沿岸の固有種で、セイゴ→フッコ→スズキと成長に伴い名を変える出世魚。白波が砕け散る大波止の外海サラシや潮流帯を好み、イワシやコノシロを果敢に追尾する。針掛かりすると激しく水面を割って大口を開け頭を振る「エラ洗い（鰓洗い）」で針を外そうとする。80cmを超えるランカーサイズは圧巻の威容を誇る。"
 	},
 	"kijihata": {
 		"id": "kijihata",
 		"name": "キジハタ (アコウ)",
+		"scientific_name": "Epinephelus akaara",
 		"rarity": "Epic",
 		"base_price": 160,
 		"min_size": 22.0,
 		"max_size": 48.0,
 		"habitat": "大波止沖合の沈み瀬・深場の岩礁帯",
-		"desc": "「夏のフグ」とも称される玄界灘の超高級根魚。福岡・九州では「アコウ」と呼ばれる。鮮やかな赤橙色の体に散らばる青い斑点が宝石のように美しい。強烈な力で一気に海底の岩穴に潜り込もうとする。"
+		"desc": "スズキ目ハタ科。キジの羽を思わせる赤橙色の地に散らばる斑紋が美しい超高級根魚。福岡では「アコウ」と呼ばれる。雌性先熟で、生まれは全て雌であり、大きく成熟した個体（35cm以上）が雄へと性転換する。大波止沖の沈み瀬や急深な岩礁の隙間に陣取り、エビや小魚を捕食。ヒット直後に一気に海底の岩穴へ突進する強烈な引きを見せる。"
 	},
 	"hirame": {
 		"id": "hirame",
 		"name": "ヒラメ",
+		"scientific_name": "Paralichthys olivaceus",
 		"rarity": "Epic",
 		"base_price": 180,
 		"min_size": 32.0,
 		"max_size": 78.0,
 		"habitat": "野北サーフ沖合の深み・海底の砂地",
-		"desc": "砂底に完璧に擬態するサーフの頂点捕食者。鋭い歯を持ち、頭上を通るキスやアジに電光石火の速さで襲いかかる。肉厚な70cm超の「座布団ヒラメ」は糸島サーフに通うアングラーすべての夢。"
+		"desc": "カレイ目ヒラメ科。「左ヒラメに右カレイ」の通り、体の左側に両目が並ぶサーフの頂点捕食者。鋭い犬歯状の歯が並ぶ大きな口を持ち、砂底に完全に同化して待ち伏せ、射程圏に入った小魚へ下から電光石火の速さで飛びつく。肉厚な70cm以上の大型は「座布団ヒラメ」と呼ばれ、冬の玄界灘で獲れる寒ビラメは縁側に極上の脂を蓄える。"
 	},
 	"madai": {
 		"id": "madai",
 		"name": "マダイ (真鯛)",
+		"scientific_name": "Pagrus major",
 		"rarity": "Epic",
 		"base_price": 220,
 		"min_size": 25.0,
 		"max_size": 76.0,
 		"habitat": "大波止先端の沖合本流・深場",
-		"desc": "玄界灘の荒波と豊富な潮流に育まれた「百魚の王」。鮮やかな桜色の魚体にエメラルドグリーンの斑点が美しく輝く。波止の先端から沖の潮目へ流すとヒットし、竿先を激しく叩く独特の三段引きで魅了する。"
+		"desc": "スズキ目タイ科。美しい桜色の体色とコバルトブルーに輝く斑点を纏う「百魚の王」。エビやカニなど甲殻類のアスタキサンチンを摂取することで鮮やかな赤色を保つ。水深30〜100mの潮通しの良い海域に生息し、春の産卵期（乗っ込み）に浅場の潮目へ回遊する。強靭な遊泳力で深場へ一気に疾走する独特の「三段引き」で釣り竿を大きく絞り込む。"
 	},
 	"aoriika": {
 		"id": "aoriika",
 		"name": "アオリイカ (ミズイカ)",
+		"scientific_name": "Sepioteuthis lessoniana",
 		"rarity": "Legendary",
 		"base_price": 500,
 		"min_size": 20.0,
 		"max_size": 45.0,
 		"habitat": "大波止周りのホンダワラ藻場・深淵",
-		"desc": "「イカの王様」と称えられる最高峰ターゲット。九州では「ミズイカ」と呼ばれる。水晶のように透き通る肉厚な胴体と、光の加減で虹色に変化する美しい体色が特徴。キロアップの親イカはジェット噴射でドラグを唸らせる。"
+		"desc": "ツツイカ目ヤリイカ科。イカの女王、九州では「ミズイカ」と呼ばれる最高峰ターゲット。半月状の大きなヒレを波打たせて前後左右へ自在にホバリングし、大きな複眼で獲物を捉えて伸縮自在の2本の触腕で瞬時に絡め取る。春に野北の大波止周辺に広がるホンダワラなどの海藻帯へ産卵のために接岸し、キロアップの親イカは強力なジェット噴射でドラグを唸らせる。"
 	}
 }
 
@@ -533,9 +543,9 @@ func load_game() -> bool:
 	current_rod = data.get("current_rod", "starter_rod")
 	if not RODS.has(current_rod):
 		current_rod = "starter_rod"
-	current_bait = data.get("current_bait", "isome")
+	current_bait = data.get("current_bait", "mussel")
 	if not BAITS.has(current_bait):
-		current_bait = "isome"
+		current_bait = "mussel"
 	
 	# インベントリ
 	inventory.clear()
@@ -602,7 +612,7 @@ func reset_save_data() -> void:
 		DirAccess.remove_absolute(SAVE_PATH)
 	coins = 60
 	current_rod = "starter_rod"
-	current_bait = "isome"
+	current_bait = "mussel"
 	inventory.clear()
 	unlocked_rods = ["starter_rod"]
 	bait_counts = {

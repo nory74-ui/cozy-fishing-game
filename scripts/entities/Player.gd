@@ -1,13 +1,13 @@
 extends CharacterBody2D
 
-# デフォルメされたかわいいおじさん釣り人キャラクター
-# （ぽっこりお腹、ふさふさ口ひげ、赤い丸鼻、バケットハット、サロペット、ドラクエ風4方向歩行アクション）
+# キャプテン・バーロック（Captain Barlock: 155cm, 38歳 漁師）
+# サファリハット（魚ワッペン）、青白ボーダーシャツ、首巻きタオル、星＆錨ベスト、魚ポシェット、茶パンツ＆ブーツ
 
 signal cast_bobber(target_pos: Vector2)
 signal retrieve_bobber()
 
-@export var speed: float = 175.0
-@export var cast_max_distance: float = 340.0
+@export var speed: float = 230.0
+@export var cast_max_distance: float = 460.0
 
 var is_fishing: bool = false
 var bobber_in_water: bool = false
@@ -22,15 +22,29 @@ var rod_swing_anim: float = 0.0
 
 var mouse_world_pos: Vector2 = Vector2.ZERO
 var can_cast_at_mouse: bool = false
-var last_safe_pos: Vector2 = Vector2(830, 185)
+var last_safe_pos: Vector2 = Vector2(1650, 850)
 
 @onready var map_field = get_parent().get_node_or_null("MapField")
 
+# キャプテン・バーロック公式三面図テクスチャ
+var tex_barlock_front: Texture2D = preload("res://assets/characters/captain_barlock_front.png")
+var tex_barlock_side: Texture2D = preload("res://assets/characters/captain_barlock_side.png")
+var tex_barlock_back: Texture2D = preload("res://assets/characters/captain_barlock_back.png")
+
 func _ready() -> void:
-	current_dir = Direction.LEFT # 海（西側）を向いて構える
+	current_dir = Direction.LEFT # 海（左側）を向いて構える
 	last_safe_pos = global_position
 
+func get_perspective_scale(y_pos: float) -> float:
+	# 奥（y ≈ 450, 防波堤奥・白灯台付近）: 0.65倍
+	# 手前（y ≈ 1200, 手前サーフ・砂浜）: 1.18倍
+	var t = clampf((y_pos - 450.0) / (1200.0 - 450.0), 0.0, 1.0)
+	return lerpf(0.65, 1.18, t)
+
 func _physics_process(delta: float) -> void:
+	var p_scale = get_perspective_scale(global_position.y)
+	scale = Vector2(p_scale, p_scale)
+	
 	var main_node = get_parent()
 	var m_state = main_node.current_state if (main_node and "current_state" in main_node) else 0
 	# REELING(4), RESULT(5), SHOP(6), BOOK(7) 中は移動しない
@@ -155,13 +169,13 @@ func get_rod_tip_global_pos() -> Vector2:
 	var offset: Vector2
 	match current_dir:
 		Direction.DOWN:
-			offset = Vector2(16, 26 + swing)
+			offset = Vector2(14, 18 + swing)
 		Direction.UP:
-			offset = Vector2(16, -30 - swing)
+			offset = Vector2(16, -26 - swing)
 		Direction.RIGHT:
-			offset = Vector2(32 + swing, 6)
+			offset = Vector2(28 + swing, 4)
 		Direction.LEFT:
-			offset = Vector2(-32 - swing, 6)
+			offset = Vector2(-28 - swing, 4)
 	return global_position + offset
 
 func _get_boot_color() -> Color:
@@ -170,32 +184,43 @@ func _get_boot_color() -> Color:
 	return Color("#582f0e")     # 初期革靴
 
 func _draw() -> void:
-	# 1. 地面の立体影（おじさんの丸い体型に合わせた影）
-	var shadow_offset = Vector2(4, 3)
-	draw_ellipse(Vector2(2, 17) + shadow_offset, 16.0, 7.0, Color(0.12, 0.18, 0.22, 0.32))
+	# 1. 地面の立体影（動画完全一致：右斜め後ろへ落ちるリアルなソフトシャドウ）
+	var shadow_poly = PackedVector2Array([
+		Vector2(-10, 16),
+		Vector2(12, 16),
+		Vector2(32, 6),
+		Vector2(16, 4)
+	])
+	draw_colored_polygon(shadow_poly, Color(0.12, 0.16, 0.18, 0.35))
+	draw_ellipse(Vector2(2, 16), 16.0, 7.0, Color(0.12, 0.16, 0.18, 0.28))
 
 	# 浅瀬を歩行中の水しぶきエフェクト
 	if is_moving and map_field and map_field.is_in_water(global_position):
 		var splash_phase = sin(walk_time * 2.5) * 4.0
-		draw_arc(Vector2(0, 16), 11.0 + splash_phase, 0, TAU, 16, Color(1, 1, 1, 0.75), 1.8)
-		draw_circle(Vector2(-8 + splash_phase, 14), 2.8, Color(0.9, 0.96, 1.0, 0.85))
-		draw_circle(Vector2(8 - splash_phase, 14), 2.8, Color(0.9, 0.96, 1.0, 0.85))
+		draw_arc(Vector2(0, 16), 12.0 + splash_phase, 0, TAU, 16, Color(1, 1, 1, 0.75), 1.8)
+		draw_circle(Vector2(-9 + splash_phase, 14), 2.8, Color(0.9, 0.96, 1.0, 0.85))
+		draw_circle(Vector2(9 - splash_phase, 14), 2.8, Color(0.9, 0.96, 1.0, 0.85))
 
-	# 2. ドラクエ風歩行ステップ (0: 静止, 1: 左足前, 2: 静止, 3: 右足前)
+	# 2. 歩行ステップ・ボブアニメーション
 	var step = int(walk_time) % 4 if is_moving else 0
-	# ぽっこりお腹が弾むボブアニメーション
-	var bob_y = -2.0 if (step == 1 or step == 3) else 0.0
+	var bob_y = -2.5 if (step == 1 or step == 3) else 0.0
+	var tilt_deg = 0.0
+	if is_moving:
+		if step == 1:
+			tilt_deg = 3.0
+		elif step == 3:
+			tilt_deg = -3.0
 
-	# 3. 向きに応じた「かわいいおじさん」描画
+	# 3. キャプテン・バーロック公式スプライト描画
 	match current_dir:
 		Direction.DOWN:
-			_draw_ojisan_down(step, bob_y)
+			_draw_barlock_front(step, bob_y, tilt_deg)
 		Direction.UP:
-			_draw_ojisan_up(step, bob_y)
+			_draw_barlock_back(step, bob_y, tilt_deg)
 		Direction.RIGHT:
-			_draw_ojisan_side(step, bob_y, false)
+			_draw_barlock_side(step, bob_y, tilt_deg, false)
 		Direction.LEFT:
-			_draw_ojisan_side(step, bob_y, true)
+			_draw_barlock_side(step, bob_y, tilt_deg, true)
 
 	# 4. 照準マーカー
 	if can_cast_at_mouse and not is_fishing:
@@ -205,191 +230,92 @@ func _draw() -> void:
 		draw_circle(target_local, 4.0, Color(1.0, 0.85, 0.3, 0.95))
 		draw_line(Vector2.ZERO, target_local, Color(1, 1, 1, 0.45), 1.2)
 
-# --- A. かわいいおじさん：下向き（正面） ---
-func _draw_ojisan_down(step: int, bob_y: float) -> void:
-	var boot_col = _get_boot_color()
-	var overalls_col = Color("#2a6f97") # デニムサロペット（オーバーオール）
-	var shirt_col = Color("#e9c46a")    # マスタードイエローのシャツ
-	var skin_col = Color("#fcd5ce")     # やさしい肌色
-	var mustache_col = Color("#f8f9fa") # ふさふさの白い口ひげ
-	var nose_col = Color("#e76f51")     # 赤い丸鼻
-	var hat_col = Color("#e9c46a")      # 麦わら帽子（ストローハット）
-	var ribbon_col = Color("#264653")
-
-	# 短い足のパタパタ歩行
-	var l_foot_y = 13.0
-	var r_foot_y = 13.0
-	if step == 1:
-		l_foot_y = 15.0
-		r_foot_y = 11.0
-	elif step == 3:
-		l_foot_y = 11.0
-		r_foot_y = 15.0
+# --- A. キャプテン・バーロック：下向き（正面） ---
+func _draw_barlock_front(step: int, bob_y: float, tilt_deg: float) -> void:
+	if tex_barlock_front:
+		var w = 43.0
+		var h = 66.0
+		var dest_rect = Rect2(-w * 0.5, 16.0 - h + bob_y, w, h)
 		
-	draw_rect(Rect2(-9, l_foot_y, 7, 5), boot_col, true)
-	draw_rect(Rect2(2, r_foot_y, 7, 5), boot_col, true)
+		if abs(tilt_deg) > 0.01:
+			draw_set_transform(Vector2(0, 16), deg_to_rad(tilt_deg), Vector2.ONE)
+			draw_texture_rect(tex_barlock_front, Rect2(-w * 0.5, -h + bob_y, w, h), false)
+			draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
+		else:
+			draw_texture_rect(tex_barlock_front, dest_rect, false)
+			
+		# 釣り中なら手元から竿を斜め前に構える演出
+		if is_fishing:
+			var hand_pos = Vector2(10, 6 + bob_y)
+			var rod_tip = get_rod_tip_global_pos() - global_position
+			draw_line(hand_pos, rod_tip, Color("#7f5539"), 2.6)
+			draw_line(hand_pos, rod_tip, Color("#ddb892"), 1.2)
+			draw_circle(hand_pos, 2.5, Color("#495057"))
+	else:
+		_draw_fallback_ojisan_down(step, bob_y)
 
-	# ぽっこり太鼓腹（丸いサロペット）
-	var belly_y = -3.0 + bob_y
-	# シャツの袖
-	draw_circle(Vector2(-11, belly_y + 4), 4.5, shirt_col)
-	draw_circle(Vector2(11, belly_y + 4), 4.5, shirt_col)
-	# ぽっこりお腹
-	draw_ellipse(Vector2(0, belly_y + 6), 13.0, 10.0, overalls_col)
-	# サロペットの胸当て
-	draw_rect(Rect2(-8, belly_y, 16, 12), overalls_col, true)
-	draw_rect(Rect2(-7, belly_y - 2, 14, 4), shirt_col, true) # シャツの襟元
-	# サスペンダーの金ボタン
-	draw_circle(Vector2(-6, belly_y + 2), 1.8, Color("#e9c46a"))
-	draw_circle(Vector2(6, belly_y + 2), 1.8, Color("#e9c46a"))
-
-	# 腰の魚籠（ビク）
-	draw_ellipse(Vector2(-13, belly_y + 8), 5.0, 6.0, Color("#d4a373"))
-	draw_ellipse(Vector2(-13, belly_y + 8), 3.5, 2.0, Color("#bc6c25"))
-
-	# お顔
-	var head_y = -14.0 + bob_y
-	draw_circle(Vector2(0, head_y), 9.5, skin_col)
-
-	# ふさふさ白眉毛
-	draw_line(Vector2(-7, head_y - 4), Vector2(-2, head_y - 4), Color.WHITE, 2.0)
-	draw_line(Vector2(2, head_y - 4), Vector2(7, head_y - 4), Color.WHITE, 2.0)
-
-	# ニッコリ優しい目（笑顔のアーチ）
-	draw_arc(Vector2(-4.5, head_y - 1), 2.2, PI * 1.1, PI * 1.9, 8, Color("#2b2d42"), 1.8)
-	draw_arc(Vector2(4.5, head_y - 1), 2.2, PI * 1.1, PI * 1.9, 8, Color("#2b2d42"), 1.8)
-
-	# ほんのり赤いほっぺ
-	draw_circle(Vector2(-7, head_y + 2), 2.2, Color("#f28482", 0.6))
-	draw_circle(Vector2(7, head_y + 2), 2.2, Color("#f28482", 0.6))
-
-	# 赤い丸鼻（愛嬌たっぷり！）
-	draw_circle(Vector2(0, head_y + 1), 2.8, nose_col)
-	draw_circle(Vector2(-0.8, head_y + 0.3), 1.0, Color(1, 1, 1, 0.7)) # 鼻のハイライト
-
-	# 立派でふんわりした口ひげ（カイゼル・ふさふさ白ひげ）
-	draw_ellipse(Vector2(-4, head_y + 4.5), 5.0, 3.0, mustache_col)
-	draw_ellipse(Vector2(4, head_y + 4.5), 5.0, 3.0, mustache_col)
-	draw_circle(Vector2(-8, head_y + 3.8), 2.0, mustache_col) # ひげの毛先
-	draw_circle(Vector2(8, head_y + 3.8), 2.0, mustache_col)
-
-	# バケットハット（釣り用帽子）
-	draw_ellipse(Vector2(0, head_y - 7), 17.0, 8.0, hat_col) # つば
-	draw_rect(Rect2(-9, head_y - 15, 18, 9), hat_col, true)  # クラウン
-	draw_rect(Rect2(-9, head_y - 10, 18, 3.0), ribbon_col, true) # リボン
-	# 釣り針・ルアーピン飾り
-	draw_line(Vector2(6, head_y - 11), Vector2(8, head_y - 8), Color("#e76f51"), 1.8)
-	draw_circle(Vector2(8, head_y - 8), 1.5, Color("#ffb703"))
-
-	# 釣り竿
-	var rod_tip = get_rod_tip_global_pos() - global_position
-	draw_line(Vector2(10, belly_y + 5), rod_tip, Color("#9c6644"), 2.8)
-	draw_circle(Vector2(10, belly_y + 5), 3.0, Color("#495057"))
-
-# --- B. かわいいおじさん：上向き（背中） ---
-func _draw_ojisan_up(step: int, bob_y: float) -> void:
-	var boot_col = _get_boot_color()
-	var overalls_col = Color("#2a6f97")
-	var shirt_col = Color("#e9c46a")
-	var hat_col = Color("#e9c46a")
-	var ribbon_col = Color("#264653")
-
-	var l_foot_y = 13.0
-	var r_foot_y = 13.0
-	if step == 1:
-		l_foot_y = 10.0
-		r_foot_y = 14.0
-	elif step == 3:
-		l_foot_y = 14.0
-		r_foot_y = 10.0
+# --- B. キャプテン・バーロック：上向き（背面） ---
+func _draw_barlock_back(step: int, bob_y: float, tilt_deg: float) -> void:
+	if tex_barlock_back:
+		var w = 43.0
+		var h = 66.0
+		var dest_rect = Rect2(-w * 0.5, 16.0 - h + bob_y, w, h)
 		
-	draw_rect(Rect2(-9, l_foot_y, 7, 5), boot_col, true)
-	draw_rect(Rect2(2, r_foot_y, 7, 5), boot_col, true)
+		if abs(tilt_deg) > 0.01:
+			draw_set_transform(Vector2(0, 16), deg_to_rad(tilt_deg), Vector2.ONE)
+			draw_texture_rect(tex_barlock_back, Rect2(-w * 0.5, -h + bob_y, w, h), false)
+			draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
+		else:
+			draw_texture_rect(tex_barlock_back, dest_rect, false)
+			
+		if is_fishing:
+			var hand_pos = Vector2(10, 4 + bob_y)
+			var rod_tip = get_rod_tip_global_pos() - global_position
+			draw_line(hand_pos, rod_tip, Color("#7f5539"), 2.6)
+			draw_line(hand_pos, rod_tip, Color("#ddb892"), 1.2)
+	else:
+		_draw_fallback_ojisan_up(step, bob_y)
 
-	var belly_y = -3.0 + bob_y
-	draw_circle(Vector2(-11, belly_y + 4), 4.5, shirt_col)
-	draw_circle(Vector2(11, belly_y + 4), 4.5, shirt_col)
-
-	# 丸いお尻と背中
-	draw_ellipse(Vector2(0, belly_y + 6), 13.0, 10.0, overalls_col)
-	# サスペンダーのクロス（X字）
-	draw_line(Vector2(-6, belly_y), Vector2(6, belly_y + 11), Color("#1d3557"), 2.2)
-	draw_line(Vector2(6, belly_y), Vector2(-6, belly_y + 11), Color("#1d3557"), 2.2)
-
-	# 腰の魚籠
-	draw_ellipse(Vector2(13, belly_y + 8), 5.0, 6.0, Color("#d4a373"))
-
-	# 後頭部
-	var head_y = -14.0 + bob_y
-	draw_circle(Vector2(0, head_y), 9.5, Color("#adb5bd")) # ロマンスグレーの白髪混じり
-
-	# バケットハット（後ろ姿）
-	draw_ellipse(Vector2(0, head_y - 7), 17.0, 8.0, hat_col)
-	draw_rect(Rect2(-9, head_y - 15, 18, 9), hat_col, true)
-	draw_rect(Rect2(-9, head_y - 10, 18, 3.0), ribbon_col, true)
-
-	# 釣り竿
-	var rod_tip = get_rod_tip_global_pos() - global_position
-	draw_line(Vector2(10, belly_y + 4), rod_tip, Color("#9c6644"), 2.8)
-
-# --- C. かわいいおじさん：左右向き（横歩き） ---
-func _draw_ojisan_side(step: int, bob_y: float, flip: bool) -> void:
-	var boot_col = _get_boot_color()
-	var overalls_col = Color("#2a6f97")
-	var shirt_col = Color("#e9c46a")
-	var skin_col = Color("#fcd5ce")
-	var mustache_col = Color("#f8f9fa")
-	var nose_col = Color("#e76f51")
-	var hat_col = Color("#e9c46a")
-	var ribbon_col = Color("#264653")
-
-	var sgn = -1.0 if flip else 1.0
-
-	# 前後に大きくよちよちステップ
-	var front_foot_x = 3.0 * sgn
-	var back_foot_x = -3.0 * sgn
-	if step == 1:
-		front_foot_x = 7.0 * sgn
-		back_foot_x = -7.0 * sgn
-	elif step == 3:
-		front_foot_x = -6.0 * sgn
-		back_foot_x = 6.0 * sgn
+# --- C. キャプテン・バーロック：左右向き（側面） ---
+func _draw_barlock_side(step: int, bob_y: float, tilt_deg: float, flip: bool) -> void:
+	if tex_barlock_side:
+		var orig_w = 300.0
+		var orig_h = 235.0
+		var scale_factor = 66.0 / 250.0 # 高さ基準スケール
+		var w = orig_w * scale_factor
+		var h = orig_h * scale_factor
+		var center_offset_x = 120.0 * scale_factor # 足元中心
 		
-	draw_rect(Rect2(back_foot_x - 3.5, 12, 7, 5), boot_col.darkened(0.2), true)
-	draw_rect(Rect2(front_foot_x - 3.5, 13, 7, 5), boot_col, true)
+		var sgn = -1.0 if flip else 1.0
+		var final_tilt = tilt_deg * sgn
+		
+		draw_set_transform(Vector2(0, 16), deg_to_rad(final_tilt), Vector2(sgn, 1.0))
+		draw_texture_rect(tex_barlock_side, Rect2(-center_offset_x, -h + bob_y, w, h), false)
+		
+		if is_fishing:
+			var rod_tip = (get_rod_tip_global_pos() - global_position)
+			rod_tip.x *= sgn
+			var hand_pos = Vector2(12, -12 + bob_y)
+			draw_line(hand_pos, rod_tip, Color("#7f5539"), 2.6)
+			draw_line(hand_pos, rod_tip, Color("#ddb892"), 1.2)
+			
+		draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
+	else:
+		_draw_fallback_ojisan_side(step, bob_y, flip)
 
-	var belly_y = -3.0 + bob_y
+# フォールバックベクター描画
+func _draw_fallback_ojisan_down(step: int, bob_y: float) -> void:
+	var boot_col = _get_boot_color()
+	draw_rect(Rect2(-9, 13, 7, 5), boot_col, true)
+	draw_rect(Rect2(2, 13, 7, 5), boot_col, true)
 
-	# ★★★ 横から見たぽっこり出たお腹！！ ★★★
-	# お腹が進行方向（sgn方向）にポコッと突き出ている
-	draw_ellipse(Vector2(2.5 * sgn, belly_y + 6), 12.0, 10.0, overalls_col)
-	draw_circle(Vector2(-4.0 * sgn, belly_y + 3), 4.5, shirt_col) # 腕・袖
-	# 横ポケット
-	draw_rect(Rect2(2 * sgn, belly_y + 6, 4 * sgn, 5), Color("#1d3557"), true)
+func _draw_fallback_ojisan_up(step: int, bob_y: float) -> void:
+	var boot_col = _get_boot_color()
+	draw_rect(Rect2(-9, 13, 7, 5), boot_col, true)
+	draw_rect(Rect2(2, 13, 7, 5), boot_col, true)
 
-	# お顔
-	var head_y = -14.0 + bob_y
-	draw_circle(Vector2(2 * sgn, head_y), 9.0, skin_col)
-	# 後頭部の白髪
-	draw_circle(Vector2(-2.5 * sgn, head_y + 2), 5.0, Color("#adb5bd"))
+func _draw_fallback_ojisan_side(step: int, bob_y: float, flip: bool) -> void:
+	var boot_col = _get_boot_color()
+	draw_rect(Rect2(-3.5, 13, 7, 5), boot_col, true)
 
-	# 横顔の目（優しい笑顔）
-	draw_arc(Vector2(5.5 * sgn, head_y - 1), 2.0, PI * 1.1, PI * 1.9, 6, Color("#2b2d42"), 1.8)
-	# ほっぺ
-	draw_circle(Vector2(5 * sgn, head_y + 2.5), 2.0, Color("#f28482", 0.6))
 
-	# ★ちょこんと前に出た赤い丸鼻
-	draw_circle(Vector2(8.5 * sgn, head_y + 1), 2.8, nose_col)
-
-	# ★前に突き出たふさふさ口ひげ
-	draw_ellipse(Vector2(8.0 * sgn, head_y + 4.5), 5.5, 3.2, mustache_col)
-	draw_circle(Vector2(11.0 * sgn, head_y + 4.0), 2.2, mustache_col)
-
-	# バケットハット（横）
-	draw_ellipse(Vector2(1.5 * sgn, head_y - 7), 16.0, 7.5, hat_col)
-	draw_rect(Rect2(-7 * sgn, head_y - 15, 15 * sgn, 9), hat_col, true)
-	draw_rect(Rect2(-7 * sgn, head_y - 10, 15 * sgn, 3.0), ribbon_col, true)
-
-	# 釣り竿
-	var rod_tip = get_rod_tip_global_pos() - global_position
-	draw_line(Vector2(6 * sgn, belly_y + 5), rod_tip, Color("#9c6644"), 2.8)

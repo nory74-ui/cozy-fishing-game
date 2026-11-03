@@ -1,0 +1,324 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/FishingHUD3D.gd" id="1_hud"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cast_bg"]
+bg_color = Color(0.12, 0.15, 0.2, 0.8)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cast_fill"]
+bg_color = Color(0.25, 0.85, 0.45, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tension_bg"]
+bg_color = Color(0.15, 0.18, 0.24, 0.85)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tension_fill"]
+bg_color = Color(0.95, 0.65, 0.2, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialog"]
+bg_color = Color(0.11, 0.14, 0.20, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.92, 0.82, 0.45, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+content_margin_left = 20.0
+content_margin_top = 16.0
+content_margin_right = 20.0
+content_margin_bottom = 16.0
+shadow_size = 12
+shadow_offset = Vector2(0, 6)
+
+[node name="FishingHUD3D" type="CanvasLayer"]
+script = ExtResource("1_hud")
+
+[node name="CastGaugeContainer" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -160.0
+offset_top = -140.0
+offset_right = 160.0
+offset_bottom = -90.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Label" type="Label" parent="CastGaugeContainer"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -120.0
+offset_top = -24.0
+offset_right = 120.0
+grow_horizontal = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 15
+text = "CAST POWER (長押しでチャージ)"
+horizontal_alignment = 1
+
+[node name="CastPowerBar" type="ProgressBar" parent="CastGaugeContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_cast_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_cast_fill")
+step = 0.5
+value = 50.0
+show_percentage = false
+
+[node name="FightContainer" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -220.0
+offset_top = -210.0
+offset_right = 220.0
+offset_bottom = -90.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="FishNameFightLabel" type="Label" parent="FightContainer"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -180.0
+offset_top = -26.0
+offset_right = 180.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 18
+text = "FIGHT: スズキ（シーバス）"
+horizontal_alignment = 1
+
+[node name="TensionBar" type="ProgressBar" parent="FightContainer"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -12.0
+offset_bottom = 14.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_tension_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_tension_fill")
+step = 0.1
+value = 50.0
+show_percentage = false
+
+[node name="DistanceLabel" type="Label" parent="FightContainer"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -110.0
+offset_top = -24.0
+grow_horizontal = 0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 16
+text = "距離: 8.5m"
+horizontal_alignment = 2
+
+[node name="TensionAlertLabel" type="Label" parent="FightContainer"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = 2.0
+offset_right = 200.0
+offset_bottom = 26.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 14
+text = "⭕ 最適テンション！ その調子で巻き上げろ！"
+horizontal_alignment = 1
+
+[node name="ReelPromptLabel" type="Label" parent="FightContainer"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -160.0
+offset_top = 28.0
+offset_right = 160.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 13
+text = "[E] または [Space] 長押しで巻き上げ"
+horizontal_alignment = 1
+
+[node name="HitIndicator" type="Label" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -180.0
+offset_top = -120.0
+offset_right = 180.0
+offset_bottom = -50.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.25, 0.2, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 46
+text = "⚡ HIT !! ⚡"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ResultDialog" type="PanelContainer" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -240.0
+offset_right = 280.0
+offset_bottom = 240.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dialog")
+
+[node name="VBox" type="VBoxContainer" parent="ResultDialog"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="FishTitle" type="Label" parent="ResultDialog/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.35, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 22
+text = "🎣 スズキ (シーバス) を釣り上げた！"
+horizontal_alignment = 1
+
+[node name="SubTitleHBox" type="HBoxContainer" parent="ResultDialog/VBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="ScientificName" type="Label" parent="ResultDialog/VBox/SubTitleHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.85, 0.95, 1)
+theme_override_font_sizes/font_size = 14
+text = "学名: Lateolabrax japonicus"
+
+[node name="RarityBadge" type="Label" parent="ResultDialog/VBox/SubTitleHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.5, 0.3, 1)
+theme_override_font_sizes/font_size = 14
+text = "  【Rare】"
+
+[node name="RecordBadge" type="Label" parent="ResultDialog/VBox/SubTitleHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 14
+text = "  🌟 初釣り上げ！"
+
+[node name="FishIcon" type="TextureRect" parent="ResultDialog/VBox"]
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="FishStats" type="Label" parent="ResultDialog/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.95, 0.98, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 15
+text = "体長: 78.4 cm   重量: 3.65 kg   売却値: 420 コイン"
+horizontal_alignment = 1
+
+[node name="HabitatLabel" type="Label" parent="ResultDialog/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.75, 0.9, 1)
+theme_override_font_sizes/font_size = 13
+text = "主な生息地: 波打ち際のサラシ・潮目・離岸流"
+horizontal_alignment = 1
+
+[node name="FishDesc" type="Label" parent="ResultDialog/VBox"]
+custom_minimum_size = Vector2(500, 75)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.88, 0.92, 1)
+theme_override_font_sizes/font_size = 13
+text = "スズキ目スズキ科。日本沿岸の固有種で、セイゴ→フッコ→スズキと成長に伴い名を変える出世魚。白波が砕け散る大波止の外海サラシや潮流帯を好み、イワシやコノシロを果敢に追尾する。針掛かりすると激しく水面を割って大口を開け頭を振る「エラ洗い（鰓洗い）」で針を外そうとする。"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="ClosePrompt" type="Label" parent="ResultDialog/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.7, 0.75, 1)
+theme_override_font_sizes/font_size = 12
+text = "[E] キー または クリックで閉じる"
+horizontal_alignment = 1
+
+[node name="AutopilotLabel" type="Label" parent="."]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 260.0
+offset_bottom = 48.0
+theme_override_colors/font_color = Color(0.35, 1, 0.5, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 15
+text = "🤖 [P] AUTOPILOT: ON"
+
+[node name="BtnOpenBook" type="Button" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -170.0
+offset_top = 18.0
+offset_right = -20.0
+offset_bottom = 54.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 15
+text = "📖 お魚図鑑 [B]"

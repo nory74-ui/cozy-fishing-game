@@ -69,6 +69,9 @@ func _on_backdrop_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		close_book()
 
+func open() -> void:
+	open_book()
+
 func open_book() -> void:
 	visible = true
 	# 最初に選択する魚: 発見済の魚があればその魚、なければmedaka
@@ -186,7 +189,11 @@ func _render_detail() -> void:
 	var record = GameData.fish_records.get(selected_species, {})
 	
 	if is_discovered:
-		detail_name.text = base_data.get("name", "魚")
+		var sci = base_data.get("scientific_name", "")
+		if sci != "":
+			detail_name.text = base_data.get("name", "魚") + "  (" + sci + ")"
+		else:
+			detail_name.text = base_data.get("name", "魚")
 		detail_name.add_theme_color_override("font_color", Color("#2b2d42"))
 		
 		var rarity = base_data.get("rarity", "Common")
