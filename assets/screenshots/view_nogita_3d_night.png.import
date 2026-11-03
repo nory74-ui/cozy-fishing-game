@@ -2,19 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ffgkx2kxupve"
-path="res://.godot/imported/mike_companion_2.png-2ce5f627bc31b880c89dbc64c44bb8ee.ctex"
+uid="uid://b1b767iyn7l44"
+path="res://.godot/imported/view_nogita_3d_night.png-b32fc575a245096df7215c9a07ff4e0e.ctex"
 metadata={
 "vram_texture": false
-}
-generator_parameters={
-"md5": "ac015901b950322619ff02ba37dff061"
 }
 
 [deps]
 
-source_file="res://assets/models/fbx/mike_companion_2.png"
-dest_files=["res://.godot/imported/mike_companion_2.png-2ce5f627bc31b880c89dbc64c44bb8ee.ctex"]
+source_file="res://assets/screenshots/view_nogita_3d_night.png"
+dest_files=["res://.godot/imported/view_nogita_3d_night.png-b32fc575a245096df7215c9a07ff4e0e.ctex"]
 
 [params]
 
@@ -26,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

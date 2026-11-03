@@ -2,19 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://kx47y4l4pvc5"
-path="res://.godot/imported/mike_companion_1.png-3a3042349565f3042bbb5541c0c87ffa.ctex"
+uid="uid://2fc7y6l3etd5"
+path="res://.godot/imported/view_title_screen.png-1fce06f802d9f1313aea527f096e4257.ctex"
 metadata={
 "vram_texture": false
-}
-generator_parameters={
-"md5": "54197e7da62c68ec080038270e90b636"
 }
 
 [deps]
 
-source_file="res://assets/models/fbx/mike_companion_1.png"
-dest_files=["res://.godot/imported/mike_companion_1.png-3a3042349565f3042bbb5541c0c87ffa.ctex"]
+source_file="res://assets/screenshots/view_title_screen.png"
+dest_files=["res://.godot/imported/view_title_screen.png-1fce06f802d9f1313aea527f096e4257.ctex"]
 
 [params]
 
@@ -26,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

@@ -11,12 +11,11 @@ os.makedirs(OUT_DIR, exist_ok=True)
 def clear_scene():
     bpy.ops.wm.read_factory_settings(use_empty=True)
 
-def make_mat(name, color_rgba, roughness=0.75, metallic=0.0):
+def make_mat(name, color_rgba, roughness=0.78, metallic=0.0):
     mat = bpy.data.materials.new(name=name)
     mat.use_nodes = True
     bsdf = mat.node_tree.nodes.get("Principled BSDF")
     if bsdf:
-        # Convert sRGB tuple to Blender Linear RGB so colors are rich and never bleached!
         lin_r = pow(color_rgba[0], 2.2)
         lin_g = pow(color_rgba[1], 2.2)
         lin_b = pow(color_rgba[2], 2.2)
@@ -25,33 +24,24 @@ def make_mat(name, color_rgba, roughness=0.75, metallic=0.0):
         bsdf.inputs["Metallic"].default_value = metallic
     return mat
 
-def export_glb_and_fbx(base_name):
+def export_glb(base_name):
     glb_path = os.path.join(OUT_DIR, f"{base_name}.glb")
-    fbx_path = os.path.join(OUT_DIR, f"{base_name}.fbx")
     bpy.ops.export_scene.gltf(
         filepath=glb_path,
         export_format='GLB',
         export_materials='EXPORT'
     )
-    bpy.ops.export_scene.fbx(
-        filepath=fbx_path,
-        apply_unit_scale=True,
-        apply_scale_options='FBX_SCALE_ALL',
-        axis_forward='-Z',
-        axis_up='Y'
-    )
-    print(f"Exported {base_name} (.glb & .fbx)")
+    print(f"Exported {base_name}.glb")
 
 # ==============================================================================
-# 1. HOLLOW WOODEN ROWBOAT (frame_009.jpg complete replica, Blender Z-up)
-#    X = width, Y = length (-1.45 bow to +1.45 stern), Z = height
+# 1. HOLLOW WOODEN ROWBOAT / 木造和船・小舟
 # ==============================================================================
 def build_hollow_wooden_boat():
     clear_scene()
-    mat_hull_outer = make_mat("BoatHullOuter", (0.42, 0.23, 0.12, 1.0), 0.75)
-    mat_hull_inner = make_mat("BoatHullInner", (0.68, 0.48, 0.30, 1.0), 0.80)
+    mat_hull_outer = make_mat("BoatHullOuter", (0.42, 0.25, 0.14, 1.0), 0.78)
+    mat_hull_inner = make_mat("BoatHullInner", (0.68, 0.49, 0.31, 1.0), 0.80)
     mat_seat = make_mat("BoatSeat", (0.76, 0.56, 0.36, 1.0), 0.78)
-    mat_gunwale = make_mat("BoatGunwale", (0.32, 0.17, 0.09, 1.0), 0.70)
+    mat_gunwale = make_mat("BoatGunwale", (0.30, 0.17, 0.09, 1.0), 0.72)
 
     bm = bmesh.new()
     num_sections = 20
@@ -60,7 +50,7 @@ def build_hollow_wooden_boat():
     inner_rings = []
 
     for i in range(num_sections + 1):
-        t = i / float(num_sections) # 0.0 (bow -Y) to 1.0 (stern +Y)
+        t = i / float(num_sections)
         y_len = -half_len + t * (2.0 * half_len)
 
         if t < 0.5:
@@ -154,7 +144,6 @@ def build_hollow_wooden_boat():
     for m in [mat_hull_outer, mat_hull_inner, mat_seat, mat_gunwale]:
         boat_obj.data.materials.append(m)
 
-    # 3 Cross Seats (Thwarts) along Y
     seat_y_positions = [-0.62, 0.05, 0.72]
     seat_widths = [0.84, 1.08, 0.92]
     for sy, sw in zip(seat_y_positions, seat_widths):
@@ -164,7 +153,6 @@ def build_hollow_wooden_boat():
         bpy.ops.object.transform_apply(scale=True)
         seat.data.materials.append(mat_seat)
 
-    # Internal wooden floor slats
     for sx in [-0.16, 0.0, 0.16]:
         bpy.ops.mesh.primitive_cube_add(size=1.0, location=(sx, 0.05, 0.11))
         slat = bpy.context.active_object
@@ -181,129 +169,181 @@ def build_hollow_wooden_boat():
     bpy.ops.mesh.normals_make_consistent(inside=False)
     bpy.ops.object.mode_set(mode='OBJECT')
 
-    export_glb_and_fbx("nogita_wooden_boat")
+    export_glb("nogita_wooden_boat")
 
 # ==============================================================================
-# 2. COASTAL TREE (Curved segmented trunk + layered lush fronds - frame_001.jpg)
+# 2. JAPANESE BLACK PINE (クロマツ / 福岡・糸島 野北海岸の防風黒松)
+#    Wind-sculpted curving dark pine trunk + spreading boughs + layered pine pads
 # ==============================================================================
-def build_coastal_tree():
+def build_japanese_black_pine():
     clear_scene()
-    mat_trunk = make_mat("TreeTrunk", (0.52, 0.38, 0.27, 1.0), 0.88)
-    mat_trunk_ring = make_mat("TreeTrunkRing", (0.42, 0.30, 0.21, 1.0), 0.90)
-    mat_leaf_bright = make_mat("LeafBright", (0.36, 0.74, 0.22, 1.0), 0.65)
-    mat_leaf_mid = make_mat("LeafMid", (0.26, 0.62, 0.18, 1.0), 0.68)
-    mat_leaf_warm = make_mat("LeafWarm", (0.64, 0.72, 0.24, 1.0), 0.70)
-    mat_crown = make_mat("CrownBrown", (0.38, 0.25, 0.16, 1.0), 0.85)
+    mat_bark_dark = make_mat("PineBarkDark", (0.28, 0.19, 0.14, 1.0), 0.90)
+    mat_bark_mid = make_mat("PineBarkMid", (0.36, 0.24, 0.17, 1.0), 0.88)
+    mat_pine_deep = make_mat("PineNeedleDeep", (0.14, 0.38, 0.17, 1.0), 0.72)
+    mat_pine_mid = make_mat("PineNeedleMid", (0.20, 0.48, 0.20, 1.0), 0.70)
+    mat_pine_bright = make_mat("PineNeedleBright", (0.28, 0.56, 0.23, 1.0), 0.68)
 
     objs = []
-    num_segs = 11
-    top_pos = mathutils.Vector((0, 0, 0))
 
-    for i in range(num_segs):
-        t = i / float(num_segs - 1)
-        z_up = i * 0.26 + 0.13
-        curve_x = -math.sin(t * math.pi * 0.52) * 0.80
-        curve_y = math.sin(t * math.pi * 0.8) * 0.10
-        r_bot = 0.20 * (1.0 - t * 0.40)
-        r_top = 0.20 * (1.0 - (t + 0.06) * 0.40) * 1.08
+    def add_branch_tube(points, radii, mat):
+        for i in range(len(points) - 1):
+            p0 = mathutils.Vector(points[i])
+            p1 = mathutils.Vector(points[i+1])
+            r0 = radii[i]
+            r1 = radii[i+1]
+            diff = p1 - p0
+            length = diff.length
+            mid = (p0 + p1) * 0.5
+            bpy.ops.mesh.primitive_cone_add(
+                vertices=10, radius1=r0, radius2=r1, depth=length * 1.06,
+                location=mid
+            )
+            seg = bpy.context.active_object
+            rot_quat = diff.to_track_quat('Z', 'Y')
+            seg.rotation_mode = 'QUATERNION'
+            seg.rotation_quaternion = rot_quat
+            seg.rotation_mode = 'XYZ'
+            seg.data.materials.append(mat if i % 2 == 0 else mat_bark_mid)
+            bpy.ops.object.shade_smooth()
+            objs.append(seg)
 
-        bpy.ops.mesh.primitive_cone_add(
-            vertices=12, radius1=r_bot, radius2=r_top, depth=0.28,
-            location=(curve_x, curve_y, z_up)
-        )
-        seg = bpy.context.active_object
-        seg.rotation_euler = (0, math.radians(-15.0 * (1.0 - t * 0.3)), 0)
-        seg.data.materials.append(mat_trunk if i % 2 == 0 else mat_trunk_ring)
-        bpy.ops.object.shade_smooth()
-        objs.append(seg)
-        top_pos = mathutils.Vector((curve_x, curve_y, z_up + 0.14))
+    # 1. Sinuous wind-sculpted Kuromatsu main trunk (leaning gracefully toward sea -X)
+    trunk_pts = [
+        ( 0.00,  0.00, 0.00),
+        ( 0.06, -0.04, 0.45),
+        (-0.08,  0.05, 0.95),
+        (-0.28,  0.08, 1.48),
+        (-0.48,  0.02, 2.02),
+        (-0.58, -0.04, 2.55),
+        (-0.52,  0.00, 3.05)
+    ]
+    trunk_radii = [0.28, 0.23, 0.19, 0.16, 0.13, 0.10, 0.07]
+    add_branch_tube(trunk_pts, trunk_radii, mat_bark_dark)
 
-    bpy.ops.mesh.primitive_uv_sphere_add(
-        segments=12, ring_count=8, radius=0.20,
-        location=top_pos
-    )
-    crown = bpy.context.active_object
-    crown.data.materials.append(mat_crown)
-    objs.append(crown)
+    # Root flares gripping the coastal sand
+    for r_idx in range(4):
+        ang = (r_idx / 4.0) * math.tau + 0.3
+        rx = math.cos(ang) * 0.32
+        ry = math.sin(ang) * 0.32
+        add_branch_tube([(0, 0, 0.18), (rx, ry, -0.02)], [0.14, 0.06], mat_bark_dark)
 
-    def create_frond(angle_z, pitch_deg, length, width, mat):
-        bm = bmesh.new()
-        segs = 9
-        for s in range(segs + 1):
-            u = s / float(segs)
-            dist = u * length
-            arch_z = math.sin(u * math.pi * 0.65) * 0.35 - (u ** 2.2) * 0.72
-            w = math.sin(u * math.pi) * width * (1.05 - 0.18 * (s % 2))
-            if s == segs:
-                w = 0.01
-            bm.verts.new((dist, -w, arch_z))
-            bm.verts.new((dist, 0.0, arch_z + 0.05 * math.sin(u * math.pi)))
-            bm.verts.new((dist, w, arch_z))
+    # 2. Spreading horizontal pine boughs (クロマツの枝張り)
+    boughs = [
+        # Lower seaward bough (-X, +Y)
+        ([(-0.22, 0.06, 1.35), (-0.75, 0.35, 1.52), (-1.28, 0.55, 1.60)], [0.11, 0.08, 0.05]),
+        # Mid right bough (+X, -Y)
+        ([(-0.36, 0.05, 1.75), ( 0.18, -0.42, 1.95), ( 0.65, -0.68, 2.05)], [0.10, 0.07, 0.045]),
+        # Mid-high seaward bough (-X, -Y)
+        ([(-0.52, -0.01, 2.25), (-1.05, -0.45, 2.42), (-1.48, -0.62, 2.48)], [0.09, 0.065, 0.04]),
+        # Upper back bough (+X, +Y)
+        ([(-0.56, -0.02, 2.48), (-0.05, 0.52, 2.68), ( 0.38, 0.82, 2.75)], [0.085, 0.06, 0.04]),
+        # Crown top bough
+        ([(-0.52, 0.00, 2.95), (-0.78, 0.12, 3.22)], [0.07, 0.04])
+    ]
+    for b_pts, b_rad in boughs:
+        add_branch_tube(b_pts, b_rad, mat_bark_dark)
 
-        bm.verts.ensure_lookup_table()
-        for s in range(segs):
-            idx = s * 3
-            f1 = bm.faces.new((bm.verts[idx], bm.verts[idx+3], bm.verts[idx+4], bm.verts[idx+1]))
-            f2 = bm.faces.new((bm.verts[idx+1], bm.verts[idx+4], bm.verts[idx+5], bm.verts[idx+2]))
-            f1.smooth = True
-            f2.smooth = True
+    # 3. Layered Japanese Black Pine Foliage Pads (松の枝棚・葉むら)
+    # Each pad is a horizontal layered cluster of flattened dome puffs + pine needle fan clusters
+    def add_pine_cloud_pad(center, radius_xy, thickness_z, primary_mat, accent_mat):
+        cx, cy, cz = center
+        # Main central cushion (flattened underside, rounded top like real pruned/coastal Kuromatsu)
+        sub_puffs = [
+            (0.0, 0.0, 0.0, 1.0, primary_mat),
+            (radius_xy * 0.48,  radius_xy * 0.25, -0.03, 0.72, primary_mat),
+            (-radius_xy * 0.45, radius_xy * 0.30, -0.02, 0.75, accent_mat),
+            (radius_xy * 0.32, -radius_xy * 0.45, -0.04, 0.70, primary_mat),
+            (-radius_xy * 0.38,-radius_xy * 0.38, -0.02, 0.68, accent_mat),
+            (0.0, 0.0, thickness_z * 0.38, 0.65, mat_pine_bright)
+        ]
+        for ox, oy, oz, sc, mat in sub_puffs:
+            bpy.ops.mesh.primitive_ico_sphere_add(
+                subdivisions=2, radius=1.0,
+                location=(cx + ox, cy + oy, cz + oz)
+            )
+            puff = bpy.context.active_object
+            puff.scale = (radius_xy * sc, radius_xy * sc * 0.92, thickness_z * sc)
+            bpy.ops.object.transform_apply(scale=True)
 
-        m = bpy.data.meshes.new("FrondMesh")
-        bm.to_mesh(m)
-        bm.free()
-        f_obj = bpy.data.objects.new("Frond", m)
-        bpy.context.collection.objects.link(f_obj)
-        f_obj.location = top_pos
-        f_obj.rotation_euler = (0, math.radians(pitch_deg), angle_z)
-        f_obj.data.materials.append(mat)
-        mod = f_obj.modifiers.new("Solid", 'SOLIDIFY')
-        mod.thickness = 0.025
-        bpy.context.view_layer.objects.active = f_obj
-        bpy.ops.object.modifier_apply(modifier="Solid")
-        return f_obj
+            # Flatten bottom slightly so the pad has crisp Japanese pine shelf silhouette
+            bm = bmesh.new()
+            bm.from_mesh(puff.data)
+            for v in bm.verts:
+                if v.co.z < 0.0:
+                    v.co.z *= 0.45
+            bm.to_mesh(puff.data)
+            bm.free()
 
-    for k in range(8):
-        ang = (k / 8.0) * math.tau + 0.2
-        mat = mat_leaf_bright if k % 2 == 0 else mat_leaf_mid
-        objs.append(create_frond(ang, -14.0, 1.85, 0.40, mat))
+            bpy.ops.object.shade_smooth()
+            puff.data.materials.append(mat)
+            objs.append(puff)
 
-    for k in range(5):
-        ang = (k / 5.0) * math.tau + 0.55
-        mat = mat_leaf_warm if k < 2 else mat_leaf_mid
-        objs.append(create_frond(ang, 8.0, 1.50, 0.34, mat))
+    pine_pads = [
+        # Lower seaward shelf
+        ((-1.25,  0.55, 1.68), 0.72, 0.32, mat_pine_deep, mat_pine_mid),
+        ((-0.82,  0.38, 1.82), 0.56, 0.26, mat_pine_mid, mat_pine_bright),
+        # Mid right shelf
+        (( 0.62, -0.65, 2.12), 0.68, 0.30, mat_pine_deep, mat_pine_mid),
+        (( 0.22, -0.38, 2.24), 0.52, 0.25, mat_pine_mid, mat_pine_bright),
+        # Mid-high seaward shelf
+        ((-1.42, -0.58, 2.54), 0.74, 0.32, mat_pine_deep, mat_pine_mid),
+        ((-0.95, -0.35, 2.68), 0.58, 0.26, mat_pine_mid, mat_pine_bright),
+        # Upper back shelf
+        (( 0.35,  0.78, 2.82), 0.66, 0.28, mat_pine_deep, mat_pine_mid),
+        ((-0.05,  0.45, 2.94), 0.54, 0.25, mat_pine_mid, mat_pine_bright),
+        # Grand top crown canopy (主冠)
+        ((-0.68,  0.08, 3.26), 0.92, 0.38, mat_pine_mid, mat_pine_bright),
+        ((-0.35, -0.15, 3.12), 0.68, 0.30, mat_pine_deep, mat_pine_mid),
+        ((-0.95,  0.22, 3.10), 0.64, 0.28, mat_pine_deep, mat_pine_mid)
+    ]
+    for center, r_xy, th_z, m1, m2 in pine_pads:
+        add_pine_cloud_pad(center, r_xy, th_z, m1, m2)
 
     bpy.ops.object.select_all(action='SELECT')
     bpy.context.view_layer.objects.active = objs[0]
     bpy.ops.object.join()
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
-    export_glb_and_fbx("nogita_black_pine")
+    export_glb("nogita_black_pine")
 
 # ==============================================================================
-# 3. FISHERMAN'S HUT / BANYA (frame_005.jpg & frame_007.jpg replica)
+# 3. JAPANESE FISHERMAN'S BANYA HUT (糸島・野北の木造漁師番屋・和瓦屋根と杉板外壁)
 # ==============================================================================
 def build_fishermans_banya():
     clear_scene()
-    mat_wall = make_mat("BanyaWall", (0.72, 0.48, 0.36, 1.0), 0.85)
-    mat_trim = make_mat("BanyaTrim", (0.45, 0.26, 0.18, 1.0), 0.80)
-    mat_roof_dark = make_mat("BanyaRoofDark", (0.64, 0.36, 0.25, 1.0), 0.78)
-    mat_roof_light = make_mat("BanyaRoofLight", (0.82, 0.62, 0.44, 1.0), 0.78)
-    mat_door_frame = make_mat("BanyaDoorFrame", (0.32, 0.38, 0.44, 1.0), 0.75)
-    mat_chimney = make_mat("BanyaChimney", (0.22, 0.24, 0.27, 1.0), 0.70)
+    mat_cedar_wall = make_mat("CedarWall", (0.52, 0.36, 0.24, 1.0), 0.86)
+    mat_timber_dark = make_mat("TimberDark", (0.26, 0.17, 0.11, 1.0), 0.84)
+    mat_kawara_dark = make_mat("KawaraDark", (0.22, 0.25, 0.28, 1.0), 0.68)
+    mat_kawara_mid = make_mat("KawaraMid", (0.28, 0.31, 0.35, 1.0), 0.70)
+    mat_shikkui = make_mat("ShikkuiWhite", (0.86, 0.84, 0.78, 1.0), 0.75)
+    mat_door_wood = make_mat("DoorWood", (0.38, 0.25, 0.16, 1.0), 0.80)
+    mat_window_warm = make_mat("WindowWarm", (0.92, 0.82, 0.58, 1.0), 0.45)
+    mat_glass_float = make_mat("GlassFloat", (0.18, 0.64, 0.56, 1.0), 0.35)
 
+    # Main cedar cabin body
     bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-0.6, 0.0, 1.15))
     cabin = bpy.context.active_object
     cabin.scale = (3.4, 3.6, 2.3)
     bpy.ops.object.transform_apply(scale=True)
-    cabin.data.materials.append(mat_wall)
+    cabin.data.materials.append(mat_cedar_wall)
 
+    # Corner timber pillars (柱)
+    for px in [-2.28, 1.08]:
+        for py in [-1.78, 1.78]:
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(px, py, 1.15))
+            pillar = bpy.context.active_object
+            pillar.scale = (0.14, 0.14, 2.32)
+            bpy.ops.object.transform_apply(scale=True)
+            pillar.data.materials.append(mat_timber_dark)
+
+    # Gable walls (妻壁 - 漆喰と杉板)
     bm = bmesh.new()
     v1 = bm.verts.new((-2.3, -1.8, 2.3))
     v2 = bm.verts.new(( 1.1, -1.8, 2.3))
-    v3 = bm.verts.new((-0.6, -1.8, 3.55))
+    v3 = bm.verts.new((-0.6, -1.8, 3.45))
     v4 = bm.verts.new((-2.3,  1.8, 2.3))
     v5 = bm.verts.new(( 1.1,  1.8, 2.3))
-    v6 = bm.verts.new((-0.6,  1.8, 3.55))
+    v6 = bm.verts.new((-0.6,  1.8, 3.45))
     bm.faces.new((v1, v2, v3))
     bm.faces.new((v5, v4, v6))
     bm.faces.new((v1, v3, v6, v4))
@@ -313,152 +353,183 @@ def build_fishermans_banya():
     bm.free()
     gable_obj = bpy.data.objects.new("GableWall", m_gable)
     bpy.context.collection.objects.link(gable_obj)
-    gable_obj.data.materials.append(mat_wall)
+    gable_obj.data.materials.append(mat_cedar_wall)
 
-    num_stripes = 7
+    # Traditional Japanese Kawara tiled gable roof (いぶし銀の和瓦屋根)
+    num_rows = 7
     for side in [-1, 1]:
-        for s in range(num_stripes):
+        for s in range(num_rows):
             x_center = -0.6 + side * (0.12 + s * 0.28)
-            z_center = 3.55 - (0.08 + s * 0.20)
+            z_center = 3.45 - (0.08 + s * 0.19)
             bpy.ops.mesh.primitive_cube_add(size=1.0, location=(x_center, 0.0, z_center))
             plank = bpy.context.active_object
-            plank.scale = (0.34, 4.15, 0.08)
-            plank.rotation_euler = (0, side * math.radians(36.0), 0)
+            plank.scale = (0.34, 4.18, 0.09)
+            plank.rotation_euler = (0, side * math.radians(34.0), 0)
             bpy.ops.object.transform_apply(rotation=True, scale=True)
-            plank.data.materials.append(mat_roof_dark if s % 2 == 0 else mat_roof_light)
+            plank.data.materials.append(mat_kawara_dark if s % 2 == 0 else mat_kawara_mid)
 
-    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-0.6, 0.0, 3.60))
+    # Roof ridge beam (棟瓦)
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-0.6, 0.0, 3.52))
     ridge = bpy.context.active_object
-    ridge.scale = (0.20, 4.22, 0.18)
+    ridge.scale = (0.22, 4.24, 0.16)
     bpy.ops.object.transform_apply(scale=True)
-    ridge.data.materials.append(mat_trim)
+    ridge.data.materials.append(mat_shikkui)
 
+    # Side wooden awning / porch roof (庇・下屋)
     for s in range(6):
         y_pos = -1.5 + s * 0.60
-        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(1.85, y_pos, 2.15 - (s % 2)*0.01))
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(1.85, y_pos, 2.10 - (s % 2)*0.01))
         porch = bpy.context.active_object
         porch.scale = (1.75, 0.58, 0.08)
-        porch.rotation_euler = (0, math.radians(16.0), 0)
+        porch.rotation_euler = (0, math.radians(15.0), 0)
         bpy.ops.object.transform_apply(rotation=True, scale=True)
-        porch.data.materials.append(mat_roof_dark if s % 2 == 0 else mat_roof_light)
+        porch.data.materials.append(mat_kawara_dark if s % 2 == 0 else mat_kawara_mid)
 
-    bpy.ops.mesh.primitive_cylinder_add(vertices=10, radius=0.10, depth=2.0, location=(2.55, 1.55, 1.0))
-    post = bpy.context.active_object
-    post.data.materials.append(mat_trim)
+    # Porch support posts
+    for py in [-1.55, 1.55]:
+        bpy.ops.mesh.primitive_cylinder_add(vertices=10, radius=0.09, depth=2.0, location=(2.55, py, 1.0))
+        post = bpy.context.active_object
+        post.data.materials.append(mat_timber_dark)
 
+    # Sliding lattice door (木製格子引き戸)
     bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-0.6, -1.82, 0.95))
     door = bpy.context.active_object
-    door.scale = (0.95, 0.12, 1.85)
+    door.scale = (1.05, 0.12, 1.85)
     bpy.ops.object.transform_apply(scale=True)
-    door.data.materials.append(mat_door_frame)
+    door.data.materials.append(mat_door_wood)
 
-    bpy.ops.mesh.primitive_cylinder_add(vertices=16, radius=0.32, depth=0.14, location=(-0.6, -1.82, 2.75), rotation=(math.radians(90), 0, 0))
+    # Warm window above/beside door
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-0.6, -1.83, 2.65))
     win = bpy.context.active_object
-    win.data.materials.append(mat_door_frame)
+    win.scale = (0.65, 0.12, 0.45)
+    bpy.ops.object.transform_apply(scale=True)
+    win.data.materials.append(mat_window_warm)
 
-    bpy.ops.mesh.primitive_cylinder_add(vertices=10, radius=0.09, depth=0.95, location=(0.25, 0.4, 3.45))
-    chim = bpy.context.active_object
-    chim.data.materials.append(mat_chimney)
+    # Traditional glass fishing floats (レトロな浮き玉) hanging under porch
+    for fy in [-0.6, 0.0, 0.6]:
+        bpy.ops.mesh.primitive_uv_sphere_add(segments=12, ring_count=8, radius=0.14, location=(1.12, fy, 1.55))
+        fl = bpy.context.active_object
+        fl.data.materials.append(mat_glass_float)
 
     bpy.ops.object.select_all(action='SELECT')
     bpy.context.view_layer.objects.active = cabin
     bpy.ops.object.join()
-    export_glb_and_fbx("nogita_banya_hut")
+    export_glb("nogita_banya_hut")
 
 # ==============================================================================
-# 4. UNDERWATER CORAL & SEAWEED REEF CLUSTER (frame_003.jpg & frame_009.jpg)
+# 4. GENKAI SEA ROCKY REEF & KELP/SARGASSUM FOREST
+#    (玄界灘・野北の沈み瀬とホンダワラ・アラメ・ワカメ・テングサの藻場)
+#    NO tropical pink/purple corals! 100% authentic Fukuoka/Itoshima marine flora!
 # ==============================================================================
-def build_coral_reef_cluster():
+def build_genkai_seaweed_reef():
     clear_scene()
-    mat_rock_base = make_mat("ReefRock", (0.46, 0.56, 0.58, 1.0), 0.85)
-    mat_coral_purple = make_mat("CoralPurple", (0.48, 0.26, 0.85, 1.0), 0.55)
-    mat_coral_pink = make_mat("CoralPink", (0.86, 0.34, 0.52, 1.0), 0.55)
-    mat_coral_yellow = make_mat("CoralYellow", (0.76, 0.84, 0.25, 1.0), 0.60)
-    mat_seaweed = make_mat("SeaweedGreen", (0.18, 0.68, 0.32, 1.0), 0.65)
+    mat_basalt_rock = make_mat("GenkaiBasaltRock", (0.34, 0.40, 0.42, 1.0), 0.86)
+    mat_moss_rock = make_mat("GenkaiMossRock", (0.28, 0.44, 0.34, 1.0), 0.84)
+    mat_hondawara = make_mat("HondawaraAmber", (0.54, 0.43, 0.15, 1.0), 0.68)
+    mat_arame_kelp = make_mat("ArameKelpGreen", (0.16, 0.46, 0.24, 1.0), 0.65)
+    mat_wakame = make_mat("WakameGreen", (0.24, 0.56, 0.25, 1.0), 0.65)
+    mat_tengusa = make_mat("TengusaRedAlgae", (0.48, 0.18, 0.20, 1.0), 0.72)
 
-    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=0.75, location=(0, 0, 0.15))
+    # 1. Main basalt reef base rock + secondary side rock
+    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=0.78, location=(0, 0, 0.15))
     rock = bpy.context.active_object
-    rock.scale = (1.25, 1.05, 0.42)
+    rock.scale = (1.30, 1.10, 0.40)
     bpy.ops.object.transform_apply(scale=True)
     bpy.ops.object.shade_smooth()
-    rock.data.materials.append(mat_rock_base)
+    rock.data.materials.append(mat_basalt_rock)
 
-    for b in range(6):
-        ang = (b / 6.0) * math.tau
-        tilt = math.radians(28.0 + (b % 2) * 14.0)
+    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=0.48, location=(-0.42, 0.28, 0.18))
+    sub_rock = bpy.context.active_object
+    sub_rock.scale = (1.15, 0.95, 0.48)
+    bpy.ops.object.transform_apply(scale=True)
+    bpy.ops.object.shade_smooth()
+    sub_rock.data.materials.append(mat_moss_rock)
+
+    # 2. Hondawara (ホンダワラ / 玉藻) golden-brown stalks with spherical air bladders
+    for h in range(7):
+        ang = (h / 7.0) * math.tau + 0.2
+        rx = -0.15 + math.cos(ang) * 0.28
+        ry = 0.10 + math.sin(ang) * 0.25
+        stalk_h = 0.48 + (h % 3) * 0.12
         bpy.ops.mesh.primitive_cone_add(
-            vertices=8, radius1=0.06, radius2=0.025, depth=0.48,
-            location=(-0.25 + math.cos(ang)*0.12, 0.15 + math.sin(ang)*0.12, 0.38)
+            vertices=8, radius1=0.045, radius2=0.018, depth=stalk_h,
+            location=(rx, ry, 0.22 + stalk_h * 0.45)
         )
-        branch = bpy.context.active_object
-        branch.rotation_euler = (math.sin(ang)*tilt, math.cos(ang)*tilt, 0)
+        stalk = bpy.context.active_object
+        stalk.rotation_euler = (math.sin(ang) * 0.22, math.cos(ang) * 0.22, 0)
         bpy.ops.object.shade_smooth()
-        branch.data.materials.append(mat_coral_pink)
+        stalk.data.materials.append(mat_hondawara)
 
-    for t in range(5):
-        ang = (t / 5.0) * math.tau + 0.4
-        h = 0.28 + (t % 3) * 0.10
-        bpy.ops.mesh.primitive_cylinder_add(
-            vertices=10, radius=0.075, depth=h,
-            location=(0.28 + math.cos(ang)*0.14, -0.15 + math.sin(ang)*0.14, 0.28 + h*0.4)
-        )
-        tube = bpy.context.active_object
-        tube.rotation_euler = (math.sin(ang)*0.22, math.cos(ang)*0.22, 0)
-        bpy.ops.object.shade_smooth()
-        tube.data.materials.append(mat_coral_purple)
+        # Small air bladders / leaf clusters along the Hondawara stalk
+        for b_idx in range(3):
+            bz = 0.28 + b_idx * 0.13
+            bx = rx + math.cos(ang + b_idx) * 0.06
+            by = ry + math.sin(ang + b_idx) * 0.06
+            bpy.ops.mesh.primitive_uv_sphere_add(
+                segments=8, ring_count=6, radius=0.055 - b_idx * 0.008,
+                location=(bx, by, bz)
+            )
+            bladder = bpy.context.active_object
+            bladder.scale = (1.2, 0.85, 1.4)
+            bpy.ops.object.transform_apply(scale=True)
+            bpy.ops.object.shade_smooth()
+            bladder.data.materials.append(mat_hondawara)
 
-    for y_idx in range(3):
-        bpy.ops.mesh.primitive_uv_sphere_add(
-            segments=12, ring_count=8, radius=0.18 - y_idx*0.03,
-            location=(-0.05 + y_idx*0.18, 0.22 - y_idx*0.12, 0.30)
+    # 3. Tengusa / Makusa (テングサ・マクサ：日本の紅藻) low tufts on the rock
+    for t in range(4):
+        ang = (t / 4.0) * math.tau + 0.5
+        bpy.ops.mesh.primitive_ico_sphere_add(
+            subdivisions=2, radius=0.15,
+            location=(0.25 + math.cos(ang)*0.18, -0.15 + math.sin(ang)*0.18, 0.28)
         )
-        dome = bpy.context.active_object
-        dome.scale = (1.1, 1.0, 0.85)
+        tuft = bpy.context.active_object
+        tuft.scale = (1.1, 1.1, 0.72)
         bpy.ops.object.transform_apply(scale=True)
         bpy.ops.object.shade_smooth()
-        dome.data.materials.append(mat_coral_yellow)
+        tuft.data.materials.append(mat_tengusa)
 
-    for w in range(9):
-        ang = (w / 9.0) * math.tau
+    # 4. Arame & Wakame (アラメ・カジメ・ワカメ) swaying green kelp blades
+    for w in range(11):
+        ang = (w / 11.0) * math.tau
         bm = bmesh.new()
         segs = 6
-        blade_len = 0.55 + (w % 3) * 0.18
+        blade_len = 0.56 + (w % 3) * 0.16
         for s in range(segs + 1):
             u = s / float(segs)
-            r_out = 0.08 + u * 0.38
-            z_h = 0.18 + u * blade_len
-            wave = math.sin(u * math.pi * 1.5 + w) * 0.06
-            bw = 0.065 * math.sin((1.0 - u * 0.7) * math.pi * 0.5)
+            r_out = 0.08 + u * 0.36
+            z_h = 0.16 + u * blade_len
+            wave = math.sin(u * math.pi * 1.6 + w) * 0.07
+            bw = 0.072 * math.sin((1.0 - u * 0.65) * math.pi * 0.5)
             bm.verts.new((r_out, -bw + wave, z_h))
             bm.verts.new((r_out,  bw + wave, z_h))
         bm.verts.ensure_lookup_table()
         for s in range(segs):
             f = bm.faces.new((bm.verts[s*2], bm.verts[s*2+1], bm.verts[s*2+3], bm.verts[s*2+2]))
             f.smooth = True
-        m_weed = bpy.data.meshes.new("WeedBlade")
+        m_weed = bpy.data.meshes.new("KelpBlade")
         bm.to_mesh(m_weed)
         bm.free()
-        w_obj = bpy.data.objects.new("WeedBlade", m_weed)
+        w_obj = bpy.data.objects.new("KelpBlade", m_weed)
         bpy.context.collection.objects.link(w_obj)
-        w_obj.location = (0.35 * math.cos(ang), 0.35 * math.sin(ang), 0.0)
+        w_obj.location = (0.36 * math.cos(ang), 0.36 * math.sin(ang), 0.0)
         w_obj.rotation_euler = (0, 0, ang)
-        w_obj.data.materials.append(mat_seaweed)
+        w_obj.data.materials.append(mat_arame_kelp if w % 2 == 0 else mat_wakame)
         mod = w_obj.modifiers.new("Solid", 'SOLIDIFY')
-        mod.thickness = 0.018
+        mod.thickness = 0.020
         bpy.context.view_layer.objects.active = w_obj
         bpy.ops.object.modifier_apply(modifier="Solid")
 
     bpy.ops.object.select_all(action='SELECT')
     bpy.context.view_layer.objects.active = rock
     bpy.ops.object.join()
-    export_glb_and_fbx("nogita_coral_reef")
+    export_glb("nogita_coral_reef")
 
 # ==============================================================================
-# 5. STYLIZED COASTAL BOULDER & CLIFF ROCK (frame_001.jpg beveled slate rock)
+# 5. STYLIZED COASTAL BOULDER & CLIFF ROCK (玄界灘の海岸岩・花崗岩)
 # ==============================================================================
 def build_stylized_boulder():
     clear_scene()
-    mat_rock = make_mat("CoastalSlateRock", (0.58, 0.62, 0.65, 1.0), 0.86)
+    mat_rock = make_mat("CoastalSlateRock", (0.56, 0.60, 0.63, 1.0), 0.86)
 
     bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=1.0, location=(0, 0, 0.45))
     rock = bpy.context.active_object
@@ -479,11 +550,11 @@ def build_stylized_boulder():
 
     bpy.ops.object.shade_smooth()
     rock.data.materials.append(mat_rock)
-    export_glb_and_fbx("nogita_coastal_boulder")
+    export_glb("nogita_coastal_boulder")
 
 build_hollow_wooden_boat()
-build_coastal_tree()
+build_japanese_black_pine()
 build_fishermans_banya()
-build_coral_reef_cluster()
+build_genkai_seaweed_reef()
 build_stylized_boulder()
-print("=== ALL 5 X-VIDEO QUALITY 3D ENVIRONMENT MODELS BUILT SUCCESSFULLY ===")
+print("=== ALL NOGITA JAPANESE NATURAL ENVIRONMENT 3D ASSETS BUILT SUCCESSFULLY ===")

@@ -11,7 +11,7 @@ var current_state: State = State.IDLE
 
 @onready var visual_root: Node3D = $VisualRoot
 @onready var lantern_light: OmniLight3D = $VisualRoot/LanternLight
-@onready var model_node: Node3D = $VisualRoot/Model3D
+@onready var model_node: Node3D = get_node_or_null("VisualRoot/Model3D")
 
 var target_rotation_y: float = 0.0
 var last_move_dir: Vector3 = Vector3(0, 0, 1)
@@ -47,10 +47,34 @@ signal cast_finished(target_pos: Vector3)
 func _ready() -> void:
 	if lantern_light:
 		lantern_light.visible = false
+	_apply_character_material()
 	_create_bobber()
 	floor_snap_length = 0.55
 	floor_max_angle = deg_to_rad(58.0)
 	floor_constant_speed = true
+
+func _apply_character_material() -> void:
+	var base_tex = load("res://assets/models/fbx/barlock_character_fisherman_3d_model_basecolor.jpg")
+	var norm_tex = load("res://assets/models/fbx/barlock_character_fisherman_3d_model_normal.png")
+	if not base_tex or not visual_root:
+		return
+	var mat = StandardMaterial3D.new()
+	mat.albedo_color = Color(1.0, 1.0, 1.0, 1.0)
+	mat.albedo_texture = base_tex
+	mat.metallic = 0.0
+	mat.roughness = 0.82
+	mat.metallic_specular = 0.20
+	if norm_tex:
+		mat.normal_enabled = true
+		mat.normal_texture = norm_tex
+		mat.normal_scale = 0.6
+	_set_mesh_material_recursive(visual_root, mat)
+
+func _set_mesh_material_recursive(node: Node, mat: Material) -> void:
+	if node is MeshInstance3D:
+		node.material_override = mat
+	for child in node.get_children():
+		_set_mesh_material_recursive(child, mat)
 
 func _create_bobber() -> void:
 	bobber_node = Node3D.new()

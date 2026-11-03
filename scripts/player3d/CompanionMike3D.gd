@@ -20,9 +20,33 @@ var walk_anim_timer: float = 0.0
 func _ready() -> void:
 	if follow_target_path:
 		follow_target = get_node_or_null(follow_target_path)
+	_apply_companion_material()
 	floor_snap_length = 0.55
 	floor_max_angle = deg_to_rad(58.0)
 	floor_constant_speed = true
+
+func _apply_companion_material() -> void:
+	var base_tex = load("res://assets/models/fbx/mike_companion_cute_calico_cat_3d_model_basecolor.jpg")
+	var norm_tex = load("res://assets/models/fbx/mike_companion_cute_calico_cat_3d_model_normal.png")
+	if not base_tex or not visual_root:
+		return
+	var mat = StandardMaterial3D.new()
+	mat.albedo_color = Color(1.0, 1.0, 1.0, 1.0)
+	mat.albedo_texture = base_tex
+	mat.metallic = 0.0
+	mat.roughness = 0.82
+	mat.metallic_specular = 0.20
+	if norm_tex:
+		mat.normal_enabled = true
+		mat.normal_texture = norm_tex
+		mat.normal_scale = 0.6
+	_set_mesh_material_recursive(visual_root, mat)
+
+func _set_mesh_material_recursive(node: Node, mat: Material) -> void:
+	if node is MeshInstance3D:
+		node.material_override = mat
+	for child in node.get_children():
+		_set_mesh_material_recursive(child, mat)
 
 func _get_shoreline_x(z: float) -> float:
 	return 0.6 + sin(z * 0.16) * 1.1 + cos(z * 0.09 + 0.5) * 0.6

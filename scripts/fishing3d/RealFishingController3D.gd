@@ -63,7 +63,7 @@ func _ready() -> void:
 		hud.catch_dialog_closed.connect(_on_catch_dialog_closed)
 
 	# コマンドライン引数で --autopilot があれば有効化
-	for arg in OS.get_cmdline_args():
+	for arg in OS.get_cmdline_args() + OS.get_cmdline_user_args():
 		if arg == "--autopilot":
 			set_autopilot(true)
 			break
@@ -110,18 +110,27 @@ func _create_3d_bobber() -> void:
 	add_child(bobber_node)
 
 func _unhandled_input(event: InputEvent) -> void:
-	if is_autopilot: return
-	
-	if event is InputEventKey and not event.echo:
-		if event.keycode == KEY_P and event.pressed:
+	# [P] キーによるオートパイロットのON/OFF切り替えは常に最優先で受け付ける
+	if event is InputEventKey and not event.echo and event.pressed:
+		if event.keycode == KEY_P:
 			set_autopilot(not is_autopilot)
+			get_viewport().set_input_as_handled()
 			return
 
+	if is_autopilot:
+		return
+
+	if event is InputEventKey and not event.echo:
 		if event.keycode == KEY_E or event.keycode == KEY_SPACE:
 			if event.pressed:
 				_on_action_pressed()
 			else:
 				_on_action_released()
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_on_action_pressed()
+		else:
+			_on_action_released()
 
 func _on_action_pressed() -> void:
 	match current_state:
@@ -221,10 +230,29 @@ func _release_cast() -> void:
 	var rod_tip = _get_rod_tip_pos()
 	cast_start_pos = rod_tip
 	
-	# パワーに応じたキャスト距離（5m〜14m沖合）
-	var cast_dist = lerp(5.5, 13.5, power_ratio)
-	var forward = Vector3(-1.0, 0.0, randf_range(-0.2, 0.2)).normalized()
+	# 画面内に確実に収まるキャスト距離（2.4m〜4.8m沖合）
+	var cast_dist = lerp(2.4, 4.8, power_ratio)
+	var forward = Vector3(-1.0, 0.0, randf_range(-0.14, 0.14)).normalized()
 	cast_target_pos = player.global_position + forward * cast_dist
+	
+	# 汀線より必ず海側かつ、カメラ画角から絶対にはみ出さない範囲にクランプ
+	var z_clamped = clamp(cast_target_pos.z, player.global_position.z - 1.5, player.global_position.z + 1.5)
+	z_clamped = clamp(z_clamped, -14.0, 14.0)
+	var shore_x = 0.6 + sin(z_clamped * 0.16) * 1.1 + cos(z_clamped * 0.09 + 0.5) * 0.6
+	var max_water_x = min(shore_x - 1.0, player.global_position.x - 1.8)
+	var min_screen_x = max(player.global_position.x - 4.5, -11.5)
+	cast_target_pos.x = clamp(cast_target_pos.x, min_screen_x, max_water_x)
+	cast_target_pos.z = z_clamped
+
+	# 大波止（北防波堤 z < -9.2）の上から投げる場合は手前の開けた海面へ着水させる
+	if player.global_position.z < -9.2:
+		cast_target_pos.z = clamp(player.global_position.z + 3.0, -8.5, -6.8)
+		cast_target_pos.x = clamp(player.global_position.x - lerp(1.8, 3.2, power_ratio), -8.2, -2.5)
+	# 木製桟橋（z ≈ -3.6）の上から投げる場合も桟橋の板を避けて海面へ着水させる
+	elif abs(player.global_position.z - (-3.6)) < 1.3 and player.global_position.x < 1.2:
+		cast_target_pos.z = player.global_position.z + 1.8
+		cast_target_pos.x = clamp(player.global_position.x - lerp(2.0, 3.6, power_ratio), -7.5, -2.2)
+
 	cast_target_pos.y = 0.05
 	
 	bobber_node.global_position = cast_start_pos
@@ -403,8 +431,23 @@ func _update_fishing_line() -> void:
 # --- 5. Autopilot（自律プレイテストAI） ---
 func set_autopilot(enabled: bool) -> void:
 	is_autopilot = enabled
+	autopilot_step_timer = 0.0
+	is_reeling = false
 	if hud:
 		hud.set_autopilot_active(is_autopilot)
+	if not is_autopilot:
+		# オートパイロット解除時に進行中のチャージやUIをクリーンにリセットして手動操作へ即復帰
+		if hud:
+			hud.hide_cast_gauge()
+			hud.hide_fight_ui()
+			if hud.result_dialog and hud.result_dialog.visible:
+				hud.hide_catch_result()
+		if bobber_node:
+			bobber_node.visible = false
+		current_state = State.IDLE
+		if player:
+			player.current_state = CharacterBarlock3D.State.IDLE
+		state_changed.emit(current_state)
 	print("AUTOPILOT MODE: ", "ENABLED" if enabled else "DISABLED")
 
 func _process_autopilot(delta: float) -> void:

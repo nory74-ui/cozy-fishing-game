@@ -2,19 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bn54okagx118d"
-path="res://.godot/imported/barlock_character_0.png-476b360552ed16ce79d19b061773e678.ctex"
+uid="uid://lj727evk0g33"
+path="res://.godot/imported/view_nogita_3d_catch.png-cd763c112c85790fd327565f7a7efbb0.ctex"
 metadata={
 "vram_texture": false
-}
-generator_parameters={
-"md5": "368ed4b7169be1898641d3ee2fe1ba32"
 }
 
 [deps]
 
-source_file="res://assets/models/fbx/barlock_character_0.png"
-dest_files=["res://.godot/imported/barlock_character_0.png-476b360552ed16ce79d19b061773e678.ctex"]
+source_file="res://assets/screenshots/view_nogita_3d_catch.png"
+dest_files=["res://.godot/imported/view_nogita_3d_catch.png-cd763c112c85790fd327565f7a7efbb0.ctex"]
 
 [params]
 
@@ -26,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

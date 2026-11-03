@@ -67,7 +67,10 @@ func _ready() -> void:
 	# 引数チェック（テストキャプチャ対応）
 	var all_args = OS.get_cmdline_args() + OS.get_cmdline_user_args()
 	for arg in all_args:
-		if arg == "--capture-title":
+		if arg == "--capture-nogita-3d":
+			get_tree().call_deferred("change_scene_to_file", "res://scenes/world3d/World3D.tscn")
+			return
+		elif arg == "--capture-title":
 			_run_capture_title_test()
 			break
 		elif arg == "--capture-help":
@@ -204,7 +207,7 @@ func _process(delta: float) -> void:
 		if fade_rect:
 			fade_rect.color = Color(0.98, 0.96, 0.92, fade_alpha)
 		if fade_alpha >= 1.0:
-			get_tree().change_scene_to_file("res://scenes/main.tscn")
+			get_tree().change_scene_to_file("res://scenes/world3d/World3D.tscn")
 			
 	queue_redraw()
 
@@ -226,7 +229,7 @@ func _update_start_buttons() -> void:
 		if has_save:
 			btn_start.text = "つづきから"
 			if save_info_label:
-				save_info_label.text = "所持金: " + str(GameData.coins) + " G  |  図鑑: " + str(GameData.get_discovered_count()) + " / 10 種"
+				save_info_label.text = "所持金: " + str(GameData.coins) + " G  |  図鑑: " + str(GameData.get_discovered_count()) + " / 12 種"
 				save_info_label.visible = true
 		else:
 			btn_start.text = "つづきから (データなし)"

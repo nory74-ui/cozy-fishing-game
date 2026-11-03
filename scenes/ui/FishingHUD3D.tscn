@@ -303,22 +303,34 @@ horizontal_alignment = 1
 [node name="AutopilotLabel" type="Label" parent="."]
 offset_left = 20.0
 offset_top = 20.0
-offset_right = 260.0
+offset_right = 460.0
 offset_bottom = 48.0
 theme_override_colors/font_color = Color(0.35, 1, 0.5, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 15
-text = "🤖 [P] AUTOPILOT: ON"
+text = "🤖 [P] オートパイロット稼働中（もう一度 [P] で解除）"
 
 [node name="BtnOpenBook" type="Button" parent="."]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -170.0
+offset_left = -290.0
+offset_top = 18.0
+offset_right = -140.0
+offset_bottom = 54.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 15
+text = "📖 お魚図鑑 [B]"
+
+[node name="BtnToTitle" type="Button" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -130.0
 offset_top = 18.0
 offset_right = -20.0
 offset_bottom = 54.0
 grow_horizontal = 0
 theme_override_font_sizes/font_size = 15
-text = "📖 お魚図鑑 [B]"
+text = "🏠 タイトル"

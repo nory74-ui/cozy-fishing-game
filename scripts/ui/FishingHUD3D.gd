@@ -31,6 +31,7 @@ signal book_open_requested
 
 @onready var autopilot_label: Label = $AutopilotLabel
 @onready var btn_open_book: Button = $BtnOpenBook
+@onready var btn_to_title: Button = $BtnToTitle
 
 func _ready() -> void:
 	cast_gauge_container.visible = false
@@ -45,6 +46,12 @@ func _ready() -> void:
 			GameData.apply_pastel_button_style(btn_open_book)
 		btn_open_book.pressed.connect(func():
 			book_open_requested.emit()
+		)
+	if btn_to_title:
+		if GameData:
+			GameData.apply_pastel_button_style(btn_to_title)
+		btn_to_title.pressed.connect(func():
+			get_tree().change_scene_to_file("res://scenes/title.tscn")
 		)
 
 func _unhandled_input(event: InputEvent) -> void:

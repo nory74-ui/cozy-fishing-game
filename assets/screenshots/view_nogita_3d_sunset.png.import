@@ -2,19 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://6u5e8aa7cu0r"
-path="res://.godot/imported/mike_companion_cute_calico_cat_3d_model_metallic-cute_calico_cat_3d_model_roughness.png-dbbb335d87eee1321d92ba4829c1c35e.ctex"
+uid="uid://d2f7e77m0movk"
+path="res://.godot/imported/view_nogita_3d_sunset.png-03adb7377260eebd8cc7ecff38842151.ctex"
 metadata={
 "vram_texture": false
-}
-generator_parameters={
-"md5": "b9ae96a87e6bd383cf8307a80a9c7fdf"
 }
 
 [deps]
 
-source_file="res://assets/models/fbx/mike_companion_cute_calico_cat_3d_model_metallic-cute_calico_cat_3d_model_roughness.png"
-dest_files=["res://.godot/imported/mike_companion_cute_calico_cat_3d_model_metallic-cute_calico_cat_3d_model_roughness.png-dbbb335d87eee1321d92ba4829c1c35e.ctex"]
+source_file="res://assets/screenshots/view_nogita_3d_sunset.png"
+dest_files=["res://.godot/imported/view_nogita_3d_sunset.png-03adb7377260eebd8cc7ecff38842151.ctex"]
 
 [params]
 
@@ -26,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

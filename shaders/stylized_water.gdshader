@@ -69,7 +69,11 @@ void vertex() {
 
 void fragment() {
 	float depth_raw = texture(depth_texture, SCREEN_UV).x;
+#if CURRENT_RENDERER == RENDERER_COMPATIBILITY
+	vec3 ndc = vec3(SCREEN_UV * 2.0 - 1.0, depth_raw * 2.0 - 1.0);
+#else
 	vec3 ndc = vec3(SCREEN_UV * 2.0 - 1.0, depth_raw);
+#endif
 	vec4 view_pos = INV_PROJECTION_MATRIX * vec4(ndc, 1.0);
 	view_pos.xyz /= view_pos.w;
 

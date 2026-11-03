@@ -1,11 +1,12 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/TitleScreen.gd" id="1_title"]
 [ext_resource type="Material" path="res://assets/shaders/beach_water_mat.tres" id="2_water_mat"]
 [ext_resource type="FontFile" path="res://assets/fonts/ZenMaruGothic-Medium.ttf" id="3_font"]
 [ext_resource type="Script" path="res://scripts/ui/FishBookModal.gd" id="4_book"]
-[ext_resource type="Texture2D" path="res://assets/palm_tree_hd.png" id="5_palm"]
+[ext_resource type="Texture2D" path="res://assets/nogita_kuromatsu_pine.png" id="5_palm"]
 [ext_resource type="FontFile" path="res://assets/fonts/YujiBoku-Regular.ttf" id="6_brush_font"]
+[ext_resource type="Texture2D" path="res://assets/nogita_hamahirugao.png" id="7_flower"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_seal"]
 bg_color = Color(0.82, 0.22, 0.16, 0.95)
@@ -143,13 +144,33 @@ offset_right = 1152.0
 offset_bottom = 648.0
 mouse_filter = 2
 
-[node name="PalmTree" type="TextureRect" parent="."]
-offset_left = 790.0
-offset_top = 150.0
-offset_right = 1130.0
-offset_bottom = 570.0
+[node name="KuromatsuPine" type="TextureRect" parent="."]
+offset_left = 740.0
+offset_top = 85.0
+offset_right = 1135.0
+offset_bottom = 525.0
 mouse_filter = 2
 texture = ExtResource("5_palm")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Hamahirugao" type="TextureRect" parent="."]
+offset_left = 785.0
+offset_top = 445.0
+offset_right = 975.0
+offset_bottom = 580.0
+mouse_filter = 2
+texture = ExtResource("7_flower")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Hamahirugao2" type="TextureRect" parent="."]
+offset_left = 955.0
+offset_top = 485.0
+offset_right = 1105.0
+offset_bottom = 595.0
+mouse_filter = 2
+texture = ExtResource("7_flower")
 expand_mode = 1
 stretch_mode = 5
 

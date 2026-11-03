@@ -51,7 +51,7 @@ func _ready() -> void:
 				fish_book_modal.open_book()
 			)
 
-	for arg in OS.get_cmdline_args():
+	for arg in OS.get_cmdline_args() + OS.get_cmdline_user_args():
 		if arg == "--capture-nogita-3d":
 			_do_capture_nogita()
 			break
@@ -110,8 +110,14 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	if player and camera_pivot:
 		var target_pos = player.global_position + Vector3(-0.6, 0.0, 0.0)
+		var fishing_ctrl = get_node_or_null("RealFishingController3D")
+		if fishing_ctrl and fishing_ctrl.bobber_node and fishing_ctrl.bobber_node.visible:
+			# ウキが着水・飛翔している間はプレイヤーとウキの中間点をフレーミングして絶対に画面外へ出さない
+			var mid_x = lerp(player.global_position.x, fishing_ctrl.bobber_node.global_position.x, 0.38)
+			var mid_z = lerp(player.global_position.z, fishing_ctrl.bobber_node.global_position.z, 0.25)
+			target_pos = Vector3(mid_x, player.global_position.y, mid_z)
 		target_pos.z = clamp(target_pos.z, -14.5, 14.5)
-		target_pos.x = clamp(target_pos.x, -9.5, 6.5)
+		target_pos.x = clamp(target_pos.x, -12.5, 6.5)
 		camera_pivot.global_position = camera_pivot.global_position.lerp(target_pos, camera_follow_speed * delta)
 
 func _update_lighting(_delta: float) -> void:
@@ -177,6 +183,7 @@ func _do_capture_nogita() -> void:
 
 	# 0. Tripoモデルのキャラクタークローズアップ（バーロック & ミケ）
 	if player and mike and camera and camera_pivot:
+		set_physics_process(false)
 		var spot_x = 3.8
 		var spot_z = 2.0
 		player.global_position = Vector3(spot_x, 0.30, spot_z)
@@ -194,6 +201,7 @@ func _do_capture_nogita() -> void:
 		var img_char = get_viewport().get_texture().get_image()
 		img_char.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_nogita_3d_characters_closeup.png")
 		camera.position = camera_offset
+		set_physics_process(true)
 
 	# 1. 砂浜でのバーロック＆ミケ（Xの動画 frame_001.jpg / frame_003.jpg 完全再現アングル）
 	if player and mike:
@@ -233,19 +241,19 @@ func _do_capture_nogita() -> void:
 
 	# 2. 野北の大波止・白灯台の前へ移動 & 3Dリアルフィッシング・キャスト
 	if player and mike and fishing_ctrl:
-		player.global_position = Vector3(-4.5, 0.98, -11.5)
+		player.global_position = Vector3(-3.8, 0.98, -11.2)
 		player.velocity = Vector3.ZERO
-		mike.global_position = Vector3(-3.2, 0.98, -11.3)
+		mike.global_position = Vector3(-2.6, 0.98, -11.2)
 		mike.velocity = Vector3.ZERO
-		camera_pivot.global_position = Vector3(-5.0, 0.5, -11.2)
+		camera_pivot.global_position = Vector3(-4.6, 0.5, -10.2)
 		camera.position = camera_offset
 		camera.look_at(camera_pivot.global_position, Vector3.UP)
 
 		fishing_ctrl.current_state = fishing_ctrl.State.WAITING
-		fishing_ctrl.bobber_node.global_position = Vector3(-9.5, 0.05, -11.5)
+		fishing_ctrl.bobber_node.global_position = Vector3(-5.8, 0.05, -8.2)
 		fishing_ctrl.bobber_node.visible = true
 		if fx_node:
-			fx_node.spawn_water_splash(Vector3(-9.5, 0.05, -11.5), 12, 2.0)
+			fx_node.spawn_water_splash(Vector3(-5.8, 0.05, -8.2), 12, 2.0)
 	await get_tree().create_timer(0.6).timeout
 	img = get_viewport().get_texture().get_image()
 	img.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_nogita_3d_pier_lighthouse.png")
@@ -256,11 +264,11 @@ func _do_capture_nogita() -> void:
 		fishing_ctrl.current_fish = FishDb.get_fish_dict("suzuki")
 		fishing_ctrl.current_fish["is_first"] = true
 		fishing_ctrl.fight_tension = 0.62
-		fishing_ctrl.fight_distance = 6.2
+		fishing_ctrl.fight_distance = 4.2
 		hud_node.show_fight_ui("スズキ (シーバス)")
-		hud_node.update_fight_status(0.62, 6.2, true)
+		hud_node.update_fight_status(0.62, 4.2, true)
 		if fx_node:
-			fx_node.spawn_water_splash(Vector3(-8.5, 0.05, -11.5), 8, 2.5)
+			fx_node.spawn_water_splash(Vector3(-7.4, 0.05, -11.5), 8, 2.5)
 	await get_tree().create_timer(0.6).timeout
 	img = get_viewport().get_texture().get_image()
 	img.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_nogita_3d_fight.png")

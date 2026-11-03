@@ -102,19 +102,19 @@ func _init_materials() -> void:
 	mat_pebble.roughness = 0.82
 
 	mat_bush_green = StandardMaterial3D.new()
-	mat_bush_green.albedo_color = Color(0.26, 0.58, 0.22)
-	mat_bush_green.roughness = 0.80
+	mat_bush_green.albedo_color = Color(0.18, 0.42, 0.19) # 糸島・野北の海浜低木（トベラ）の深緑
+	mat_bush_green.roughness = 0.82
 
 	mat_bush_olive = StandardMaterial3D.new()
-	mat_bush_olive.albedo_color = Color(0.68, 0.64, 0.26)
+	mat_bush_olive.albedo_color = Color(0.24, 0.48, 0.22) # シャリンバイ・ハイネズの常緑
 	mat_bush_olive.roughness = 0.82
 
 	mat_flower_white = StandardMaterial3D.new()
-	mat_flower_white.albedo_color = Color(0.98, 0.98, 0.95)
+	mat_flower_white.albedo_color = Color(0.96, 0.74, 0.86) # ハマヒルガオ（浜昼顔）の淡い桃色
 	mat_flower_white.roughness = 0.50
 
 	mat_flower_yellow = StandardMaterial3D.new()
-	mat_flower_yellow.albedo_color = Color(0.95, 0.82, 0.22)
+	mat_flower_yellow.albedo_color = Color(0.98, 0.96, 0.90) # ハマヒルガオの花芯ホワイト
 	mat_flower_yellow.roughness = 0.50
 
 # --- 1. 広大でシームレスな地形（120m × 160m：画面上下の切れを完全解消） ---
@@ -302,40 +302,84 @@ func _build_natural_beach_features(parent: Node3D) -> void:
 		var is_olive = (idx % 3 == 1)
 		_spawn_lush_bush(parent, Vector3(bx, by, bz), mat_bush_olive if is_olive else mat_bush_green, randf_range(0.85, 1.25))
 
-	# 4. 砂浜と草地の境界に咲く白い小花＆草束（frame_001.jpg 右上の白い花畑！）
-	for i in range(95):
+	# 4. 糸島・野北の海浜植物：ハマヒルガオ（浜昼顔）の群生＆海浜草（コウボウムギ・浜ススキ）
+	var mat_vine_leaf = StandardMaterial3D.new()
+	mat_vine_leaf.albedo_color = Color(0.24, 0.50, 0.22)
+	mat_vine_leaf.roughness = 0.78
+
+	var mat_hamahirugao_lav = StandardMaterial3D.new()
+	mat_hamahirugao_lav.albedo_color = Color(0.90, 0.74, 0.94)
+	mat_hamahirugao_lav.roughness = 0.50
+
+	for i in range(85):
 		var fz = randf_range(-18.0, 18.0)
 		if abs(fz - (-3.6)) < 2.2:
 			continue # 番屋デッキ周辺はスキップ
-		var fx = _get_shoreline_x(fz) + randf_range(4.5, 7.6)
+		var fx = _get_shoreline_x(fz) + randf_range(3.8, 7.4)
 		var fy = _get_terrain_height(fx, fz)
 
 		var flower = Node3D.new()
-		flower.position = Vector3(fx, fy + 0.03, fz)
+		flower.position = Vector3(fx, fy + 0.025, fz)
 		flower.rotation.y = randf_range(0, TAU)
 
-		# 5枚花びらの可憐な白い野花
+		# ハマヒルガオの丸みを帯びた緑の葉
+		for l_idx in range(3):
+			var lang = (l_idx / 3.0) * TAU + 0.4
+			var leaf = MeshInstance3D.new()
+			var l_sm = SphereMesh.new()
+			l_sm.radius = 0.065
+			l_sm.height = 0.02
+			l_sm.material = mat_vine_leaf
+			leaf.mesh = l_sm
+			leaf.position = Vector3(cos(lang) * 0.08, 0.01, sin(lang) * 0.08)
+			flower.add_child(leaf)
+
+		# 漏斗型（朝顔型）の淡桃色・薄紫色のハマヒルガオの花冠
+		var petal_mat = mat_flower_white if (i % 2 == 0) else mat_hamahirugao_lav
 		for p in range(5):
 			var ang = (p / 5.0) * TAU
 			var petal = MeshInstance3D.new()
 			var sm = SphereMesh.new()
-			sm.radius = 0.045
-			sm.height = 0.025
-			sm.material = mat_flower_white
+			sm.radius = 0.048
+			sm.height = 0.026
+			sm.material = petal_mat
 			petal.mesh = sm
-			petal.position = Vector3(cos(ang) * 0.05, 0.02, sin(ang) * 0.05)
+			petal.position = Vector3(cos(ang) * 0.045, 0.035, sin(ang) * 0.045)
 			flower.add_child(petal)
 
 		var center = MeshInstance3D.new()
 		var cm = SphereMesh.new()
-		cm.radius = 0.03
-		cm.height = 0.03
+		cm.radius = 0.028
+		cm.height = 0.028
 		cm.material = mat_flower_yellow
 		center.mesh = cm
-		center.position.y = 0.025
+		center.position.y = 0.04
 		flower.add_child(center)
 
 		parent.add_child(flower)
+
+	# 5. 日本の海浜草（コウボウムギ・ハマニンニク・浜ススキ）の草束
+	for g in range(42):
+		var gz = randf_range(-17.5, 17.5)
+		if abs(gz - (-3.6)) < 2.4:
+			continue
+		var gx = _get_shoreline_x(gz) + randf_range(4.2, 6.8)
+		var gy = _get_terrain_height(gx, gz)
+		var tuft = Node3D.new()
+		tuft.position = Vector3(gx, gy, gz)
+		for b in range(6):
+			var bang = (b / 6.0) * TAU + randf_range(-0.2, 0.2)
+			var blade = MeshInstance3D.new()
+			var bm = CylinderMesh.new()
+			bm.top_radius = 0.006
+			bm.bottom_radius = 0.024
+			bm.height = randf_range(0.32, 0.52)
+			bm.material = mat_bush_green if (b % 2 == 0) else mat_bush_olive
+			blade.mesh = bm
+			blade.position = Vector3(cos(bang) * 0.05, bm.height * 0.45, sin(bang) * 0.05)
+			blade.rotation = Vector3(sin(bang) * 0.28, 0.0, -cos(bang) * 0.28)
+			tuft.add_child(blade)
+		parent.add_child(tuft)
 
 func _spawn_lush_bush(parent: Node3D, pos: Vector3, mat: Material, scale_val: float) -> void:
 	var bush = Node3D.new()
