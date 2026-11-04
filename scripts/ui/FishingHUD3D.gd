@@ -7,6 +7,9 @@ signal reel_button_pressed
 signal reel_button_released
 signal catch_dialog_closed
 signal book_open_requested
+signal time_jump_requested
+signal time_speed_cycle_requested
+signal time_speed_step_requested(delta_step: int)
 
 @onready var cast_gauge_container: Control = $CastGaugeContainer
 @onready var cast_power_bar: ProgressBar = $CastGaugeContainer/CastPowerBar
@@ -30,6 +33,10 @@ signal book_open_requested
 @onready var result_desc: Label = $ResultDialog/VBox/FishDesc
 
 @onready var autopilot_label: Label = $AutopilotLabel
+@onready var btn_time_of_day: Button = get_node_or_null("TimeControlContainer/BtnTimeOfDay")
+@onready var btn_speed_down: Button = get_node_or_null("TimeControlContainer/BtnSpeedDown")
+@onready var btn_time_speed: Button = get_node_or_null("TimeControlContainer/BtnTimeSpeed")
+@onready var btn_speed_up: Button = get_node_or_null("TimeControlContainer/BtnSpeedUp")
 @onready var btn_open_book: Button = $BtnOpenBook
 @onready var btn_to_title: Button = $BtnToTitle
 
@@ -40,19 +47,60 @@ func _ready() -> void:
 	result_dialog.visible = false
 	if autopilot_label:
 		autopilot_label.visible = false
-		
+
+	for b in [btn_time_of_day, btn_speed_down, btn_time_speed, btn_speed_up]:
+		if b and GameData:
+			GameData.apply_pastel_button_style(b)
+	if btn_time_of_day:
+		btn_time_of_day.focus_mode = Control.FOCUS_NONE
+		btn_time_of_day.pressed.connect(func(): time_jump_requested.emit())
+	if btn_speed_down:
+		btn_speed_down.focus_mode = Control.FOCUS_NONE
+		btn_speed_down.pressed.connect(func(): time_speed_step_requested.emit(-1))
+	if btn_time_speed:
+		btn_time_speed.focus_mode = Control.FOCUS_NONE
+		btn_time_speed.pressed.connect(func(): time_speed_cycle_requested.emit())
+	if btn_speed_up:
+		btn_speed_up.focus_mode = Control.FOCUS_NONE
+		btn_speed_up.pressed.connect(func(): time_speed_step_requested.emit(1))
+
 	if btn_open_book:
 		if GameData:
 			GameData.apply_pastel_button_style(btn_open_book)
+		btn_open_book.focus_mode = Control.FOCUS_NONE
 		btn_open_book.pressed.connect(func():
 			book_open_requested.emit()
 		)
 	if btn_to_title:
 		if GameData:
 			GameData.apply_pastel_button_style(btn_to_title)
+		btn_to_title.focus_mode = Control.FOCUS_NONE
 		btn_to_title.pressed.connect(func():
 			get_tree().change_scene_to_file("res://scenes/title.tscn")
 		)
+
+func update_time_display(time_of_day: float, speed_mult: float) -> void:
+	if btn_time_of_day:
+		var total_hours = fmod((time_of_day * 24.0) + 6.0, 24.0)
+		var hh = int(total_hours)
+		var mm = int((total_hours - hh) * 60.0)
+		var icon_label = "☀️ 昼"
+		if hh >= 5 and hh < 9:
+			icon_label = "🌅 朝"
+		elif hh >= 9 and hh < 16:
+			icon_label = "☀️ 昼"
+		elif hh >= 16 and hh < 19:
+			icon_label = "🌇 夕"
+		else:
+			icon_label = "🌙 夜"
+		btn_time_of_day.text = "%s %02d:%02d [T]" % [icon_label, hh, mm]
+	if btn_time_speed:
+		if speed_mult <= 0.0:
+			btn_time_speed.text = "⏸ 速度: 停止 [V]"
+		elif is_equal_approx(speed_mult, round(speed_mult)):
+			btn_time_speed.text = "⏱ 速度: %dx [V]" % int(round(speed_mult))
+		else:
+			btn_time_speed.text = "⏱ 速度: %sx [V]" % str(speed_mult)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:

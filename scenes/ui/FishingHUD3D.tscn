@@ -311,6 +311,42 @@ theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 15
 text = "🤖 [P] オートパイロット稼働中（もう一度 [P] で解除）"
 
+[node name="TimeControlContainer" type="HBoxContainer" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -640.0
+offset_top = 18.0
+offset_right = -300.0
+offset_bottom = 54.0
+grow_horizontal = 0
+theme_override_constants/separation = 4
+alignment = 2
+
+[node name="BtnTimeOfDay" type="Button" parent="TimeControlContainer"]
+custom_minimum_size = Vector2(128, 36)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "☀️ 昼 12:00 [T]"
+
+[node name="BtnSpeedDown" type="Button" parent="TimeControlContainer"]
+custom_minimum_size = Vector2(32, 36)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "◀"
+
+[node name="BtnTimeSpeed" type="Button" parent="TimeControlContainer"]
+custom_minimum_size = Vector2(126, 36)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "⏱ 速度: 1x [V]"
+
+[node name="BtnSpeedUp" type="Button" parent="TimeControlContainer"]
+custom_minimum_size = Vector2(32, 36)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "▶"
+
 [node name="BtnOpenBook" type="Button" parent="."]
 anchors_preset = 1
 anchor_left = 1.0

@@ -14,7 +14,10 @@ const FishDb = preload("res://scripts/fishing3d/FishDatabase3D.gd")
 @onready var fish_book_modal: Control = $FishBookModal
 @onready var fishing_hud: CanvasLayer = $FishingHUD3D
 
-@export var day_cycle_duration: float = 180.0
+@export var day_cycle_duration: float = 1200.0 # 1倍速(1x)で1日＝20分（ゆったり自然な時間経過）
+const TIME_SPEED_PRESETS: Array[float] = [0.0, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0]
+var time_speed_index: int = 3 # デフォルト: 1.0x
+var time_speed_multiplier: float = 1.0
 var current_time_of_day: float = 0.25
 var is_time_paused: bool = false
 
@@ -45,11 +48,18 @@ func _ready() -> void:
 	if SoundManager:
 		SoundManager.play_ambient("ambient_waves")
 
-	if fishing_hud and fish_book_modal:
-		if fishing_hud.has_signal("book_open_requested"):
+	if fishing_hud:
+		if fish_book_modal and fishing_hud.has_signal("book_open_requested"):
 			fishing_hud.book_open_requested.connect(func():
 				fish_book_modal.open_book()
 			)
+		if fishing_hud.has_signal("time_jump_requested"):
+			fishing_hud.time_jump_requested.connect(_jump_time_of_day)
+		if fishing_hud.has_signal("time_speed_cycle_requested"):
+			fishing_hud.time_speed_cycle_requested.connect(_cycle_time_speed)
+		if fishing_hud.has_signal("time_speed_step_requested"):
+			fishing_hud.time_speed_step_requested.connect(_step_time_speed)
+	_sync_time_ui()
 
 	for arg in OS.get_cmdline_args() + OS.get_cmdline_user_args():
 		if arg == "--capture-nogita-3d":
@@ -95,17 +105,50 @@ func add_footprint(pos: Vector3) -> void:
 			old.queue_free()
 
 func _process(delta: float) -> void:
-	if not is_time_paused:
-		current_time_of_day += delta / day_cycle_duration
+	if not is_time_paused and time_speed_multiplier > 0.0:
+		current_time_of_day += (delta * time_speed_multiplier) / day_cycle_duration
 		if current_time_of_day >= 1.0:
-			current_time_of_day -= 1.0
+			current_time_of_day = fmod(current_time_of_day, 1.0)
 		_update_lighting(delta)
+	_sync_time_ui()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_T:
-			current_time_of_day = fmod(current_time_of_day + 0.25, 1.0)
-			_update_lighting(0.0)
+			_jump_time_of_day()
+		elif event.keycode == KEY_V:
+			_cycle_time_speed()
+		elif event.keycode == KEY_BRACKETLEFT or event.keycode == KEY_MINUS or event.keycode == KEY_COMMA:
+			_step_time_speed(-1)
+		elif event.keycode == KEY_BRACKETRIGHT or event.keycode == KEY_EQUAL or event.keycode == KEY_PLUS or event.keycode == KEY_PERIOD:
+			_step_time_speed(1)
+
+func _jump_time_of_day() -> void:
+	current_time_of_day = fmod(current_time_of_day + 0.25, 1.0)
+	_update_lighting(0.0)
+	_sync_time_ui()
+
+func _cycle_time_speed() -> void:
+	time_speed_index = (time_speed_index + 1) % TIME_SPEED_PRESETS.size()
+	time_speed_multiplier = TIME_SPEED_PRESETS[time_speed_index]
+	_sync_time_ui()
+
+func _step_time_speed(delta_step: int) -> void:
+	time_speed_index = clampi(time_speed_index + delta_step, 0, TIME_SPEED_PRESETS.size() - 1)
+	time_speed_multiplier = TIME_SPEED_PRESETS[time_speed_index]
+	_sync_time_ui()
+
+func _sync_time_ui() -> void:
+	if fishing_hud and fishing_hud.has_method("update_time_display"):
+		fishing_hud.update_time_display(current_time_of_day, time_speed_multiplier)
+	var key_speed_lbl = get_node_or_null("CanvasLayer/KeyGuide/PanelTimeSpeed/Label")
+	if key_speed_lbl:
+		if time_speed_multiplier <= 0.0:
+			key_speed_lbl.text = " [V] 時間速度: 停止(0x) "
+		elif is_equal_approx(time_speed_multiplier, round(time_speed_multiplier)):
+			key_speed_lbl.text = " [V] 時間速度: %dx " % int(round(time_speed_multiplier))
+		else:
+			key_speed_lbl.text = " [V] 時間速度: %sx " % str(time_speed_multiplier)
 
 func _physics_process(delta: float) -> void:
 	if player and camera_pivot:

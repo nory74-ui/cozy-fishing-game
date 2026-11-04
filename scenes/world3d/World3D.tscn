@@ -126,3 +126,10 @@ layout_mode = 2
 [node name="Label" type="Label" parent="CanvasLayer/KeyGuide/PanelTime"]
 layout_mode = 2
 text = " [T] 時間帯切替 "
+
+[node name="PanelTimeSpeed" type="PanelContainer" parent="CanvasLayer/KeyGuide"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/KeyGuide/PanelTimeSpeed"]
+layout_mode = 2
+text = " [V] 時間速度: 1x "
