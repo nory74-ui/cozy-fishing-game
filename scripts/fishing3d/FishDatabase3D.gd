@@ -9,61 +9,91 @@ const FISH_SPECS = {
 		"texture": "res://assets/fish_side_aji.png",
 		"power": 0.65,
 		"stamina": 5.5,
-		"pull_freq": 2.8
+		"pull_freq": 2.8,
+		"preferred_baits": ["okiami", "isome"],
+		"min_rod_rank": 1,
+		"recommended_line_kg": 1.5
 	},
 	"kisu": {
 		"texture": "res://assets/fish_side_kisu.png",
 		"power": 0.60,
 		"stamina": 5.0,
-		"pull_freq": 3.2
+		"pull_freq": 3.2,
+		"preferred_baits": ["isome", "okiami"],
+		"min_rod_rank": 1,
+		"recommended_line_kg": 1.5
 	},
 	"arakabu": {
 		"texture": "res://assets/fish_side_arakabu.png",
 		"power": 0.85,
 		"stamina": 7.5,
-		"pull_freq": 1.6
+		"pull_freq": 1.6,
+		"preferred_baits": ["isome", "crab_bait", "okiami"],
+		"min_rod_rank": 1,
+		"recommended_line_kg": 2.0
 	},
 	"chinu": {
 		"texture": "res://assets/fish_side_chinu.png",
 		"power": 1.25,
 		"stamina": 12.0,
-		"pull_freq": 2.1
+		"pull_freq": 2.1,
+		"preferred_baits": ["crab_bait", "isome"],
+		"min_rod_rank": 2,
+		"recommended_line_kg": 4.5
 	},
 	"magochi": {
 		"texture": "res://assets/fish_side_magochi.png",
 		"power": 1.15,
 		"stamina": 11.0,
-		"pull_freq": 1.9
+		"pull_freq": 1.9,
+		"preferred_baits": ["live_fish", "isome", "lure"],
+		"min_rod_rank": 2,
+		"recommended_line_kg": 5.0
 	},
 	"suzuki": {
 		"texture": "res://assets/fish_side_suzuki.png",
 		"power": 1.45,
 		"stamina": 15.0,
-		"pull_freq": 2.3
+		"pull_freq": 2.3,
+		"preferred_baits": ["live_fish", "lure"],
+		"min_rod_rank": 3,
+		"recommended_line_kg": 8.0
 	},
 	"kijihata": {
 		"texture": "res://assets/fish_side_kijihata.png",
 		"power": 1.35,
 		"stamina": 13.0,
-		"pull_freq": 1.7
+		"pull_freq": 1.7,
+		"preferred_baits": ["crab_bait", "live_fish"],
+		"min_rod_rank": 2,
+		"recommended_line_kg": 5.5
 	},
 	"hirame": {
 		"texture": "res://assets/fish_side_hirame.png",
 		"power": 1.40,
 		"stamina": 14.0,
-		"pull_freq": 2.0
+		"pull_freq": 2.0,
+		"preferred_baits": ["live_fish", "lure"],
+		"min_rod_rank": 3,
+		"recommended_line_kg": 8.5
 	},
 	"madai": {
 		"texture": "res://assets/fish_side_madai.png",
 		"power": 1.55,
 		"stamina": 16.5,
-		"pull_freq": 1.8
+		"pull_freq": 1.8,
+		"preferred_baits": ["lure", "crab_bait", "okiami"],
+		"min_rod_rank": 3,
+		"recommended_line_kg": 10.0
 	},
 	"aoriika": {
 		"texture": "res://assets/fish_side_aoriika.png",
 		"power": 1.20,
 		"stamina": 11.0,
-		"pull_freq": 2.6
+		"pull_freq": 2.6,
+		"preferred_baits": ["lure", "live_fish"],
+		"min_rod_rank": 2,
+		"recommended_line_kg": 4.5
 	}
 }
 
@@ -89,6 +119,9 @@ static func get_fish_dict(species_id: String) -> Dictionary:
 	base_data["power"] = spec.get("power", 1.0)
 	base_data["stamina"] = spec.get("stamina", 10.0)
 	base_data["pull_freq"] = spec.get("pull_freq", 2.0)
+	base_data["preferred_baits"] = spec.get("preferred_baits", ["okiami", "isome"])
+	base_data["min_rod_rank"] = spec.get("min_rod_rank", 1)
+	base_data["recommended_line_kg"] = spec.get("recommended_line_kg", 2.0)
 	
 	var len_val = snapped(randf_range(base_data["min_size"], base_data["max_size"]), 0.1)
 	base_data["length"] = len_val
@@ -122,10 +155,10 @@ static func get_fish_dict(species_id: String) -> Dictionary:
 	base_data["price"] = int(base_data["base_price"] * (1.0 + size_ratio * 1.5))
 	return base_data
 
-static func get_random_fish(is_night: bool = false, distance: float = 4.0, cast_x: float = -4.0, power_ratio: float = 0.5) -> Dictionary:
+static func get_random_fish(is_night: bool = false, distance: float = 4.0, cast_x: float = -4.0, power_ratio: float = 0.5, current_bait: String = "okiami") -> Dictionary:
 	var pool = []
 
-	# 力加減（近い・中間・遠い）と水深によって釣れる魚種・サイズ帯が変化
+	# 力加減（近い・中間・遠い）と水深によって釣れる魚種・サイズ帯の基本候補
 	if power_ratio < 0.35 or distance < 2.8:
 		# ちょい投げ（波打ち際・浅瀬）：シロギス・アジ・アラカブなど軽量級中心
 		if is_night:
@@ -145,5 +178,25 @@ static func get_random_fish(is_night: bool = false, distance: float = 4.0, cast_
 		else:
 			pool = ["madai", "madai", "hirame", "suzuki", "kijihata", "chinu", "magochi"]
 
-	var chosen_key = pool[randi() % pool.size()]
+	# ★エサ適合フィルタリング: 現在装備しているエサを好む魚種のみを抽出！
+	var bait_matched_pool: Array[String] = []
+	for sp_id in pool:
+		var spec = FISH_SPECS.get(sp_id, {})
+		var pref_baits = spec.get("preferred_baits", [])
+		if current_bait in pref_baits:
+			bait_matched_pool.append(sp_id)
+
+	# もし現在の距離プール内に好餌魚がいなかった場合、全魚種からそのエサを好む魚を探索
+	if bait_matched_pool.is_empty():
+		for sp_id in FISH_SPECS.keys():
+			var spec = FISH_SPECS[sp_id]
+			var pref_baits = spec.get("preferred_baits", [])
+			if current_bait in pref_baits:
+				bait_matched_pool.append(sp_id)
+
+	# 万一エサ未指定等の場合はフォールバック
+	if bait_matched_pool.is_empty():
+		bait_matched_pool = ["aji", "kisu"]
+
+	var chosen_key = bait_matched_pool[randi() % bait_matched_pool.size()]
 	return get_fish_dict(chosen_key)

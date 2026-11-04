@@ -11,16 +11,20 @@ signal book_updated(species: String, is_first: bool, is_record: bool)
 # プレイヤーのステータス
 var coins: int = 60 # 初期所持金
 var current_rod: String = "starter_rod"
-var current_bait: String = "mussel"
+var current_line: String = "nylon_1_5"
+var current_reel: String = "reel_1000"
+var current_bait: String = "okiami"
 
 # 所持品
 var inventory: Array[Dictionary] = [] # 釣った魚リスト
 var unlocked_rods: Array[String] = ["starter_rod"]
+var unlocked_lines: Array[String] = ["nylon_1_5"]
+var unlocked_reels: Array[String] = ["reel_1000"]
 var bait_counts: Dictionary = {
-	"isome": 5,
 	"okiami": 5,
-	"mussel": 3,
-	"shrimp": 0,
+	"isome": 5,
+	"crab_bait": 0,
+	"live_fish": 0,
 	"lure": 0
 }
 
@@ -44,108 +48,182 @@ signal game_loaded()
 
 # --- マスターデータ ---
 
-# 釣り竿カタログ（福岡・玄界灘仕様）
+# 釣り竿カタログ（福岡・玄界灘 海釣りランクアップ仕様）
 const RODS: Dictionary = {
 	"starter_rod": {
 		"id": "starter_rod",
-		"name": "波止のべ竿",
+		"name": "波止のべ竿 3.6m",
+		"rank": 1,
+		"rank_label": "ランク1（小物専用）",
+		"max_weight": 0.65,
 		"price": 0,
 		"power": 1.0,
 		"stability": 1.0,
-		"desc": "堤防でのサビキやちょい投げに最適な万能のべ竿。素直な曲がりで扱いやすい。"
+		"desc": "初心用の竹竿調のべ竿。波止際のアジやキスなど小物専用。中型以上がかかると竿が悲鳴を上げて耐えられない。"
 	},
-	"surf_cast_rod": {
-		"id": "surf_cast_rod",
-		"name": "糸島サーフ投竿",
-		"price": 130,
-		"power": 1.4,
-		"stability": 1.25,
-		"desc": "白砂の海岸から遠投できる弾力のある投竿。砂底に潜むキスやマゴチを狙い撃つ。"
+	"isokozue_rod": {
+		"id": "isokozue_rod",
+		"name": "防波堤万能磯竿 4.5m",
+		"rank": 2,
+		"rank_label": "ランク2（中型魚対応）",
+		"max_weight": 2.5,
+		"price": 150,
+		"power": 1.8,
+		"stability": 1.5,
+		"desc": "ガイドとリールシートを備えた胴調子の磯竿。チヌやアラカブ、マゴチの引きを粘り強く受け止める。"
 	},
-	"isogame_rod": {
-		"id": "isogame_rod",
-		"name": "玄界磯チヌ竿",
-		"price": 380,
-		"power": 1.85,
-		"stability": 1.55,
-		"desc": "粘り強い胴調子の本格磯竿。荒磯やテトラに潜むチヌやアラカブの突っ込みを受け止める。"
+	"shore_jig_rod": {
+		"id": "shore_jig_rod",
+		"name": "ショアジギ＆シーバス剛竿 9.6ft",
+		"rank": 3,
+		"rank_label": "ランク3（大型魚対応）",
+		"max_weight": 8.0,
+		"price": 420,
+		"power": 2.8,
+		"stability": 2.2,
+		"desc": "高弾性カーボンのパワフルなバットを持つ大物専用ロッド。白波サラシからスズキやヒラメを豪快に引き寄せる。"
 	},
-	"master_sea_rod": {
-		"id": "master_sea_rod",
-		"name": "玄界灘・大物専用剛竿",
-		"price": 950,
-		"power": 2.5,
-		"stability": 2.1,
-		"desc": "大型マダイや座布団ヒラメの強烈な引きを圧倒的なパワーでねじ伏せるプロ仕様の剛竿。"
+	"master_genkai_rod": {
+		"id": "master_genkai_rod",
+		"name": "玄界灘マスター極竿 10ft Heavy",
+		"rank": 4,
+		"rank_label": "ランク4（ランカー怪魚制圧）",
+		"max_weight": 99.0,
+		"price": 980,
+		"power": 4.2,
+		"stability": 3.0,
+		"desc": "大鯛やランカーシーバス、メーター級モンスターの猛突進をも完全制圧する玄界灘最強の剛竿。"
 	}
 }
 
-# 釣り具・アイテムカタログ
-const TOOLS: Dictionary = {
-	"boots": {
-		"id": "boots",
-		"name": "フェルトスパイク靴",
-		"icon": "",
-		"price": 100,
-		"desc": "濡れたテトラポッドや滑りやすい磯場でもガッチリ踏ん張れる安全ブーツ。"
+# 道糸・ラインカタログ（耐力・根ズレ耐性）
+const LINES: Dictionary = {
+	"nylon_1_5": {
+		"id": "nylon_1_5",
+		"name": "ナイロンライン 1.5号 (6lb)",
+		"strength_kg": 2.5,
+		"rank": 1,
+		"price": 0,
+		"desc": "しなやかで扱いやすいが、大物の疾走や岩礁での擦れに弱くプツンと高切れしやすい。"
 	},
-	"axe": {
-		"id": "axe",
-		"name": "カーボン玉網",
-		"icon": "",
-		"price": 250,
-		"desc": "軽量で頑丈なランディングネット。足場の高い波止から大型魚を確実に掬い上げる。"
+	"fluoro_3": {
+		"id": "fluoro_3",
+		"name": "フロロカーボンライン 3号 (12lb)",
+		"strength_kg": 5.5,
+		"rank": 2,
+		"price": 80,
+		"desc": "根ズレに強いタフなライン。チヌやアラカブがテトラや沈み瀬に潜り込んでも擦れ切れしにくい。"
 	},
-	"boat": {
-		"id": "boat",
-		"name": "プレジャーボート",
-		"icon": "",
-		"price": 600,
-		"desc": "野北漁港から出船できる小型ボート。玄界灘の沖合、大鯛が回遊する深淵へ！"
+	"pe_1_2": {
+		"id": "pe_1_2",
+		"name": "4本編みPE 1.2号 + リーダー20lb",
+		"strength_kg": 10.0,
+		"rank": 3,
+		"price": 220,
+		"desc": "伸び率ゼロの超高感度PE。沖合への遠投性に優れ、大型スズキやヒラメの引きに耐える。"
+	},
+	"pe_2_5": {
+		"id": "pe_2_5",
+		"name": "8本編み最強PE 2.5号 + リーダー35lb",
+		"strength_kg": 18.0,
+		"rank": 4,
+		"price": 520,
+		"desc": "破断強度18kg。大マダイの突進やランカーのエラ洗いでも絶対に切れない最強ライン。"
 	}
 }
 
-# エサカタログ（福岡・海釣り実戦仕様）
+# スピニングリールカタログ（巻き上げ速度・ドラグ）
+const REELS: Dictionary = {
+	"reel_1000": {
+		"id": "reel_1000",
+		"name": "入門スピニング 1000番",
+		"reel_speed_mult": 1.0,
+		"drag_power": 1.0,
+		"price": 0,
+		"desc": "標準的なリール。巻き取り力は控えめで、重い魚を寄せるには時間がかかる。"
+	},
+	"reel_2500": {
+		"id": "reel_2500",
+		"name": "防錆タフリール 2500番HG",
+		"reel_speed_mult": 1.35,
+		"drag_power": 1.8,
+		"price": 120,
+		"desc": "ハイギア仕様で素早い巻き上げが可能。スムーズなドラグで魚の突進をいなす。"
+	},
+	"reel_4000": {
+		"id": "reel_4000",
+		"name": "ショアパワーリール 4000番SW",
+		"reel_speed_mult": 1.75,
+		"drag_power": 3.0,
+		"price": 350,
+		"desc": "大物専用の強力ギアと大型スプール。重量級の魚も一気にゴリ巻きで足元まで寄せる。"
+	}
+}
+
+# エサ・ルアーカタログ（福岡・海釣り実戦仕様）
 const BAITS: Dictionary = {
-	"isome": {
-		"id": "isome",
-		"name": "アオイソメ",
-		"pack_amount": 5,
-		"price": 15,
-		"rare_boost": 1.0,
-		"desc": "活きの良い青虫。動く光と匂いでシロギスやアジ、アラカブを惹きつける堤防の万能エサ。"
-	},
 	"okiami": {
 		"id": "okiami",
-		"name": "生オキアミ",
+		"name": "アミエビ（オキアミパック）",
+		"pack_amount": 5,
+		"price": 15,
+		"target_info": "マアジ・シロギス",
+		"desc": "小型回遊魚が大好きな定番エサ。コマセの煙幕効果でアジの群れを足元に釘付けにする。"
+	},
+	"isome": {
+		"id": "isome",
+		"name": "アオイソメ（活き青虫）",
 		"pack_amount": 5,
 		"price": 25,
-		"rare_boost": 1.25,
-		"desc": "粒ぞろいの新鮮なオキアミ。アジの群れやチヌ、マダイがたまらず口を使う定番の海エサ。"
+		"target_info": "シロギス・アラカブ・チヌ",
+		"desc": "波打ち際や砂底でうごめく虫エサ。シロギスや岩陰のアラカブが夢中で食いつく。"
 	},
-	"mussel": {
-		"id": "mussel",
-		"name": "ムール貝",
-		"pack_amount": 3,
-		"price": 35,
-		"rare_boost": 1.5,
-		"desc": "堤防壁面に付着する天然の貝。硬い殻ごと砕いて食べる年無しチヌ（クロダイ）の特効薬。"
+	"crab_bait": {
+		"id": "crab_bait",
+		"name": "岩ガニ・エビ生餌",
+		"pack_amount": 4,
+		"price": 50,
+		"target_info": "チヌ・アラカブ・キジハタ",
+		"desc": "固い殻を持つ甲殻類。年無しチヌの特効餌で、テトラ奥の高級根魚キジハタも飛びつく。"
 	},
-	"shrimp": {
-		"id": "shrimp",
-		"name": "活きエビ",
+	"live_fish": {
+		"id": "live_fish",
+		"name": "活きアジ（泳がせ仕掛け）",
 		"pack_amount": 3,
-		"price": 60,
-		"rare_boost": 1.8,
-		"desc": "元気に跳ねる活シラサエビ。高級魚キジハタ（アコウ）やスズキが猛烈にアタックする。"
+		"price": 80,
+		"target_info": "ヒラメ・マゴチ・スズキ",
+		"desc": "生きた小アジをそのまま泳がせる。底に潜む大型ヒラメや大スズキが豪快に丸呑みする。"
 	},
 	"lure": {
 		"id": "lure",
-		"name": "メタルジグ",
-		"pack_amount": 3,
-		"price": 90,
-		"rare_boost": 2.2,
-		"desc": "光を乱反射してイワシの逃走を演出するルアー。砂底のヒラメや回遊するフィッシュイーター用。"
+		"name": "ショアメタルジグ 28g",
+		"pack_amount": 1,
+		"is_infinite": true,
+		"price": 140,
+		"target_info": "スズキ・ヒラメ・マダイ・アオリイカ",
+		"desc": "壊れない買い切りルアー。小魚の逃走を演出し、沖合を疾走する大型フィッシュイーターを狙う。"
+	}
+}
+
+# 探索・波止遠征道具（キーアイテム）
+const TOOLS: Dictionary = {
+	"boots": {
+		"id": "boots",
+		"name": "フェルトスパイク磯靴",
+		"price": 100,
+		"desc": "滑りやすい濡れたテトラポッドや地磯でも安全に歩行できる。"
+	},
+	"axe": {
+		"id": "axe",
+		"name": "大物用タモ網（5.4m）",
+		"price": 250,
+		"desc": "足場の高い波止から大型シーバスや大鯛を安全に取り込める。"
+	},
+	"boat": {
+		"id": "boat",
+		"name": "玄界灘プレジャーボート",
+		"price": 1200,
+		"desc": "野北沖合の本流潮目へ船を出せる。"
 	}
 }
 
@@ -419,10 +497,61 @@ func equip_rod(rod_id: String) -> void:
 		equipment_changed.emit()
 		save_game()
 
+func buy_line(line_id: String) -> bool:
+	if line_id in unlocked_lines:
+		current_line = line_id
+		SoundManager.play_sfx("coin", 0.05, -2.0)
+		equipment_changed.emit()
+		save_game()
+		return true
+	var data = LINES.get(line_id)
+	if data and spend_coins(data.price):
+		unlocked_lines.append(line_id)
+		current_line = line_id
+		SoundManager.play_sfx("coin", 0.05)
+		equipment_changed.emit()
+		save_game()
+		return true
+	return false
+
+func equip_line(line_id: String) -> void:
+	if line_id in unlocked_lines:
+		current_line = line_id
+		SoundManager.play_sfx("coin", 0.08, -3.0)
+		equipment_changed.emit()
+		save_game()
+
+func buy_reel(reel_id: String) -> bool:
+	if reel_id in unlocked_reels:
+		current_reel = reel_id
+		SoundManager.play_sfx("coin", 0.05, -2.0)
+		equipment_changed.emit()
+		save_game()
+		return true
+	var data = REELS.get(reel_id)
+	if data and spend_coins(data.price):
+		unlocked_reels.append(reel_id)
+		current_reel = reel_id
+		SoundManager.play_sfx("coin", 0.05)
+		equipment_changed.emit()
+		save_game()
+		return true
+	return false
+
+func equip_reel(reel_id: String) -> void:
+	if reel_id in unlocked_reels:
+		current_reel = reel_id
+		SoundManager.play_sfx("coin", 0.08, -3.0)
+		equipment_changed.emit()
+		save_game()
+
 func buy_bait(bait_id: String) -> bool:
 	var data = BAITS.get(bait_id)
 	if data and spend_coins(data.price):
-		bait_counts[bait_id] = bait_counts.get(bait_id, 0) + data.pack_amount
+		if data.get("is_infinite", false):
+			bait_counts[bait_id] = 1 # ルアーは1個所持で永久
+		else:
+			bait_counts[bait_id] = bait_counts.get(bait_id, 0) + data.pack_amount
 		current_bait = bait_id
 		SoundManager.play_sfx("coin", 0.06)
 		equipment_changed.emit()
@@ -437,24 +566,35 @@ func equip_bait(bait_id: String) -> void:
 		equipment_changed.emit()
 		save_game()
 
+func has_bait(bait_id: String) -> bool:
+	return bait_counts.get(bait_id, 0) > 0
+
+func can_fish_with_current_bait() -> bool:
+	return bait_counts.get(current_bait, 0) > 0
+
 func get_current_bait_boost() -> float:
 	if bait_counts.get(current_bait, 0) > 0:
 		var b_data = BAITS.get(current_bait, {})
 		return b_data.get("rare_boost", 1.0)
 	return 1.0
 
-func consume_current_bait() -> float:
-	var boost = get_current_bait_boost()
+func consume_current_bait() -> bool:
+	var b_data = BAITS.get(current_bait, {})
+	if b_data.get("is_infinite", false):
+		return true # ルアーは消費しない
+		
 	if bait_counts.get(current_bait, 0) > 0:
 		bait_counts[current_bait] -= 1
 		if bait_counts[current_bait] <= 0:
-			for k in ["isome", "okiami", "mussel", "shrimp", "lure"]:
+			# 他に持っているエサがあれば自動切り替え
+			for k in ["okiami", "isome", "crab_bait", "live_fish", "lure"]:
 				if bait_counts.get(k, 0) > 0:
 					current_bait = k
 					break
 		equipment_changed.emit()
 		save_game()
-	return boost
+		return true
+	return false
 
 # --- ★図鑑・釣果記録システム ---
 func record_fish_catch(species: String, size: float) -> Dictionary:
@@ -491,12 +631,16 @@ func get_total_species_count() -> int:
 
 func save_game() -> bool:
 	var save_dict = {
-		"version": 1,
+		"version": 2,
 		"coins": coins,
 		"current_rod": current_rod,
+		"current_line": current_line,
+		"current_reel": current_reel,
 		"current_bait": current_bait,
 		"inventory": inventory,
 		"unlocked_rods": unlocked_rods,
+		"unlocked_lines": unlocked_lines,
+		"unlocked_reels": unlocked_reels,
 		"bait_counts": bait_counts,
 		"fish_records": fish_records,
 		"has_boots": has_boots,
@@ -543,9 +687,15 @@ func load_game() -> bool:
 	current_rod = data.get("current_rod", "starter_rod")
 	if not RODS.has(current_rod):
 		current_rod = "starter_rod"
-	current_bait = data.get("current_bait", "mussel")
+	current_line = data.get("current_line", "nylon_1_5")
+	if not LINES.has(current_line):
+		current_line = "nylon_1_5"
+	current_reel = data.get("current_reel", "reel_1000")
+	if not REELS.has(current_reel):
+		current_reel = "reel_1000"
+	current_bait = data.get("current_bait", "okiami")
 	if not BAITS.has(current_bait):
-		current_bait = "mussel"
+		current_bait = "okiami"
 	
 	# インベントリ
 	inventory.clear()
@@ -565,16 +715,37 @@ func load_game() -> bool:
 				unlocked_rods.append(s_rod)
 	if unlocked_rods.is_empty():
 		unlocked_rods.append("starter_rod")
+
+	# 解放済みのライン
+	var raw_lines = data.get("unlocked_lines", ["nylon_1_5"])
+	if typeof(raw_lines) == TYPE_ARRAY:
+		unlocked_lines.clear()
+		for line_item in raw_lines:
+			var s_line = str(line_item)
+			if LINES.has(s_line):
+				unlocked_lines.append(s_line)
+	if unlocked_lines.is_empty():
+		unlocked_lines.append("nylon_1_5")
+
+	# 解放済みのリール
+	var raw_reels = data.get("unlocked_reels", ["reel_1000"])
+	if typeof(raw_reels) == TYPE_ARRAY:
+		unlocked_reels.clear()
+		for reel_item in raw_reels:
+			var s_reel = str(reel_item)
+			if REELS.has(s_reel):
+				unlocked_reels.append(s_reel)
+	if unlocked_reels.is_empty():
+		unlocked_reels.append("reel_1000")
 		
 	# エサ所持数
 	var raw_baits = data.get("bait_counts", {})
 	if typeof(raw_baits) == TYPE_DICTIONARY:
-		for k in ["isome", "okiami", "mussel", "shrimp", "lure"]:
+		for k in ["okiami", "isome", "crab_bait", "live_fish", "lure"]:
 			bait_counts[k] = int(raw_baits.get(k, 0))
-	if bait_counts.get("isome", 0) <= 0 and bait_counts.get("mussel", 0) <= 0:
-		bait_counts["isome"] = 5
+	if bait_counts.get("okiami", 0) <= 0 and bait_counts.get("isome", 0) <= 0:
 		bait_counts["okiami"] = 5
-		bait_counts["mussel"] = 3
+		bait_counts["isome"] = 5
 			
 	# 図鑑記録
 	fish_records.clear()
@@ -612,14 +783,18 @@ func reset_save_data() -> void:
 		DirAccess.remove_absolute(SAVE_PATH)
 	coins = 60
 	current_rod = "starter_rod"
-	current_bait = "mussel"
+	current_line = "nylon_1_5"
+	current_reel = "reel_1000"
+	current_bait = "okiami"
 	inventory.clear()
 	unlocked_rods = ["starter_rod"]
+	unlocked_lines = ["nylon_1_5"]
+	unlocked_reels = ["reel_1000"]
 	bait_counts = {
-		"isome": 5,
 		"okiami": 5,
-		"mussel": 3,
-		"shrimp": 0,
+		"isome": 5,
+		"crab_bait": 0,
+		"live_fish": 0,
 		"lure": 0
 	}
 	fish_records.clear()

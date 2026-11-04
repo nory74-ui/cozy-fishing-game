@@ -11,7 +11,8 @@ const FishDb = preload("res://scripts/fishing3d/FishDatabase3D.gd")
 @onready var camera: Camera3D = $CameraPivot/Camera3D
 @onready var sun_light: DirectionalLight3D = $DirectionalLight3D
 @onready var world_env: WorldEnvironment = $WorldEnvironment
-@onready var fish_book_modal: Control = $FishBookModal
+@onready var fish_book_modal: CanvasLayer = $FishBookModal
+@onready var fishing_shop_modal: CanvasLayer = get_node_or_null("FishingShopModal")
 @onready var fishing_hud: CanvasLayer = $FishingHUD3D
 
 @export var day_cycle_duration: float = 1200.0 # 1倍速(1x)で1日＝20分（ゆったり自然な時間経過）
@@ -28,7 +29,16 @@ const MAX_FOOTPRINTS: int = 50
 
 # Xの動画（frame_001 / 003 / 007 / 009）と完全一致する見下ろし角（俯角55.6度・FOV 40度）
 @export var camera_follow_speed: float = 5.0
-var camera_offset: Vector3 = Vector3(0.0, 10.5, 7.2)
+var default_camera_offset: Vector3 = Vector3(0.0, 10.5, 7.2)
+var closeup_camera_offset: Vector3 = Vector3(0.0, 0.38, 3.15) # 正面やや見下ろしのクローズアップ
+var current_camera_offset: Vector3 = Vector3(0.0, 10.5, 7.2)
+var default_camera_fov: float = 40.0
+var closeup_camera_fov: float = 36.0
+var is_catch_closeup: bool = false
+var camera_tween: Tween = null
+var camera_offset: Vector3:
+	get: return current_camera_offset
+	set(val): current_camera_offset = val
 
 func _ready() -> void:
 	_setup_camera()
@@ -53,12 +63,22 @@ func _ready() -> void:
 			fishing_hud.book_open_requested.connect(func():
 				fish_book_modal.open_book()
 			)
+		if fishing_shop_modal and fishing_hud.has_signal("shop_open_requested"):
+			fishing_hud.shop_open_requested.connect(func():
+				fishing_shop_modal.open_shop()
+			)
 		if fishing_hud.has_signal("time_jump_requested"):
 			fishing_hud.time_jump_requested.connect(_jump_time_of_day)
 		if fishing_hud.has_signal("time_speed_cycle_requested"):
 			fishing_hud.time_speed_cycle_requested.connect(_cycle_time_speed)
 		if fishing_hud.has_signal("time_speed_step_requested"):
 			fishing_hud.time_speed_step_requested.connect(_step_time_speed)
+		if fishing_hud.has_signal("catch_dialog_closed"):
+			fishing_hud.catch_dialog_closed.connect(_on_catch_dialog_closed_reset_camera)
+
+	var fishing_ctrl = get_node_or_null("RealFishingController3D")
+	if fishing_ctrl and fishing_ctrl.has_signal("fish_caught"):
+		fishing_ctrl.fish_caught.connect(_on_fish_caught_closeup)
 	_sync_time_ui()
 
 	for arg in OS.get_cmdline_args() + OS.get_cmdline_user_args():
@@ -151,17 +171,50 @@ func _sync_time_ui() -> void:
 			key_speed_lbl.text = " [V] 時間速度: %sx " % str(time_speed_multiplier)
 
 func _physics_process(delta: float) -> void:
-	if player and camera_pivot:
-		var target_pos = player.global_position + Vector3(-0.6, 0.0, 0.0)
-		var fishing_ctrl = get_node_or_null("RealFishingController3D")
-		if fishing_ctrl and fishing_ctrl.bobber_node and fishing_ctrl.bobber_node.visible:
-			# ウキが着水・飛翔している間はプレイヤーとウキの中間点をフレーミングして絶対に画面外へ出さない
-			var mid_x = lerp(player.global_position.x, fishing_ctrl.bobber_node.global_position.x, 0.38)
-			var mid_z = lerp(player.global_position.z, fishing_ctrl.bobber_node.global_position.z, 0.25)
-			target_pos = Vector3(mid_x, player.global_position.y, mid_z)
-		target_pos.z = clamp(target_pos.z, -14.5, 14.5)
-		target_pos.x = clamp(target_pos.x, -12.5, 6.5)
-		camera_pivot.global_position = camera_pivot.global_position.lerp(target_pos, camera_follow_speed * delta)
+	if not player or not camera_pivot or not camera:
+		return
+
+	if is_catch_closeup:
+		# クローズアップ時：左側にダイアログ、右側に源さんとミケが美しく並ぶ黄金比フレーミング
+		var target_pivot = player.global_position + Vector3(-0.68, 0.65, 0.0)
+		camera_pivot.global_position = camera_pivot.global_position.lerp(target_pivot, delta * 7.0)
+		camera.position = current_camera_offset
+		camera.look_at(camera_pivot.global_position, Vector3.UP)
+		return
+
+	var target_pos = player.global_position + Vector3(-0.6, 0.0, 0.0)
+	var fishing_ctrl = get_node_or_null("RealFishingController3D")
+	if fishing_ctrl and fishing_ctrl.bobber_node and fishing_ctrl.bobber_node.visible:
+		# ウキが着水・飛翔している間はプレイヤーとウキの中間点をフレーミングして絶対に画面外へ出さない
+		var mid_x = lerp(player.global_position.x, fishing_ctrl.bobber_node.global_position.x, 0.38)
+		var mid_z = lerp(player.global_position.z, fishing_ctrl.bobber_node.global_position.z, 0.25)
+		target_pos = Vector3(mid_x, player.global_position.y, mid_z)
+	target_pos.z = clamp(target_pos.z, -14.5, 14.5)
+	target_pos.x = clamp(target_pos.x, -12.5, 6.5)
+	camera_pivot.global_position = camera_pivot.global_position.lerp(target_pos, camera_follow_speed * delta)
+	camera.position = current_camera_offset
+	camera.look_at(camera_pivot.global_position, Vector3.UP)
+
+func _on_fish_caught_closeup(_fish_data: Dictionary) -> void:
+	is_catch_closeup = true
+	_animate_camera_zoom(true)
+
+func _on_catch_dialog_closed_reset_camera() -> void:
+	is_catch_closeup = false
+	_animate_camera_zoom(false)
+
+func _animate_camera_zoom(to_closeup: bool) -> void:
+	if camera_tween and camera_tween.is_valid():
+		camera_tween.kill()
+	camera_tween = create_tween().set_parallel(true)
+	if to_closeup:
+		camera_tween.tween_property(self, "current_camera_offset", closeup_camera_offset, 0.70).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		if camera:
+			camera_tween.tween_property(camera, "fov", closeup_camera_fov, 0.70).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	else:
+		camera_tween.tween_property(self, "current_camera_offset", default_camera_offset, 0.65).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+		if camera:
+			camera_tween.tween_property(camera, "fov", default_camera_fov, 0.65).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 
 func _update_lighting(_delta: float) -> void:
 	var sun_angle = (current_time_of_day - 0.25) * TAU
@@ -330,12 +383,19 @@ func _do_capture_nogita() -> void:
 	img = get_viewport().get_texture().get_image()
 	img.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_nogita_3d_landing_action.png")
 
-	# 4b. 釣り上げ成功ダイアログ
+	# 4b. 釣り上げ成功ダイアログ＆クローズアップ画面へのスムーズな接近
 	if fishing_ctrl and hud_node:
 		fishing_ctrl._land_fish()
-	await get_tree().create_timer(0.7).timeout
+	await get_tree().create_timer(0.85).timeout
 	img = get_viewport().get_texture().get_image()
 	img.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_nogita_3d_catch.png")
+
+	# 4c. 魚の説明を閉じた後に元の引きの画面へスムーズに戻る
+	if hud_node:
+		hud_node.hide_catch_result()
+	await get_tree().create_timer(0.80).timeout
+	img = get_viewport().get_texture().get_image()
+	img.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_nogita_3d_after_dialog_reset.png")
 
 	# 5. お魚図鑑モーダル
 	if hud_node:
@@ -350,6 +410,38 @@ func _do_capture_nogita() -> void:
 	img.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_nogita_3d_zukan.png")
 	if fish_book_modal:
 		fish_book_modal.close_book()
+
+	# 5a. 潮風釣具店モーダル（竿タブ）
+	if fishing_shop_modal:
+		fishing_shop_modal.open_shop(0) # Tab.RODS
+	await get_tree().create_timer(0.6).timeout
+	img = get_viewport().get_texture().get_image()
+	img.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_nogita_3d_shop_rods.png")
+
+	# 5b. 潮風釣具店モーダル（ライン・道糸タブ）
+	if fishing_shop_modal:
+		fishing_shop_modal._switch_tab(1) # Tab.LINES
+	await get_tree().create_timer(0.4).timeout
+	img = get_viewport().get_texture().get_image()
+	img.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_nogita_3d_shop_lines.png")
+
+	# 5c. 潮風釣具店モーダル（エサ・ルアータブ）
+	if fishing_shop_modal:
+		fishing_shop_modal._switch_tab(3) # Tab.BAITS
+	await get_tree().create_timer(0.4).timeout
+	img = get_viewport().get_texture().get_image()
+	img.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_nogita_3d_shop_baits.png")
+
+	# 5d. 潮風釣具店モーダル（魚売却タブ）
+	if fishing_shop_modal:
+		GameData.add_caught_fish(FishDb.get_fish_dict("aji"))
+		GameData.add_caught_fish(FishDb.get_fish_dict("chinu"))
+		fishing_shop_modal._switch_tab(4) # Tab.SELL
+	await get_tree().create_timer(0.4).timeout
+	img = get_viewport().get_texture().get_image()
+	img.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_nogita_3d_shop_sell.png")
+	if fishing_shop_modal:
+		fishing_shop_modal.close_shop()
 
 	# 6. 夕暮れの糸島サンセット
 	current_time_of_day = 0.5

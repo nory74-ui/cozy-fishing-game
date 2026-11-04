@@ -296,10 +296,18 @@ func _update_state_machine(delta: float) -> void:
 			_process_landing_action(delta)
 
 		State.LANDING:
-			pass
+			_process_landing(delta)
 
 # --- 1. キャスト動作（力加減で手前浅瀬〜沖合深場まで明確に変化） ---
 func _start_charging() -> void:
+	# エサの残数チェック
+	if GameData and not GameData.can_fish_with_current_bait():
+		if hud and hud.has_method("show_status_toast"):
+			hud.show_status_toast("【エサ切れ】エサがありません！[U]キーで潮風釣具店を開いてエサを購入・装備してください", Color(1.0, 0.45, 0.35), 3.0)
+		if SoundManager:
+			SoundManager.play_sfx("hit", 0.08, -8.0)
+		return
+
 	current_state = State.CHARGING
 	charge_power = 0.0
 	if stalker_fish_node:
@@ -375,8 +383,15 @@ func _on_bobber_landed() -> void:
 	if parent_world and "current_time_of_day" in parent_world:
 		is_night = parent_world.current_time_of_day > 0.65
 
+	# エサを1個消費（ルアーは無限）
+	var current_bait_id = "okiami"
+	if GameData:
+		current_bait_id = GameData.current_bait
+		GameData.consume_current_bait()
+
 	var dist = player.global_position.distance_to(cast_target_pos)
-	current_fish = FishDb.get_random_fish(is_night, dist, cast_target_pos.x, last_cast_power_ratio)
+	# 装備中のエサに合った魚のみを海中から選定！
+	current_fish = FishDb.get_random_fish(is_night, dist, cast_target_pos.x, last_cast_power_ratio, current_bait_id)
 
 	# 着水エフェクト＆着水音
 	if fx:
@@ -487,6 +502,26 @@ func _process_fighting(delta: float) -> void:
 	var dash_pull_speed: float = current_fish.get("dash_pull_speed", 1.4)
 	var max_stamina_sec: float = current_fish.get("stamina", 10.0)
 
+	# 装備データの取得
+	var current_rod_id = GameData.current_rod if GameData else "starter_rod"
+	var current_line_id = GameData.current_line if GameData else "nylon_1_5"
+	var current_reel_id = GameData.current_reel if GameData else "reel_1000"
+	var rod_data = GameData.RODS.get(current_rod_id, {}) if GameData else {}
+	var line_data = GameData.LINES.get(current_line_id, {}) if GameData else {}
+	var reel_data = GameData.REELS.get(current_reel_id, {}) if GameData else {}
+
+	var rod_rank: int = rod_data.get("rank", 1)
+	var line_strength_kg: float = line_data.get("strength_kg", 2.5)
+	var reel_speed_bonus: float = reel_data.get("reel_speed_mult", 1.0)
+
+	var fish_min_rod: int = current_fish.get("min_rod_rank", 1)
+	var fish_weight_kg: float = current_fish.get("weight", 0.5)
+	var fish_name: String = current_fish.get("name", "魚")
+
+	# 竿パワー不足フラグ＆ライン耐力オーバー比率
+	var is_rod_underpowered: bool = (rod_rank < fish_min_rod)
+	var line_overload: float = fish_weight_kg / max(0.5, line_strength_kg)
+
 	# 魚のスタミナ減少（適正テンション 0.35〜0.80 を維持すると効果的に体力を削れる）
 	var stamina_drain = (1.0 / max(4.0, max_stamina_sec)) * delta
 	if fight_tension >= 0.40 and fight_tension <= 0.82:
@@ -526,10 +561,14 @@ func _process_fighting(delta: float) -> void:
 		elif is_fish_dashing:
 			reel_tension_rate = 0.78 * fish_power # 突っ込み中に無理に巻くと一気に切れる！
 
+		# 竿パワー不足時は魚の衝撃を吸収できずテンションがさらに跳ね上がる
+		if is_rod_underpowered:
+			reel_tension_rate *= 1.55
+
 		tension_delta += reel_tension_rate * delta
 
-		# 巻き上げ速度：魚が突っ込んでいる最中はほとんど寄らず、止まっている時に巻くと寄ってくる
-		var base_reel_speed = 1.65 * reel_speed_mult
+		# 巻き上げ速度：リールのギア比（reel_speed_bonus）が直結！
+		var base_reel_speed = 1.65 * reel_speed_mult * reel_speed_bonus
 		if is_fish_dashing:
 			dist_delta -= base_reel_speed * 0.20 * delta
 		else:
@@ -550,7 +589,11 @@ func _process_fighting(delta: float) -> void:
 	# 魚の引きによるテンション上昇＆沖への疾走（距離増加）
 	if is_fish_dashing:
 		var pull_strength = (0.42 + pulse * 0.35) * fish_power * lerp(0.6, 1.1, fish_stamina)
+		if is_rod_underpowered:
+			# 竿がのされてバットが効かないためテンションが暴騰
+			pull_strength *= 1.65
 		tension_delta += pull_strength * delta
+
 		# リールを巻いていない、または重量級がダッシュしている時は糸を出して沖へ走る！
 		if not is_reeling or w_class == "heavy":
 			var run_factor = 0.45 if is_reeling else 1.0
@@ -589,9 +632,20 @@ func _process_fighting(delta: float) -> void:
 	if hud:
 		hud.update_fight_status(fight_tension, fight_distance, is_reeling, is_fish_dashing, fish_stamina)
 
+	# ★ライン耐力不足による高切れチェック（大物の突進時に耐力オーバーならプツンと切れる）
+	if line_overload > 1.05 and is_fish_dashing and fight_tension > 0.68:
+		# 突進中にテンションが高いと確率で高切れ
+		if randf() < (0.85 * delta * (line_overload - 0.9)):
+			_fish_escaped("【ライン高切れ！】大物「%s」の突進に「%s」が耐えられずプツンと切れた！より太いラインを調達しよう！" % [fish_name, line_data.get("name", "道糸")])
+			return
+
 	# 勝敗判定
 	if fight_tension >= 0.98:
-		if w_class == "light":
+		if is_rod_underpowered:
+			_fish_escaped("【竿パワー不足！】「%s」では%sの強烈な引きに耐えきれずのされた！上位の竿へランクアップしよう！" % [rod_data.get("name", "竿"), fish_name])
+		elif line_overload > 1.0:
+			_fish_escaped("【ライン破断！】「%s」の耐力を超える大物の引きで糸が切れてしまった！" % line_data.get("name", "道糸"))
+		elif w_class == "light":
 			_fish_escaped("【口切れ】小型魚はテンションを上げすぎないよう注意！")
 		else:
 			_fish_escaped("【糸切れ】魚が突っ込む時はリールを離して耐えよう！")
@@ -682,13 +736,29 @@ func _land_fish() -> void:
 
 	if bobber_node:
 		bobber_node.visible = false
-	if stalker_fish_node:
-		stalker_fish_node.visible = false
-		stalker_fish_node.rotation.z = 0.0
+
+	# クローズアップ時に釣り上げた3D魚モデルを源さんの正面手元で誇らしげにピチピチ掲げる
+	if stalker_fish_node and player:
+		stalker_fish_node.visible = true
+		stalker_fish_node.global_position = player.global_position + Vector3(-0.42, 0.95, 0.35)
+		stalker_fish_node.rotation.z = deg_to_rad(15.0)
+
+	# 源さんとミケをカメラ（正面手前）へ向けて寄り添うようにポーズ
+	if player and player.has_node("VisualRoot"):
+		var p_vr = player.get_node("VisualRoot")
+		var tw = player.create_tween()
+		tw.tween_property(p_vr, "rotation:y", deg_to_rad(-15.0), 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	if companion:
+		companion.global_position = player.global_position + Vector3(0.68, 0.0, 0.12)
+		companion.velocity = Vector3.ZERO
+		if companion.has_node("VisualRoot"):
+			var m_vr = companion.get_node("VisualRoot")
+			var m_tw = companion.create_tween()
+			m_tw.tween_property(m_vr, "rotation:y", deg_to_rad(15.0), 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 	# 黄金スパークル & ファンファーレ
 	if fx:
-		fx.spawn_catch_sparkles(player.global_position + Vector3(-1.0, 1.5, 0.0))
+		fx.spawn_catch_sparkles(player.global_position + Vector3(-0.45, 1.2, 0.2))
 	if SoundManager:
 		SoundManager.play_sfx("fanfare", 0.0, 1.0)
 		SoundManager.play_sfx("catch", 0.1, 0.0)
@@ -696,14 +766,24 @@ func _land_fish() -> void:
 	# ミケが大喜びでぴょんぴょん跳ねる
 	if companion and companion.visual_root:
 		var ct = create_tween().set_loops(4)
-		ct.tween_property(companion.visual_root, "position:y", 0.45, 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		ct.tween_property(companion.visual_root, "position:y", 0.35, 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		ct.tween_property(companion.visual_root, "position:y", 0.0, 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 
 	fish_caught.emit(current_fish)
 	state_changed.emit(current_state)
 
+func _process_landing(_delta: float) -> void:
+	if stalker_fish_node and player:
+		var t = Time.get_ticks_msec() / 1000.0
+		stalker_fish_node.global_position = player.global_position + Vector3(-0.42, 0.95 + sin(t * 3.5) * 0.035, 0.35)
+		stalker_fish_node.rotation.y = deg_to_rad(-25.0) + sin(t * 12.0) * 0.25
+		stalker_fish_node.rotation.z = deg_to_rad(12.0) + cos(t * 12.0) * 0.15
+
 func _on_catch_dialog_closed() -> void:
 	current_state = State.IDLE
+	if stalker_fish_node:
+		stalker_fish_node.visible = false
+		stalker_fish_node.rotation.z = 0.0
 	if player:
 		player.current_state = CharacterBarlock3D.State.IDLE
 		if player.has_method("reset_pose"):

@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/FishingHUD3D.tscn" id="6_hud"]
 [ext_resource type="Script" path="res://scripts/fishing3d/RealFishingController3D.gd" id="7_ctrl"]
 [ext_resource type="PackedScene" path="res://scenes/ui/FishBookModal.tscn" id="8_book"]
+[ext_resource type="PackedScene" path="res://scenes/ui/FishingShopModal.tscn" id="9_shop"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_env"]
 sky_top_color = Color(0.32, 0.60, 0.96, 1)
@@ -79,24 +80,31 @@ fx = NodePath("../FishingFX3D")
 
 [node name="FishBookModal" parent="." instance=ExtResource("8_book")]
 
+[node name="FishingShopModal" parent="." instance=ExtResource("9_shop")]
+
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="KeyGuide" type="HBoxContainer" parent="CanvasLayer"]
-anchors_preset = 2
+anchors_preset = 7
+anchor_left = 0.5
 anchor_top = 1.0
+anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = -44.0
-offset_right = 1100.0
-offset_bottom = -12.0
+offset_left = -460.0
+offset_top = -106.0
+offset_right = 460.0
+offset_bottom = -74.0
+grow_horizontal = 2
 grow_vertical = 0
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
+alignment = 1
 
 [node name="PanelWASD" type="PanelContainer" parent="CanvasLayer/KeyGuide"]
 layout_mode = 2
 
 [node name="Label" type="Label" parent="CanvasLayer/KeyGuide/PanelWASD"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = " [WASD] 移動 "
 
 [node name="PanelRod" type="PanelContainer" parent="CanvasLayer/KeyGuide"]
@@ -104,13 +112,23 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="CanvasLayer/KeyGuide/PanelRod"]
 layout_mode = 2
-text = " [E / Space] 本格釣り "
+theme_override_font_sizes/font_size = 11
+text = " [E/Space] キャスト・巻く "
+
+[node name="PanelShop" type="PanelContainer" parent="CanvasLayer/KeyGuide"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/KeyGuide/PanelShop"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = " [U] 潮風釣具店 "
 
 [node name="PanelBook" type="PanelContainer" parent="CanvasLayer/KeyGuide"]
 layout_mode = 2
 
 [node name="Label" type="Label" parent="CanvasLayer/KeyGuide/PanelBook"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = " [B] お魚図鑑 "
 
 [node name="PanelAutopilot" type="PanelContainer" parent="CanvasLayer/KeyGuide"]
@@ -118,6 +136,7 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="CanvasLayer/KeyGuide/PanelAutopilot"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = " [P] オートパイロット "
 
 [node name="PanelTime" type="PanelContainer" parent="CanvasLayer/KeyGuide"]
@@ -125,11 +144,13 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="CanvasLayer/KeyGuide/PanelTime"]
 layout_mode = 2
-text = " [T] 時間帯切替 "
+theme_override_font_sizes/font_size = 11
+text = " [T] 時間切替 "
 
 [node name="PanelTimeSpeed" type="PanelContainer" parent="CanvasLayer/KeyGuide"]
 layout_mode = 2
 
 [node name="Label" type="Label" parent="CanvasLayer/KeyGuide/PanelTimeSpeed"]
 layout_mode = 2
-text = " [V] 時間速度: 1x "
+theme_override_font_sizes/font_size = 11
+text = " [V] 時間速度 "

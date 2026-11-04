@@ -1,4 +1,4 @@
-extends Control
+extends CanvasLayer
 
 # 水彩絵本調の「お魚図鑑」（全8種類の魚の生態・最大サイズ記録・累計釣果コレクション）
 

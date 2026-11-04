@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/player3d/CompanionMike3D.gd" id="1_script"]
-[ext_resource type="PackedScene" path="res://assets/models/fbx/mike_companion.glb" id="2_mesh"]
+[ext_resource type="PackedScene" path="res://assets/models/fbx/mike_calico_companion.glb" id="2_mesh"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_root"]
 radius = 0.22

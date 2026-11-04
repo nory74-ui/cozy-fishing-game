@@ -221,10 +221,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -280.0
-offset_top = -240.0
-offset_right = 280.0
-offset_bottom = 240.0
+offset_left = -530.0
+offset_top = -260.0
+offset_right = 10.0
+offset_bottom = 210.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_dialog")
@@ -296,6 +296,23 @@ text = "スズキ目スズキ科。日本沿岸の固有種で、セイゴ→フ
 horizontal_alignment = 1
 autowrap_mode = 3
 
+[node name="ResultActionHBox" type="HBoxContainer" parent="ResultDialog/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="BtnSellNow" type="Button" parent="ResultDialog/VBox/ResultActionHBox"]
+custom_minimum_size = Vector2(180, 36)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "💰 すぐに売却 (+120 G)"
+
+[node name="BtnKeepFish" type="Button" parent="ResultDialog/VBox/ResultActionHBox"]
+custom_minimum_size = Vector2(180, 36)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "🐟 ビクにキープ [E]"
+
 [node name="ClosePrompt" type="Label" parent="ResultDialog/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.65, 0.7, 0.75, 1)
@@ -303,24 +320,38 @@ theme_override_font_sizes/font_size = 12
 text = "[E] キー または クリックで閉じる"
 horizontal_alignment = 1
 
+[node name="CoinsDisplay" type="PanelContainer" parent="."]
+offset_left = 18.0
+offset_top = 18.0
+offset_right = 210.0
+offset_bottom = 54.0
+
+[node name="CoinsLabel" type="Label" parent="CoinsDisplay"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.90, 0.4, 1)
+theme_override_font_sizes/font_size = 16
+text = "🪙 所持金: 60 G"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="AutopilotLabel" type="Label" parent="."]
-offset_left = 20.0
-offset_top = 20.0
-offset_right = 460.0
-offset_bottom = 48.0
+offset_left = 224.0
+offset_top = 22.0
+offset_right = 620.0
+offset_bottom = 50.0
 theme_override_colors/font_color = Color(0.35, 1, 0.5, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 15
-text = "● [P] オートパイロット稼働中（もう一度 [P] で解除）"
+text = "● [P] オートパイロット稼働中"
 
 [node name="TimeControlContainer" type="HBoxContainer" parent="."]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -640.0
+offset_left = -780.0
 offset_top = 18.0
-offset_right = -300.0
+offset_right = -440.0
 offset_bottom = 54.0
 grow_horizontal = 0
 theme_override_constants/separation = 4
@@ -350,11 +381,23 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 13
 text = "▶"
 
+[node name="BtnOpenShop" type="Button" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -430.0
+offset_top = 18.0
+offset_right = -290.0
+offset_bottom = 54.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 15
+text = "🎣 釣具店 [U]"
+
 [node name="BtnOpenBook" type="Button" parent="."]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -290.0
+offset_left = -280.0
 offset_top = 18.0
 offset_right = -140.0
 offset_bottom = 54.0
@@ -373,3 +416,54 @@ offset_bottom = 54.0
 grow_horizontal = 0
 theme_override_font_sizes/font_size = 15
 text = "▲ タイトル"
+
+[node name="EquipmentBar" type="PanelContainer" parent="."]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -460.0
+offset_top = -68.0
+offset_right = 460.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="HBox" type="HBoxContainer" parent="EquipmentBar"]
+layout_mode = 2
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="EquipRodLabel" type="Label" parent="EquipmentBar/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.9, 0.8, 1)
+theme_override_font_sizes/font_size = 12
+text = "竿: 波止のべ竿 3.6m"
+
+[node name="EquipLineLabel" type="Label" parent="EquipmentBar/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.88, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "糸: ナイロン1.5号 (2.5kg)"
+
+[node name="EquipReelLabel" type="Label" parent="EquipmentBar/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.65, 1)
+theme_override_font_sizes/font_size = 12
+text = "リール: 入門1000番"
+
+[node name="VSeparator" type="VSeparator" parent="EquipmentBar/HBox"]
+layout_mode = 2
+
+[node name="EquipBaitLabel" type="Label" parent="EquipmentBar/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.75, 0.45, 1)
+theme_override_font_sizes/font_size = 12
+text = "エサ: 🦐 アミエビ (残5)"
+
+[node name="BaitKeyGuide" type="Label" parent="EquipmentBar/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.72, 0.8, 1)
+theme_override_font_sizes/font_size = 11
+text = "[1]オキアミ [2]イソメ [3]カニ [4]活アジ [5]ルアー"

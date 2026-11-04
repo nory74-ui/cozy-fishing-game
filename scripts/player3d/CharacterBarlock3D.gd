@@ -1,7 +1,7 @@
 extends CharacterBody3D
 class_name CharacterBarlock3D
 
-# --- キャプテン・バーロック（3Dキャラクターコントローラー：桟橋・番屋前・堤防シームレス移動＆釣り上げアクション対応版） ---
+# --- 潮崎 源三郎（源さん・62歳）3Dキャラクターコントローラー（手足・頭・白ひげ・竹竿 関節アニメーション＆桟橋・堤防移動対応版） ---
 
 @export var move_speed: float = 4.8
 @export var gravity: float = 20.0
@@ -12,6 +12,16 @@ var current_state: State = State.IDLE
 @onready var visual_root: Node3D = $VisualRoot
 @onready var lantern_light: OmniLight3D = $VisualRoot/LanternLight
 @onready var model_node: Node3D = get_node_or_null("VisualRoot/Model3D")
+
+# 関節ピボットノード（歩行時の手足スイング、キャスト・ファイト時の腕＆竿アクション用）
+var left_leg_pivot: Node3D = null
+var right_leg_pivot: Node3D = null
+var left_arm_pivot: Node3D = null
+var right_arm_pivot: Node3D = null
+var head_pivot: Node3D = null
+var torso_pivot: Node3D = null
+var mustache_pivot: Node3D = null
+var anim_player: AnimationPlayer = null
 
 var target_rotation_y: float = 0.0
 var last_move_dir: Vector3 = Vector3(0, 0, 1)
@@ -40,33 +50,22 @@ signal state_changed(new_state: State)
 func _ready() -> void:
 	if lantern_light:
 		lantern_light.visible = false
-	_apply_character_material()
+	_bind_character_joints()
 	floor_snap_length = 0.65
 	floor_max_angle = deg_to_rad(65.0)
 	floor_constant_speed = true
 
-func _apply_character_material() -> void:
-	var base_tex = load("res://assets/models/fbx/barlock_character_fisherman_3d_model_basecolor.jpg")
-	var norm_tex = load("res://assets/models/fbx/barlock_character_fisherman_3d_model_normal.png")
-	if not base_tex or not visual_root:
+func _bind_character_joints() -> void:
+	if not visual_root:
 		return
-	var mat = StandardMaterial3D.new()
-	mat.albedo_color = Color(1.0, 1.0, 1.0, 1.0)
-	mat.albedo_texture = base_tex
-	mat.metallic = 0.0
-	mat.roughness = 0.82
-	mat.metallic_specular = 0.20
-	if norm_tex:
-		mat.normal_enabled = true
-		mat.normal_texture = norm_tex
-		mat.normal_scale = 0.6
-	_set_mesh_material_recursive(visual_root, mat)
-
-func _set_mesh_material_recursive(node: Node, mat: Material) -> void:
-	if node is MeshInstance3D:
-		node.material_override = mat
-	for child in node.get_children():
-		_set_mesh_material_recursive(child, mat)
+	left_leg_pivot = visual_root.find_child("LeftLegPivot", true, false) as Node3D
+	right_leg_pivot = visual_root.find_child("RightLegPivot", true, false) as Node3D
+	left_arm_pivot = visual_root.find_child("LeftArmPivot", true, false) as Node3D
+	right_arm_pivot = visual_root.find_child("RightArmPivot", true, false) as Node3D
+	head_pivot = visual_root.find_child("HeadPivot", true, false) as Node3D
+	torso_pivot = visual_root.find_child("TorsoPivot", true, false) as Node3D
+	mustache_pivot = visual_root.find_child("MustachePivot", true, false) as Node3D
+	anim_player = visual_root.find_child("AnimationPlayer", true, false) as AnimationPlayer
 
 func _get_shoreline_x(z: float) -> float:
 	return 0.6 + sin(z * 0.16) * 1.1 + cos(z * 0.09 + 0.5) * 0.6
@@ -120,6 +119,10 @@ func _physics_process(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0, move_speed * delta * 6.0)
 		velocity.z = move_toward(velocity.z, 0, move_speed * delta * 6.0)
 		velocity.y = 0.0
+		if left_leg_pivot:
+			left_leg_pivot.rotation.x = move_toward(left_leg_pivot.rotation.x, 0.0, delta * 8.0)
+		if right_leg_pivot:
+			right_leg_pivot.rotation.x = move_toward(right_leg_pivot.rotation.x, 0.0, delta * 8.0)
 		move_and_slide()
 		_enforce_safe_bounds()
 		return
@@ -158,10 +161,13 @@ func _physics_process(delta: float) -> void:
 		target_rotation_y = atan2(direction.x, direction.z)
 		visual_root.rotation.y = lerp_angle(visual_root.rotation.y, target_rotation_y, delta * 12.0)
 
-		walk_anim_timer += delta * 12.0
-		visual_root.position.y = abs(sin(walk_anim_timer)) * 0.06
-		visual_root.rotation.z = sin(walk_anim_timer * 0.5) * 0.04
-		visual_root.rotation.x = move_toward(visual_root.rotation.x, 0.0, delta * 5.0)
+		walk_anim_timer += delta * 11.5
+		visual_root.position.y = abs(sin(walk_anim_timer)) * 0.055
+		visual_root.rotation.z = sin(walk_anim_timer * 0.5) * 0.035
+		visual_root.rotation.x = move_toward(visual_root.rotation.x, 0.04, delta * 5.0)
+
+		# 源さんの左右の足と腕を交互に振ってトコトコ歩くアニメーション！
+		_animate_walk_limbs(walk_anim_timer)
 
 		footprint_timer += delta
 		if footprint_timer >= 0.28:
@@ -179,11 +185,48 @@ func _physics_process(delta: float) -> void:
 		var t = Time.get_ticks_msec() / 1000.0
 		visual_root.position.y = sin(t * 2.2) * 0.015
 
+		_animate_idle_limbs(t, delta)
+
 	velocity.x = clamp(velocity.x, -8.0, 8.0)
 	velocity.z = clamp(velocity.z, -8.0, 8.0)
 	velocity.y = 0.0
 	move_and_slide()
 	_enforce_safe_bounds()
+
+func _animate_walk_limbs(w_time: float) -> void:
+	var swing = sin(w_time)
+	if left_leg_pivot:
+		left_leg_pivot.rotation.x = swing * 0.58
+	if right_leg_pivot:
+		right_leg_pivot.rotation.x = -swing * 0.58
+	if left_arm_pivot:
+		left_arm_pivot.rotation.x = -swing * 0.46
+	if right_arm_pivot:
+		right_arm_pivot.rotation.x = swing * 0.30
+	if torso_pivot:
+		torso_pivot.rotation.y = swing * 0.08
+	if head_pivot:
+		head_pivot.rotation.z = sin(w_time * 0.5) * 0.05
+	if mustache_pivot:
+		mustache_pivot.rotation.z = sin(w_time * 2.0) * 0.05
+
+func _animate_idle_limbs(t: float, delta: float) -> void:
+	if left_leg_pivot:
+		left_leg_pivot.rotation.x = move_toward(left_leg_pivot.rotation.x, 0.0, delta * 6.0)
+	if right_leg_pivot:
+		right_leg_pivot.rotation.x = move_toward(right_leg_pivot.rotation.x, 0.0, delta * 6.0)
+	if left_arm_pivot:
+		left_arm_pivot.rotation.x = move_toward(left_arm_pivot.rotation.x, sin(t * 1.8) * 0.04, delta * 5.0)
+	if right_arm_pivot:
+		right_arm_pivot.rotation.x = move_toward(right_arm_pivot.rotation.x, sin(t * 1.8 + 0.5) * 0.04, delta * 5.0)
+	if torso_pivot:
+		torso_pivot.rotation.y = move_toward(torso_pivot.rotation.y, 0.0, delta * 5.0)
+	if head_pivot:
+		head_pivot.rotation.z = sin(t * 1.2) * 0.02
+	if mustache_pivot:
+		# 源さんのトレードマーク「白いカモメ口ひげ」が呼吸に合わせて可愛くピクッと動く
+		var twitch = sin(t * 6.5) * 0.06 if fmod(t, 3.5) < 0.45 else 0.0
+		mustache_pivot.rotation.z = twitch
 
 # --- 100%落下・海没防止 ＆ 桟橋・番屋デッキ・大波止へのシームレス移動制御 ---
 func _enforce_safe_bounds() -> void:
@@ -223,53 +266,83 @@ func _enforce_safe_bounds() -> void:
 	var target_y = get_walkable_surface_height(global_position.x, global_position.z)
 	global_position.y = lerp(global_position.y, target_y, 0.35)
 
-# --- 3D 釣り＆釣り上げ（抜き上げ）アクションアニメーション ---
+# --- 3D 釣り＆釣り上げ（抜き上げ）アクションアニメーション（源さんの腕・竿・白ひげ連動） ---
 func play_charge_pose(power_ratio: float) -> void:
 	if not visual_root: return
 	visual_root.rotation.y = lerp_angle(visual_root.rotation.y, deg_to_rad(-90.0), 0.25)
-	# チャージ量に応じて竿を後ろへ大きく溜める
-	visual_root.rotation.x = deg_to_rad(lerp(4.0, 20.0, power_ratio))
+	# チャージ量に応じて上体と右腕（竹竿）を大きく後ろへ振りかぶる！
+	visual_root.rotation.x = deg_to_rad(lerp(4.0, 18.0, power_ratio))
 	visual_root.position.y = lerp(0.0, -0.04, power_ratio)
+	if right_arm_pivot:
+		right_arm_pivot.rotation.x = deg_to_rad(lerp(15.0, 75.0, power_ratio))
+	if left_arm_pivot:
+		left_arm_pivot.rotation.x = deg_to_rad(lerp(-10.0, -35.0, power_ratio))
 
 func play_cast_swing_anim() -> void:
 	if not visual_root: return
 	if action_tween and action_tween.is_valid():
 		action_tween.kill()
 	action_tween = create_tween()
-	action_tween.tween_property(visual_root, "rotation:x", deg_to_rad(-18.0), 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	action_tween.tween_property(visual_root, "rotation:x", deg_to_rad(-16.0), 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	action_tween.parallel().tween_property(visual_root, "position:y", 0.12, 0.14)
+	if right_arm_pivot:
+		action_tween.parallel().tween_property(right_arm_pivot, "rotation:x", deg_to_rad(-58.0), 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	action_tween.tween_property(visual_root, "rotation:x", 0.0, 0.22)
 	action_tween.parallel().tween_property(visual_root, "position:y", 0.0, 0.22)
+	if right_arm_pivot:
+		action_tween.parallel().tween_property(right_arm_pivot, "rotation:x", deg_to_rad(-18.0), 0.22)
 
 func play_fight_pose(is_reeling: bool, is_dashing: bool, time_sec: float) -> void:
 	if not visual_root: return
 	visual_root.rotation.y = lerp_angle(visual_root.rotation.y, deg_to_rad(-90.0), 0.2)
 	if is_dashing:
-		# 魚の強烈な引きに腰を落として耐えるポーズ
+		# 魚の強烈な引きに腰を落として両腕で竿を溜めて耐えるポーズ
 		visual_root.rotation.x = deg_to_rad(14.0 + sin(time_sec * 18.0) * 4.0)
 		visual_root.position.y = -0.03 + abs(sin(time_sec * 12.0)) * 0.03
+		if right_arm_pivot:
+			right_arm_pivot.rotation.x = deg_to_rad(28.0 + sin(time_sec * 20.0) * 8.0)
+		if left_arm_pivot:
+			left_arm_pivot.rotation.x = deg_to_rad(-32.0 + cos(time_sec * 20.0) * 6.0)
+		if mustache_pivot:
+			mustache_pivot.rotation.z = sin(time_sec * 24.0) * 0.12
 	elif is_reeling:
 		# 竿をポンピングしながら力強くリールを巻くモーション
 		visual_root.rotation.x = deg_to_rad(8.0 + sin(time_sec * 10.0) * 7.0)
 		visual_root.position.y = abs(sin(time_sec * 10.0)) * 0.05
+		if right_arm_pivot:
+			right_arm_pivot.rotation.x = deg_to_rad(-10.0 + sin(time_sec * 10.0) * 28.0)
+		if left_arm_pivot:
+			left_arm_pivot.rotation.x = deg_to_rad(-25.0 + cos(time_sec * 16.0) * 18.0)
 	else:
 		visual_root.rotation.x = move_toward(visual_root.rotation.x, deg_to_rad(4.0), 0.1)
 		visual_root.position.y = move_toward(visual_root.position.y, 0.0, 0.1)
+		if right_arm_pivot:
+			right_arm_pivot.rotation.x = move_toward(right_arm_pivot.rotation.x, deg_to_rad(-15.0), 0.1)
+		if left_arm_pivot:
+			left_arm_pivot.rotation.x = move_toward(left_arm_pivot.rotation.x, deg_to_rad(-15.0), 0.1)
 
 func play_landing_heave_anim() -> void:
 	if not visual_root: return
 	if action_tween and action_tween.is_valid():
 		action_tween.kill()
 	action_tween = create_tween()
-	# 1. 竿を大きく天へ振り上げて魚を海から抜き上げる豪快なアクション！
-	action_tween.tween_property(visual_root, "rotation:x", deg_to_rad(28.0), 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	# 1. 右腕の竹竿を大きく天へ振り上げ、左腕もバンザイして魚を海から抜き上げる豪快なアクション！
+	action_tween.tween_property(visual_root, "rotation:x", deg_to_rad(24.0), 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	action_tween.parallel().tween_property(visual_root, "position:y", 0.34, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	# 2. 着地してもう一度喜びのジャンプ！
+	if right_arm_pivot:
+		action_tween.parallel().tween_property(right_arm_pivot, "rotation:x", deg_to_rad(65.0), 0.22)
+	if left_arm_pivot:
+		action_tween.parallel().tween_property(left_arm_pivot, "rotation:x", deg_to_rad(-110.0), 0.22)
+	# 2. 着地してもう一度「獲ったどー！」の喜びジャンプ！
 	action_tween.tween_property(visual_root, "position:y", 0.0, 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	action_tween.parallel().tween_property(visual_root, "rotation:x", deg_to_rad(-6.0), 0.18)
+	action_tween.parallel().tween_property(visual_root, "rotation:x", deg_to_rad(-5.0), 0.18)
 	action_tween.tween_property(visual_root, "position:y", 0.22, 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	action_tween.parallel().tween_property(visual_root, "rotation:x", 0.0, 0.15)
 	action_tween.tween_property(visual_root, "position:y", 0.0, 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	if right_arm_pivot:
+		action_tween.parallel().tween_property(right_arm_pivot, "rotation:x", 0.0, 0.20)
+	if left_arm_pivot:
+		action_tween.parallel().tween_property(left_arm_pivot, "rotation:x", 0.0, 0.20)
 
 func reset_pose() -> void:
 	if not visual_root: return
@@ -278,6 +351,14 @@ func reset_pose() -> void:
 	visual_root.rotation.x = 0.0
 	visual_root.rotation.z = 0.0
 	visual_root.position.y = 0.0
+	if right_arm_pivot:
+		right_arm_pivot.rotation.x = 0.0
+	if left_arm_pivot:
+		left_arm_pivot.rotation.x = 0.0
+	if left_leg_pivot:
+		left_leg_pivot.rotation.x = 0.0
+	if right_leg_pivot:
+		right_leg_pivot.rotation.x = 0.0
 
 func set_lantern_enabled(enabled: bool) -> void:
 	if lantern_light:
