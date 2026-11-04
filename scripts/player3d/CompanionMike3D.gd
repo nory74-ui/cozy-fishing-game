@@ -106,6 +106,7 @@ func _physics_process(delta: float) -> void:
 
 	velocity.x = clamp(velocity.x, -8.0, 8.0)
 	velocity.z = clamp(velocity.z, -8.0, 8.0)
+	velocity.y = 0.0
 	move_and_slide()
 	_enforce_safe_bounds()
 
@@ -113,21 +114,22 @@ func _enforce_safe_bounds() -> void:
 	global_position.z = clamp(global_position.z, -16.5, 16.5)
 	var z = global_position.z
 	var shore_x = _get_shoreline_x(z)
-	var on_wooden_pier = (z >= -4.55 and z <= -2.65)
-	var on_breakwater = (z >= -12.65 and z <= -10.35)
+	var on_wooden_pier = (z >= -4.50 and z <= -2.70)
+	var on_breakwater = (z >= -12.65 and z <= -10.15)
 
-	if on_wooden_pier and global_position.x < shore_x + 0.4:
+	if on_wooden_pier and global_position.x < shore_x + 0.6:
 		global_position.x = max(global_position.x, -7.2)
-		global_position.z = clamp(global_position.z, -4.35, -2.85)
-		if global_position.y < 0.42:
-			global_position.y = 0.48
-	elif on_breakwater and global_position.x < shore_x + 0.8:
+		if global_position.x < 0.7:
+			global_position.z = clamp(global_position.z, -4.35, -2.85)
+	elif on_breakwater and global_position.x < shore_x + 1.0:
 		global_position.x = max(global_position.x, -12.8)
-		global_position.z = clamp(global_position.z, -12.40, -10.55)
-		if global_position.y < 0.85 and global_position.x < 0.5:
-			global_position.y = 0.95
+		if global_position.x < 0.8:
+			global_position.z = clamp(global_position.z, -12.40, -10.30)
 	else:
-		global_position.x = max(global_position.x, shore_x - 0.10)
+		global_position.x = max(global_position.x, min(shore_x - 0.10, 0.80))
 
-	if global_position.y < -0.1:
+	if follow_target and follow_target.has_method("get_walkable_surface_height"):
+		var target_y = follow_target.get_walkable_surface_height(global_position.x, global_position.z)
+		global_position.y = lerp(global_position.y, target_y, 0.35)
+	elif global_position.y < -0.1:
 		global_position.y = 0.25

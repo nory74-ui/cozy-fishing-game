@@ -103,23 +103,23 @@ func update_time_display(time_of_day: float, speed_mult: float) -> void:
 		var total_hours = fmod((time_of_day * 24.0) + 6.0, 24.0)
 		var hh = int(total_hours)
 		var mm = int((total_hours - hh) * 60.0)
-		var icon_label = "☀️ 昼"
+		var icon_label = "【昼】"
 		if hh >= 5 and hh < 9:
-			icon_label = "🌅 朝"
+			icon_label = "【朝】"
 		elif hh >= 9 and hh < 16:
-			icon_label = "☀️ 昼"
+			icon_label = "【昼】"
 		elif hh >= 16 and hh < 19:
-			icon_label = "🌇 夕"
+			icon_label = "【夕】"
 		else:
-			icon_label = "🌙 夜"
-		btn_time_of_day.text = "%s %02d:%02d [T]" % [icon_label, hh, mm]
+			icon_label = "【夜】"
+		btn_time_of_day.text = "%s%02d:%02d [T]" % [icon_label, hh, mm]
 	if btn_time_speed:
 		if speed_mult <= 0.0:
-			btn_time_speed.text = "⏸ 速度: 停止 [V]"
+			btn_time_speed.text = "速度: 停止 [V]"
 		elif is_equal_approx(speed_mult, round(speed_mult)):
-			btn_time_speed.text = "⏱ 速度: %dx [V]" % int(round(speed_mult))
+			btn_time_speed.text = "速度: %dx [V]" % int(round(speed_mult))
 		else:
-			btn_time_speed.text = "⏱ 速度: %sx [V]" % str(speed_mult)
+			btn_time_speed.text = "速度: %sx [V]" % str(speed_mult)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -170,7 +170,7 @@ func trigger_hit() -> void:
 func show_fight_ui(fish_name: String, weight_label: String = "") -> void:
 	fight_container.visible = true
 	if weight_label != "":
-		fish_name_fight_label.text = "🎣 手応え: " + weight_label
+		fish_name_fight_label.text = "◆ 手応え: " + weight_label
 	else:
 		fish_name_fight_label.text = "FIGHT: " + fish_name
 	tension_alert_label.text = ""
@@ -181,16 +181,16 @@ func update_fight_status(tension: float, distance: float, _is_reeling: bool, is_
 	distance_label.text = "残り: %0.1fm (魚体力: %d%%)" % [max(0.0, distance), stam_pct]
 
 	if tension > 0.82:
-		tension_alert_label.text = "⚠️ 糸が限界！ 切れるぞ！（今すぐリールを離せ！）"
+		tension_alert_label.text = "【危険】糸が限界！ 切れるぞ！（今すぐリールを離せ！）"
 		tension_alert_label.modulate = Color(1.0, 0.25, 0.25)
 	elif is_dashing:
-		tension_alert_label.text = "🔥 魚が猛烈に突っ込んでいる！ 無理に巻かず耐えろ！"
+		tension_alert_label.text = "【強引】魚が猛烈に突っ込んでいる！ 無理に巻かず耐えろ！"
 		tension_alert_label.modulate = Color(1.0, 0.58, 0.20)
 	elif tension < 0.22:
-		tension_alert_label.text = "⚠️ 糸が緩んでいる！ バレるぞ！（リールを巻け！）"
+		tension_alert_label.text = "【注意】糸が緩んでいる！ バレるぞ！（リールを巻け！）"
 		tension_alert_label.modulate = Color(0.35, 0.78, 1.0)
 	else:
-		tension_alert_label.text = "⭕ 魚が止まった！ 最適テンションを保って巻き上げろ！"
+		tension_alert_label.text = "◎ 魚が止まった！ 最適テンションを保って巻き上げろ！"
 		tension_alert_label.modulate = Color(0.35, 1.0, 0.45)
 
 func hide_fight_ui() -> void:
@@ -199,7 +199,7 @@ func hide_fight_ui() -> void:
 # 釣果ダイアログ（詳細な生態・学術データ対応）
 func show_catch_result(fish_data: Dictionary) -> void:
 	result_dialog.visible = true
-	result_title.text = "🎣 %s を釣り上げた！" % fish_data.get("name", "謎の魚")
+	result_title.text = "★ %s を釣り上げた！" % fish_data.get("name", "謎の魚")
 	
 	var sci = fish_data.get("scientific_name", "")
 	if sci != "":
@@ -216,10 +216,10 @@ func show_catch_result(fish_data: Dictionary) -> void:
 		"Legendary": rarity_badge_label.modulate = Color("#f4a261")
 		
 	if fish_data.get("is_first", false):
-		record_badge_label.text = "  🌟 初釣り上げ！ (NEW SPECIES)"
+		record_badge_label.text = "  ★ 初釣り上げ！ (NEW SPECIES)"
 		record_badge_label.visible = true
 	elif fish_data.get("is_new_record", false):
-		record_badge_label.text = "  🏆 最大サイズ新記録！"
+		record_badge_label.text = "  ★ 最大サイズ新記録！"
 		record_badge_label.visible = true
 	else:
 		record_badge_label.text = ""

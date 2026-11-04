@@ -433,72 +433,60 @@ func _build_wooden_banya_deck_and_pier() -> void:
 	var deck_y = 0.48
 	var pier_z = -3.6
 
-	# A. 番屋の広々とした木製デッキ（x = 0.8 〜 5.2, z = -6.4 〜 -1.2）
+	# A. 番屋の広々とした木製デッキ（x = 0.8 〜 5.6, z = -6.4 〜 -1.2）
 	var deck_body = StaticBody3D.new()
-	deck_body.collision_layer = 2
+	deck_body.collision_layer = 0
 	deck_body.collision_mask = 0
-	var deck_col = CollisionShape3D.new()
-	var deck_box = BoxShape3D.new()
-	deck_box.size = Vector3(4.6, 0.30, 5.2)
-	deck_col.shape = deck_box
-	deck_body.add_child(deck_col)
-	deck_body.position = Vector3(3.0, deck_y - 0.12, -3.8)
+	deck_body.position = Vector3(3.2, deck_y - 0.12, -3.8)
 	wood_root.add_child(deck_body)
 
 	# デッキの板張り
 	for i in range(14):
 		var plank = MeshInstance3D.new()
 		var pm = BoxMesh.new()
-		pm.size = Vector3(4.5, 0.07, 0.34)
+		pm.size = Vector3(4.8, 0.07, 0.34)
 		pm.material = mat_wood_plank if i % 2 == 0 else mat_wood_plank_alt
 		plank.mesh = pm
 		plank.position = Vector3(0.0, 0.14, -2.4 + i * 0.365)
 		deck_body.add_child(plank)
 
-	# 砂浜からデッキへスムーズに登れる階段・スロープ（x = 5.4, z = -2.2）
-	var step_body = StaticBody3D.new()
-	step_body.collision_layer = 2
-	step_body.collision_mask = 0
-	var step_col = CollisionShape3D.new()
-	var step_box = BoxShape3D.new()
-	step_box.size = Vector3(1.6, 0.25, 4.8)
-	step_col.shape = step_box
-	step_body.add_child(step_col)
-	step_body.position = Vector3(5.6, deck_y - 0.15, -3.8)
-	step_body.rotation.z = deg_to_rad(-8.0)
-	wood_root.add_child(step_body)
+	# 南側（砂浜側 z = -1.0）・北側（堤防側 z = -6.6）のなだらかな木製スロープ階段（引っかからず南北へ通り抜け可能）
+	for side_z in [-1.05, -6.55]:
+		var ramp_mesh = MeshInstance3D.new()
+		var rm = BoxMesh.new()
+		rm.size = Vector3(4.4, 0.08, 0.85)
+		rm.material = mat_wood_plank_alt
+		ramp_mesh.mesh = rm
+		ramp_mesh.position = Vector3(3.0, deck_y * 0.55, side_z)
+		ramp_mesh.rotation.x = deg_to_rad(14.0 if side_z > -3.8 else -14.0)
+		wood_root.add_child(ramp_mesh)
 
-	# 漁師の番屋（frame_007.jpg 準拠のストライプ屋根＆ポーチ付き小屋）
+	# 漁師の番屋（手前の通路 x = 0.8 〜 3.5 を広く開けて奥側 x = 4.4 に配置し、堤防へスムーズに通り抜け可能に）
 	var hut_scene = load("res://assets/models/fbx/nogita_banya_hut.glb")
 	if hut_scene:
 		var hut_inst = hut_scene.instantiate()
-		hut_inst.position = Vector3(3.2, deck_y, -4.5)
-		hut_inst.scale = Vector3.ONE * 0.72
+		hut_inst.position = Vector3(4.3, deck_y, -4.5)
+		hut_inst.scale = Vector3.ONE * 0.68
 		wood_root.add_child(hut_inst)
 
-		# 番屋本体のコリジョン（手前のデッキ通路 z = -2.8 〜 -1.3 は自由に歩ける）
+		# 番屋本体のコリジョン（x = 3.6 〜 5.4 のみ。手前の通路 x = 0.8 〜 3.5 は完全にフリー！）
 		var hut_col_body = StaticBody3D.new()
 		hut_col_body.collision_layer = 2
 		var hc = CollisionShape3D.new()
 		var hb = BoxShape3D.new()
-		hb.size = Vector3(3.2, 2.5, 2.4)
+		hb.size = Vector3(1.8, 2.5, 1.8)
 		hc.shape = hb
 		hut_col_body.add_child(hc)
-		hut_col_body.position = Vector3(3.0, deck_y + 1.25, -4.6)
+		hut_col_body.position = Vector3(4.5, deck_y + 1.25, -4.5)
 		wood_root.add_child(hut_col_body)
 
-	# デッキ上の漁具小物（木箱・麻袋・巻かれたロープ frame_007.jpg）
+	# デッキ上の漁具小物（通路を塞がないよう番屋脇へ配置）
 	_spawn_deck_props(wood_root, deck_y)
 
 	# B. エメラルドの海へ伸びる木製ロング桟橋（x = 0.8 〜 -8.2, z = -3.6, 幅 2.1m）
 	var pier_body = StaticBody3D.new()
-	pier_body.collision_layer = 2
+	pier_body.collision_layer = 0
 	pier_body.collision_mask = 0
-	var pier_col = CollisionShape3D.new()
-	var box = BoxShape3D.new()
-	box.size = Vector3(9.2, 0.30, 2.1)
-	pier_col.shape = box
-	pier_body.add_child(pier_col)
 	pier_body.position = Vector3(-3.7, deck_y - 0.12, pier_z)
 	wood_root.add_child(pier_body)
 
@@ -564,22 +552,22 @@ func _build_wooden_banya_deck_and_pier() -> void:
 	wood_root.add_child(rope)
 
 func _spawn_deck_props(parent: Node3D, deck_y: float) -> void:
-	# 木箱2段積み（frame_007.jpg 右側）
+	# 木箱2段積み（通路を邪魔しない番屋手前脇 x = 3.3 に配置）
 	var crate1 = MeshInstance3D.new()
 	var cm1 = BoxMesh.new()
-	cm1.size = Vector3(0.55, 0.42, 0.55)
+	cm1.size = Vector3(0.50, 0.38, 0.50)
 	cm1.material = mat_wood_plank_alt
 	crate1.mesh = cm1
-	crate1.position = Vector3(1.4, deck_y + 0.21, -1.7)
+	crate1.position = Vector3(3.3, deck_y + 0.19, -2.1)
 	crate1.rotation.y = deg_to_rad(12.0)
 	parent.add_child(crate1)
 
 	var crate2 = MeshInstance3D.new()
 	var cm2 = BoxMesh.new()
-	cm2.size = Vector3(0.42, 0.36, 0.42)
+	cm2.size = Vector3(0.38, 0.32, 0.38)
 	cm2.material = mat_wood_plank
 	crate2.mesh = cm2
-	crate2.position = Vector3(1.42, deck_y + 0.58, -1.68)
+	crate2.position = Vector3(3.32, deck_y + 0.52, -2.08)
 	crate2.rotation.y = deg_to_rad(-18.0)
 	parent.add_child(crate2)
 
@@ -590,7 +578,7 @@ func _spawn_deck_props(parent: Node3D, deck_y: float) -> void:
 	tm.outer_radius = 0.22
 	tm.material = mat_rope
 	coil.mesh = tm
-	coil.position = Vector3(2.2, deck_y + 0.05, -2.1)
+	coil.position = Vector3(3.8, deck_y + 0.05, -2.4)
 	coil.scale = Vector3(1.0, 0.45, 1.0)
 	parent.add_child(coil)
 
@@ -606,14 +594,8 @@ func _build_nogita_pier() -> void:
 	var pier_dir = Vector3(-1.0, 0.0, 0.0)
 
 	var pier_body = StaticBody3D.new()
-	pier_body.collision_layer = 2
+	pier_body.collision_layer = 0
 	pier_body.collision_mask = 0
-
-	var col = CollisionShape3D.new()
-	var box_shape = BoxShape3D.new()
-	box_shape.size = Vector3(pier_length, 1.8, pier_width)
-	col.shape = box_shape
-	pier_body.add_child(col)
 
 	var pier_center = pier_start + pier_dir * (pier_length * 0.5)
 	pier_center.y = 0.1
@@ -636,36 +618,26 @@ func _build_nogita_pier() -> void:
 	base_mesh.position.y = 0.0
 	pier_body.add_child(base_mesh)
 
-	# 砂浜から大波止へ登るなだらかなコンクリートスロープ
+	# 砂浜から大波止へ登るなだらかなコンクリートスロープ（南側＆東側からスムーズに登れる）
 	var slope = StaticBody3D.new()
-	slope.collision_layer = 2
+	slope.collision_layer = 0
 	slope.collision_mask = 0
-	var slope_col = CollisionShape3D.new()
-	var slope_box = BoxShape3D.new()
-	slope_box.size = Vector3(4.2, 0.4, pier_width)
-	slope_col.shape = slope_box
-	slope.add_child(slope_col)
 	var slope_m = MeshInstance3D.new()
 	var s_bm = BoxMesh.new()
-	s_bm.size = slope_box.size
+	s_bm.size = Vector3(4.6, 0.4, 3.6)
 	s_bm.material = mat_pier_concrete
 	slope_m.mesh = s_bm
 	slope.add_child(slope_m)
-	slope.position = pier_start + Vector3(1.5, -0.15, 0.0)
+	slope.position = pier_start + Vector3(1.2, -0.10, 0.3)
 	slope.rotation.z = deg_to_rad(-10.0)
 	pier_root.add_child(slope)
 
 	# 外海側（北側）の縁石
 	var curb = StaticBody3D.new()
-	curb.collision_layer = 2
-	var curb_col = CollisionShape3D.new()
-	var curb_shape = BoxShape3D.new()
-	curb_shape.size = Vector3(pier_length, 0.35, 0.22)
-	curb_col.shape = curb_shape
-	curb.add_child(curb_col)
+	curb.collision_layer = 0
 	var curb_mesh = MeshInstance3D.new()
 	var cm = BoxMesh.new()
-	cm.size = curb_shape.size
+	cm.size = Vector3(pier_length, 0.35, 0.22)
 	cm.material = mat_pier_concrete
 	curb_mesh.mesh = cm
 	curb.add_child(curb_mesh)
@@ -690,7 +662,7 @@ func _build_nogita_pier() -> void:
 func _build_white_lighthouse() -> void:
 	var lh_root = Node3D.new()
 	lh_root.name = "NogitaWhiteLighthouse3D"
-	lh_root.position = Vector3(-6.8, 0.95, -11.8)
+	lh_root.position = Vector3(-6.8, 0.95, -12.1)
 	add_child(lh_root)
 
 	var lh_scene = load("res://assets/models/fbx/nogita_lighthouse.glb")
@@ -701,7 +673,7 @@ func _build_white_lighthouse() -> void:
 	var tower_col = StaticBody3D.new()
 	tower_col.collision_layer = 2
 	var c_shape = CylinderShape3D.new()
-	c_shape.radius = 0.85
+	c_shape.radius = 0.48
 	c_shape.height = 4.8
 	var col = CollisionShape3D.new()
 	col.shape = c_shape
@@ -791,18 +763,18 @@ func _build_coral_and_seaweed_garden() -> void:
 			r_inst.rotation.y = sp["rot"]
 			garden_root.add_child(r_inst)
 
-	# 浅瀬に点在する滑らかな海底の丸石（frame_001.jpg / frame_003.jpg）
+	# 浅瀬に点在する滑らかな海底の丸石（海面 y=0 と交差してウキのような白輪が出ないよう海底 y <= -0.28 に配置）
 	for p in range(32):
-		var px = randf_range(-6.5, 0.2)
+		var px = randf_range(-6.5, -1.2)
 		var pz = randf_range(-9.0, 10.0)
-		var py = _get_terrain_height(px, pz)
+		var py = min(_get_terrain_height(px, pz) + 0.02, -0.28)
 		var peb = MeshInstance3D.new()
 		var sm = SphereMesh.new()
 		sm.radius = randf_range(0.10, 0.24)
 		sm.height = sm.radius * 0.65
 		sm.material = mat_pebble
 		peb.mesh = sm
-		peb.position = Vector3(px, py + 0.02, pz)
+		peb.position = Vector3(px, py, pz)
 		peb.rotation.y = randf_range(0, TAU)
 		peb.scale = Vector3(1.2, 0.65, 1.0)
 		garden_root.add_child(peb)
@@ -870,13 +842,11 @@ func _build_beach_decorations() -> void:
 	beach_deco.name = "BeachDecorations"
 	add_child(beach_deco)
 
-	var crab_spots = [
-		Vector3(2.4, 0.0, 2.2),
-		Vector3(0.4, 0.0, 3.8),
-		Vector3(1.8, 0.0, 6.2),
-		Vector3(1.6, 0.0, -7.2)
-	]
-	for pos in crab_spots:
+	# 砂浜の上（波打ち際より必ず陸側）に小カニを配置（海中に赤い球体が入ってウキに見えてしまう現象を完全解消）
+	var crab_z_list = [2.2, 4.4, 6.8, -7.6]
+	for cz in crab_z_list:
+		var cx = _get_shoreline_x(cz) + 1.65
+		var pos = Vector3(cx, 0.0, cz)
 		var crab = Node3D.new()
 		var cy = _get_terrain_height(pos.x, pos.z) + 0.02
 		crab.position = Vector3(pos.x, cy, pos.z)

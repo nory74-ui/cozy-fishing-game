@@ -11,6 +11,7 @@ enum State {
 	NIBBLING,
 	HOOKED,
 	FIGHTING,
+	LANDING_ACTION,
 	LANDING
 }
 
@@ -68,6 +69,9 @@ var dash_state_duration: float = 1.2
 var fish_pull_timer: float = 0.0
 var is_reeling: bool = false
 var reel_sound_timer: float = 0.0
+var landing_anim_timer: float = 0.0
+var landing_duration: float = 0.85
+var landing_start_pos: Vector3 = Vector3.ZERO
 
 # Autopilot（自律テストAI）
 var is_autopilot: bool = false
@@ -172,7 +176,7 @@ func _on_action_pressed() -> void:
 			_start_charging()
 		State.WAITING, State.NIBBLING:
 			# 本アタリ（HOOKED）より前にボタンを押すと「早アワセ」で魚が逃げる！
-			_fish_escaped("⚠️ 早アワセ！ ウキが深く沈む本アタリまで待とう！")
+			_fish_escaped("【早アワセ】ウキが深く沈む本アタリまで待とう！")
 		State.HOOKED:
 			_hook_fish()
 		State.FIGHTING:
@@ -204,6 +208,8 @@ func _update_state_machine(delta: float) -> void:
 			charge_power += charge_speed * delta
 			var power_ratio = _get_current_power_ratio()
 			if hud: hud.show_cast_gauge(power_ratio)
+			if player and player.has_method("play_charge_pose"):
+				player.play_charge_pose(power_ratio)
 
 		State.CASTING:
 			cast_fly_time += delta
@@ -281,10 +287,13 @@ func _update_state_machine(delta: float) -> void:
 			wait_timer += delta
 			# ランダム化された猶予時間を過ぎるとエサだけ取られて逃げられる
 			if wait_timer > hook_window:
-				_fish_escaped("💨 見切られた！ エサだけ取られて逃げてしまった…！")
+				_fish_escaped("【見切り】エサだけ取られて逃げてしまった…！")
 
 		State.FIGHTING:
 			_process_fighting(delta)
+
+		State.LANDING_ACTION:
+			_process_landing_action(delta)
 
 		State.LANDING:
 			pass
@@ -310,6 +319,8 @@ func _release_cast() -> void:
 	cast_fly_time = 0.0
 	cast_duration = lerp(0.38, 0.84, power_ratio)
 	cast_arc_height = lerp(1.0, 3.2, power_ratio)
+	if player and player.has_method("play_cast_swing_anim"):
+		player.play_cast_swing_anim()
 
 	var rod_tip = _get_rod_tip_pos()
 	cast_start_pos = rod_tip
@@ -403,7 +414,7 @@ func _start_fish_approach() -> void:
 			shadow_hint = "良型の魚影"
 		elif w_class == "heavy":
 			shadow_hint = "巨大な魚影"
-		hud.show_status_toast("🐟 %sがウキに気づいて寄ってきた…！" % shadow_hint, Color(0.75, 0.95, 1.0), 1.8)
+		hud.show_status_toast("◆ %sがウキに気づいて寄ってきた…！" % shadow_hint, Color(0.75, 0.95, 1.0), 1.8)
 
 # --- 2. 前アタリ（ツンツン） & ランダムな本アタリタイミング ---
 func _start_nibble() -> void:
@@ -572,19 +583,22 @@ func _process_fighting(delta: float) -> void:
 		stalker_fish_node.global_position = Vector3(bobber_node.global_position.x - 0.18, -0.22, bobber_node.global_position.z)
 		stalker_fish_node.rotation.y = atan2(dir_from_player.x, dir_from_player.z) + sin(fish_pull_timer * 5.0) * 0.45
 
+	if player and player.has_method("play_fight_pose"):
+		player.play_fight_pose(is_reeling, is_fish_dashing, Time.get_ticks_msec() / 1000.0)
+
 	if hud:
 		hud.update_fight_status(fight_tension, fight_distance, is_reeling, is_fish_dashing, fish_stamina)
 
 	# 勝敗判定
 	if fight_tension >= 0.98:
 		if w_class == "light":
-			_fish_escaped("💥 口切れしてしまった！ 小型魚はテンションを上げすぎないよう注意！")
+			_fish_escaped("【口切れ】小型魚はテンションを上げすぎないよう注意！")
 		else:
-			_fish_escaped("💥 痛恨のラインブレイク！ 魚が突っ込む時はリールを離して耐えよう！")
+			_fish_escaped("【糸切れ】魚が突っ込む時はリールを離して耐えよう！")
 	elif fight_tension <= 0.08:
-		_fish_escaped("💦 バレた！ 糸が緩みすぎて針が外れてしまった…！")
+		_fish_escaped("【バラシ】糸が緩みすぎて針が外れてしまった…！")
 	elif fight_distance <= 1.2:
-		_land_fish()
+		_start_landing_action()
 
 func _fish_escaped(reason: String) -> void:
 	current_state = State.IDLE
@@ -600,9 +614,55 @@ func _fish_escaped(reason: String) -> void:
 		stalker_fish_node.visible = false
 	if player:
 		player.current_state = CharacterBarlock3D.State.IDLE
+		if player.has_method("reset_pose"):
+			player.reset_pose()
 	state_changed.emit(current_state)
 
-# --- 4. 釣り上げ成功 ---
+# --- 4. 釣り上げアクション（抜き上げ弧軌道＆バーロック歓喜モーション）＆ 釣果表示 ---
+func _start_landing_action() -> void:
+	current_state = State.LANDING_ACTION
+	is_reeling = false
+	landing_anim_timer = 0.0
+	landing_duration = 0.82
+	landing_start_pos = bobber_node.global_position
+
+	if hud:
+		hud.hide_fight_ui()
+		if hud.has_method("show_status_toast"):
+			hud.show_status_toast("★ 抜き上げ！！ 豪快に釣り上げたぞ！", Color(1.0, 0.92, 0.35), 1.2)
+
+	if player and player.has_method("play_landing_heave_anim"):
+		player.play_landing_heave_anim()
+
+	if fx:
+		fx.spawn_water_splash(landing_start_pos, 22, 3.2)
+	if SoundManager:
+		SoundManager.play_sfx("catch", 0.08, 0.0)
+
+	if stalker_fish_node:
+		stalker_fish_node.visible = true
+		stalker_fish_node.global_position = landing_start_pos
+
+	state_changed.emit(current_state)
+
+func _process_landing_action(delta: float) -> void:
+	landing_anim_timer += delta
+	var t = clamp(landing_anim_timer / max(0.2, landing_duration), 0.0, 1.0)
+	var hand_target = (player.global_position + Vector3(-0.55, 1.05, 0.0)) if player else landing_start_pos
+
+	# 水面からバーロック船長の手元へ高い弧を描いて魚が飛んでくる！
+	var cur_pos = landing_start_pos.lerp(hand_target, t)
+	cur_pos.y += sin(t * PI) * 2.35
+	if bobber_node:
+		bobber_node.global_position = cur_pos + Vector3(0.0, 0.22, 0.0)
+	if stalker_fish_node:
+		stalker_fish_node.global_position = cur_pos
+		stalker_fish_node.rotation.y += delta * 14.0
+		stalker_fish_node.rotation.z = sin(t * TAU * 2.0) * 0.45
+
+	if t >= 1.0:
+		_land_fish()
+
 func _land_fish() -> void:
 	current_state = State.LANDING
 	is_reeling = false
@@ -624,6 +684,7 @@ func _land_fish() -> void:
 		bobber_node.visible = false
 	if stalker_fish_node:
 		stalker_fish_node.visible = false
+		stalker_fish_node.rotation.z = 0.0
 
 	# 黄金スパークル & ファンファーレ
 	if fx:
@@ -645,6 +706,8 @@ func _on_catch_dialog_closed() -> void:
 	current_state = State.IDLE
 	if player:
 		player.current_state = CharacterBarlock3D.State.IDLE
+		if player.has_method("reset_pose"):
+			player.reset_pose()
 	state_changed.emit(current_state)
 
 # 竿先位置取得
@@ -681,6 +744,8 @@ func set_autopilot(enabled: bool) -> void:
 		current_state = State.IDLE
 		if player:
 			player.current_state = CharacterBarlock3D.State.IDLE
+			if player.has_method("reset_pose"):
+				player.reset_pose()
 		state_changed.emit(current_state)
 	print("AUTOPILOT MODE: ", "ENABLED" if enabled else "DISABLED")
 

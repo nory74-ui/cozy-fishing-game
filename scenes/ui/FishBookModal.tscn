@@ -65,7 +65,7 @@ layout_mode = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(0.18, 0.25, 0.3, 1)
 theme_override_font_sizes/font_size = 20
-text = "📖 うみかぜ日和 お魚図鑑 〜糸島・野北海岸編〜"
+text = "◆ うみかぜ日和 お魚図鑑 〜糸島・野北海岸編〜"
 
 [node name="ProgressLabel" type="Label" parent="Card/VBox/HeaderHBox"]
 layout_mode = 2

@@ -321,13 +321,18 @@ func _do_capture_nogita() -> void:
 	img = get_viewport().get_texture().get_image()
 	img.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_nogita_3d_fight.png")
 
-	# 4. 釣り上げ成功
+	# 4a. 3D釣り上げ（抜き上げ）アクション中
 	if fishing_ctrl and hud_node:
-		fishing_ctrl.current_state = fishing_ctrl.State.LANDING
 		hud_node.hide_fight_ui()
-		hud_node.show_catch_result(fishing_ctrl.current_fish)
-		if fx_node:
-			fx_node.spawn_catch_sparkles(player.global_position + Vector3(-1.0, 1.5, 0.0))
+		fishing_ctrl._start_landing_action()
+		fishing_ctrl.landing_anim_timer = 0.35
+	await get_tree().create_timer(0.10).timeout
+	img = get_viewport().get_texture().get_image()
+	img.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_nogita_3d_landing_action.png")
+
+	# 4b. 釣り上げ成功ダイアログ
+	if fishing_ctrl and hud_node:
+		fishing_ctrl._land_fish()
 	await get_tree().create_timer(0.7).timeout
 	img = get_viewport().get_texture().get_image()
 	img.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_nogita_3d_catch.png")

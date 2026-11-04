@@ -121,7 +121,7 @@ theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 18
-text = "🎣 手応え: 重量級・大物"
+text = "◆ 手応え: 重量級・大物"
 horizontal_alignment = 1
 
 [node name="TensionBar" type="ProgressBar" parent="FightContainer"]
@@ -172,7 +172,7 @@ grow_vertical = 0
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 14
-text = "⭕ 最適テンション！ その調子で巻き上げろ！"
+text = "◎ 最適テンション！ その調子で巻き上げろ！"
 horizontal_alignment = 1
 
 [node name="ReelPromptLabel" type="Label" parent="FightContainer"]
@@ -211,7 +211,7 @@ theme_override_colors/font_color = Color(1, 0.25, 0.2, 1)
 theme_override_colors/font_outline_color = Color(1, 1, 1, 1)
 theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 46
-text = "⚡ HIT !! ⚡"
+text = "!! HIT !!"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -240,7 +240,7 @@ theme_override_colors/font_color = Color(1, 0.88, 0.35, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 5
 theme_override_font_sizes/font_size = 22
-text = "🎣 スズキ (シーバス) を釣り上げた！"
+text = "★ スズキ (シーバス) を釣り上げた！"
 horizontal_alignment = 1
 
 [node name="SubTitleHBox" type="HBoxContainer" parent="ResultDialog/VBox"]
@@ -263,7 +263,7 @@ text = "  【Rare】"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 1, 0.5, 1)
 theme_override_font_sizes/font_size = 14
-text = "  🌟 初釣り上げ！"
+text = "  ★ 初釣り上げ！"
 
 [node name="FishIcon" type="TextureRect" parent="ResultDialog/VBox"]
 custom_minimum_size = Vector2(0, 120)
@@ -312,7 +312,7 @@ theme_override_colors/font_color = Color(0.35, 1, 0.5, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 15
-text = "🤖 [P] オートパイロット稼働中（もう一度 [P] で解除）"
+text = "● [P] オートパイロット稼働中（もう一度 [P] で解除）"
 
 [node name="TimeControlContainer" type="HBoxContainer" parent="."]
 anchors_preset = 1
@@ -330,7 +330,7 @@ alignment = 2
 custom_minimum_size = Vector2(128, 36)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "☀️ 昼 12:00 [T]"
+text = "【昼】12:00 [T]"
 
 [node name="BtnSpeedDown" type="Button" parent="TimeControlContainer"]
 custom_minimum_size = Vector2(32, 36)
@@ -342,7 +342,7 @@ text = "◀"
 custom_minimum_size = Vector2(126, 36)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "⏱ 速度: 1x [V]"
+text = "速度: 1x [V]"
 
 [node name="BtnSpeedUp" type="Button" parent="TimeControlContainer"]
 custom_minimum_size = Vector2(32, 36)
@@ -360,7 +360,7 @@ offset_right = -140.0
 offset_bottom = 54.0
 grow_horizontal = 0
 theme_override_font_sizes/font_size = 15
-text = "📖 お魚図鑑 [B]"
+text = "■ お魚図鑑 [B]"
 
 [node name="BtnToTitle" type="Button" parent="."]
 anchors_preset = 1
@@ -372,4 +372,4 @@ offset_right = -20.0
 offset_bottom = 54.0
 grow_horizontal = 0
 theme_override_font_sizes/font_size = 15
-text = "🏠 タイトル"
+text = "▲ タイトル"
