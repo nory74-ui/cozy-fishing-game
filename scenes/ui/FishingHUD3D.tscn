@@ -112,15 +112,16 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -180.0
-offset_top = -26.0
-offset_right = 180.0
+offset_left = -240.0
+offset_top = -50.0
+offset_right = 240.0
+offset_bottom = -24.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 18
-text = "FIGHT: スズキ（シーバス）"
+text = "🎣 手応え: 重量級・大物"
 horizontal_alignment = 1
 
 [node name="TensionBar" type="ProgressBar" parent="FightContainer"]
@@ -141,17 +142,19 @@ show_percentage = false
 
 [node name="DistanceLabel" type="Label" parent="FightContainer"]
 layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -110.0
-offset_top = -24.0
-grow_horizontal = 0
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -200.0
+offset_top = -22.0
+offset_right = 200.0
+offset_bottom = 2.0
+grow_horizontal = 2
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 16
-text = "距離: 8.5m"
-horizontal_alignment = 2
+theme_override_font_sizes/font_size = 15
+text = "残り: 8.5m (魚体力: 80%)"
+horizontal_alignment = 1
 
 [node name="TensionAlertLabel" type="Label" parent="FightContainer"]
 layout_mode = 1

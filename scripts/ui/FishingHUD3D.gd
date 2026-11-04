@@ -13,6 +13,9 @@ signal time_speed_step_requested(delta_step: int)
 
 @onready var cast_gauge_container: Control = $CastGaugeContainer
 @onready var cast_power_bar: ProgressBar = $CastGaugeContainer/CastPowerBar
+@onready var cast_label: Label = get_node_or_null("CastGaugeContainer/Label")
+var status_toast_label: Label = null
+var toast_tween: Tween = null
 
 @onready var fight_container: Control = $FightContainer
 @onready var tension_bar: ProgressBar = $FightContainer/TensionBar
@@ -47,6 +50,22 @@ func _ready() -> void:
 	result_dialog.visible = false
 	if autopilot_label:
 		autopilot_label.visible = false
+
+	status_toast_label = Label.new()
+	status_toast_label.name = "StatusToastLabel"
+	status_toast_label.anchors_preset = Control.PRESET_CENTER_TOP
+	status_toast_label.anchor_left = 0.5
+	status_toast_label.anchor_right = 0.5
+	status_toast_label.offset_left = -260.0
+	status_toast_label.offset_right = 260.0
+	status_toast_label.offset_top = 72.0
+	status_toast_label.offset_bottom = 110.0
+	status_toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	status_toast_label.add_theme_font_size_override("font_size", 18)
+	status_toast_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	status_toast_label.add_theme_constant_override("outline_size", 5)
+	status_toast_label.visible = false
+	add_child(status_toast_label)
 
 	for b in [btn_time_of_day, btn_speed_down, btn_time_speed, btn_speed_up]:
 		if b and GameData:
@@ -111,9 +130,30 @@ func _unhandled_input(event: InputEvent) -> void:
 func show_cast_gauge(power_ratio: float) -> void:
 	cast_gauge_container.visible = true
 	cast_power_bar.value = power_ratio * 100.0
+	if cast_label:
+		var pct = int(round(power_ratio * 100.0))
+		var zone_str = "ちょい投げ（手前・浅瀬）"
+		if power_ratio >= 0.72:
+			zone_str = "フル遠投（沖合・大物狙い！）"
+		elif power_ratio >= 0.35:
+			zone_str = "中投げ（藻場・沈み瀬）"
+		cast_label.text = "CAST POWER: %d%% 【%s】" % [pct, zone_str]
 
 func hide_cast_gauge() -> void:
 	cast_gauge_container.visible = false
+
+func show_status_toast(msg: String, color: Color = Color(1.0, 0.95, 0.65), duration: float = 2.4) -> void:
+	if not status_toast_label:
+		return
+	if toast_tween and toast_tween.is_valid():
+		toast_tween.kill()
+	status_toast_label.text = msg
+	status_toast_label.modulate = color
+	status_toast_label.visible = true
+	toast_tween = create_tween()
+	toast_tween.tween_interval(duration)
+	toast_tween.tween_property(status_toast_label, "modulate:a", 0.0, 0.35)
+	toast_tween.tween_callback(func(): status_toast_label.visible = false)
 
 # HIT演出
 func trigger_hit() -> void:
@@ -127,23 +167,30 @@ func trigger_hit() -> void:
 	tween.tween_callback(func(): hit_indicator.visible = false)
 
 # ファイト中UI
-func show_fight_ui(fish_name: String) -> void:
+func show_fight_ui(fish_name: String, weight_label: String = "") -> void:
 	fight_container.visible = true
-	fish_name_fight_label.text = "FIGHT: " + fish_name
+	if weight_label != "":
+		fish_name_fight_label.text = "🎣 手応え: " + weight_label
+	else:
+		fish_name_fight_label.text = "FIGHT: " + fish_name
 	tension_alert_label.text = ""
 
-func update_fight_status(tension: float, distance: float, _is_reeling: bool) -> void:
+func update_fight_status(tension: float, distance: float, _is_reeling: bool, is_dashing: bool = false, stamina_ratio: float = 1.0) -> void:
 	tension_bar.value = tension * 100.0
-	distance_label.text = "距離: %0.1fm" % max(0.0, distance)
-	
-	if tension > 0.85:
-		tension_alert_label.text = "⚠️ 糸が張りすぎ！ 切れるぞ！（リールを離せ！）"
+	var stam_pct = int(clamp(stamina_ratio, 0.0, 1.0) * 100.0)
+	distance_label.text = "残り: %0.1fm (魚体力: %d%%)" % [max(0.0, distance), stam_pct]
+
+	if tension > 0.82:
+		tension_alert_label.text = "⚠️ 糸が限界！ 切れるぞ！（今すぐリールを離せ！）"
 		tension_alert_label.modulate = Color(1.0, 0.25, 0.25)
-	elif tension < 0.20:
+	elif is_dashing:
+		tension_alert_label.text = "🔥 魚が猛烈に突っ込んでいる！ 無理に巻かず耐えろ！"
+		tension_alert_label.modulate = Color(1.0, 0.58, 0.20)
+	elif tension < 0.22:
 		tension_alert_label.text = "⚠️ 糸が緩んでいる！ バレるぞ！（リールを巻け！）"
-		tension_alert_label.modulate = Color(0.35, 0.75, 1.0)
+		tension_alert_label.modulate = Color(0.35, 0.78, 1.0)
 	else:
-		tension_alert_label.text = "⭕ 最適テンション！ その調子で巻き上げろ！"
+		tension_alert_label.text = "⭕ 魚が止まった！ 最適テンションを保って巻き上げろ！"
 		tension_alert_label.modulate = Color(0.35, 1.0, 0.45)
 
 func hide_fight_ui() -> void:

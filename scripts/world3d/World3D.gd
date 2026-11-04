@@ -293,8 +293,11 @@ func _do_capture_nogita() -> void:
 		camera.look_at(camera_pivot.global_position, Vector3.UP)
 
 		fishing_ctrl.current_state = fishing_ctrl.State.WAITING
+		fishing_ctrl.cast_target_pos = Vector3(-5.8, 0.05, -8.2)
 		fishing_ctrl.bobber_node.global_position = Vector3(-5.8, 0.05, -8.2)
 		fishing_ctrl.bobber_node.visible = true
+		fishing_ctrl.current_fish = FishDb.get_fish_dict("suzuki")
+		fishing_ctrl._start_fish_approach()
 		if fx_node:
 			fx_node.spawn_water_splash(Vector3(-5.8, 0.05, -8.2), 12, 2.0)
 	await get_tree().create_timer(0.6).timeout
@@ -306,12 +309,14 @@ func _do_capture_nogita() -> void:
 		fishing_ctrl.current_state = fishing_ctrl.State.FIGHTING
 		fishing_ctrl.current_fish = FishDb.get_fish_dict("suzuki")
 		fishing_ctrl.current_fish["is_first"] = true
-		fishing_ctrl.fight_tension = 0.62
-		fishing_ctrl.fight_distance = 4.2
-		hud_node.show_fight_ui("スズキ (シーバス)")
-		hud_node.update_fight_status(0.62, 4.2, true)
+		fishing_ctrl.fight_tension = 0.42
+		fishing_ctrl.fight_distance = 7.4
+		fishing_ctrl.fish_stamina = 0.72
+		fishing_ctrl.is_fish_dashing = true
+		hud_node.show_fight_ui("スズキ (シーバス)", fishing_ctrl.current_fish.get("weight_label", ""))
+		hud_node.update_fight_status(0.58, 7.4, false, true, 0.72)
 		if fx_node:
-			fx_node.spawn_water_splash(Vector3(-7.4, 0.05, -11.5), 8, 2.5)
+			fx_node.spawn_water_splash(Vector3(-5.8, 0.05, -8.2), 8, 2.5)
 	await get_tree().create_timer(0.6).timeout
 	img = get_viewport().get_texture().get_image()
 	img.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_nogita_3d_fight.png")

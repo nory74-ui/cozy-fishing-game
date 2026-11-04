@@ -95,30 +95,55 @@ static func get_fish_dict(species_id: String) -> Dictionary:
 	base_data["size"] = len_val
 	base_data["weight"] = snapped((len_val * len_val * len_val) * 0.000014 * randf_range(0.85, 1.15), 0.05)
 	if base_data["weight"] < 0.08: base_data["weight"] = 0.08
-	
+
+	var w_kg: float = base_data["weight"]
+	# 重量クラスと3D魚影サイズ・引きの重さパラメータを計算
+	if w_kg < 0.45:
+		base_data["weight_class"] = "light"
+		base_data["weight_label"] = "軽量級（小気味よい引き）"
+		base_data["shadow_scale"] = clamp(0.24 + (len_val / 100.0) * 0.25, 0.24, 0.34)
+		base_data["reel_speed_mult"] = 1.25 # 軽いのでスイスイ寄ってくるが口切れ注意
+		base_data["dash_pull_speed"] = 0.65
+	elif w_kg < 2.2:
+		base_data["weight_class"] = "medium"
+		base_data["weight_label"] = "中量級（力強い突っ込み）"
+		base_data["shadow_scale"] = clamp(0.35 + (len_val / 100.0) * 0.28, 0.35, 0.48)
+		base_data["reel_speed_mult"] = 0.82 # 適度な重み
+		base_data["dash_pull_speed"] = 1.45
+	else:
+		base_data["weight_class"] = "heavy"
+		base_data["weight_label"] = "重量級・大物（強烈な重量感と疾走！）"
+		base_data["shadow_scale"] = clamp(0.50 + (len_val / 100.0) * 0.30, 0.50, 0.72)
+		base_data["reel_speed_mult"] = clamp(0.52 - (w_kg - 2.2) * 0.025, 0.32, 0.52) # ズッシリ重く簡単には寄らない
+		base_data["dash_pull_speed"] = clamp(2.1 + (w_kg - 2.2) * 0.15, 2.1, 3.2)
+
 	# 価格計算（基本価格 + サイズ補正）
 	var size_ratio = (len_val - base_data["min_size"]) / max(1.0, (base_data["max_size"] - base_data["min_size"]))
 	base_data["price"] = int(base_data["base_price"] * (1.0 + size_ratio * 1.5))
 	return base_data
 
-static func get_random_fish(is_night: bool = false, distance: float = 8.0, cast_x: float = -8.0) -> Dictionary:
+static func get_random_fish(is_night: bool = false, distance: float = 4.0, cast_x: float = -4.0, power_ratio: float = 0.5) -> Dictionary:
 	var pool = []
-	
-	if cast_x > 0.0:
-		# 砂浜サーフエリア
-		pool = ["kisu", "kisu", "magochi", "hirame", "aji"]
-	elif distance > 10.5:
-		# 大波止先端・沖合深場
+
+	# 力加減（近い・中間・遠い）と水深によって釣れる魚種・サイズ帯が変化
+	if power_ratio < 0.35 or distance < 2.8:
+		# ちょい投げ（波打ち際・浅瀬）：シロギス・アジ・アラカブなど軽量級中心
 		if is_night:
-			pool = ["suzuki", "suzuki", "aoriika", "madai", "kijihata"]
+			pool = ["aji", "aji", "arakabu", "arakabu", "kisu", "chinu"]
 		else:
-			pool = ["madai", "suzuki", "hirame", "aoriika", "aji"]
-	elif is_night:
-		# 夜間の波止・テトラ際
-		pool = ["suzuki", "aoriika", "arakabu", "chinu", "aji"]
+			pool = ["kisu", "kisu", "kisu", "aji", "aji", "arakabu", "magochi"]
+	elif power_ratio < 0.72 or distance < 4.8:
+		# 中投げ（藻場・沈み瀬周辺）：中量級〜良型が揃う
+		if is_night:
+			pool = ["aoriika", "chinu", "arakabu", "kijihata", "suzuki", "aji"]
+		else:
+			pool = ["chinu", "magochi", "aoriika", "kijihata", "aji", "kisu", "hirame"]
 	else:
-		# 日中の波止周辺
-		pool = ["aji", "aji", "arakabu", "chinu", "kisu", "aoriika"]
-	
+		# フルキャスト（沖合の深場・潮目）：マダイ・スズキ・ヒラメなど重量級の大物確率UP！
+		if is_night:
+			pool = ["suzuki", "suzuki", "madai", "kijihata", "aoriika", "hirame"]
+		else:
+			pool = ["madai", "madai", "hirame", "suzuki", "kijihata", "chinu", "magochi"]
+
 	var chosen_key = pool[randi() % pool.size()]
 	return get_fish_dict(chosen_key)
