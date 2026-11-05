@@ -305,13 +305,13 @@ alignment = 1
 custom_minimum_size = Vector2(180, 36)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "💰 すぐに売却 (+120 G)"
+text = "すぐに売却 (+120 G)"
 
 [node name="BtnKeepFish" type="Button" parent="ResultDialog/VBox/ResultActionHBox"]
 custom_minimum_size = Vector2(180, 36)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "🐟 ビクにキープ [E]"
+text = "ビクにキープ [E]"
 
 [node name="ClosePrompt" type="Label" parent="ResultDialog/VBox"]
 layout_mode = 2
@@ -330,7 +330,7 @@ offset_bottom = 54.0
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.90, 0.4, 1)
 theme_override_font_sizes/font_size = 16
-text = "🪙 所持金: 60 G"
+text = "所持金: 60 G"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -367,7 +367,7 @@ text = "【昼】12:00 [T]"
 custom_minimum_size = Vector2(32, 36)
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
-text = "◀"
+text = "＜"
 
 [node name="BtnTimeSpeed" type="Button" parent="TimeControlContainer"]
 custom_minimum_size = Vector2(126, 36)
@@ -379,7 +379,7 @@ text = "速度: 1x [V]"
 custom_minimum_size = Vector2(32, 36)
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
-text = "▶"
+text = "＞"
 
 [node name="BtnOpenShop" type="Button" parent="."]
 anchors_preset = 1
@@ -391,7 +391,7 @@ offset_right = -290.0
 offset_bottom = 54.0
 grow_horizontal = 0
 theme_override_font_sizes/font_size = 15
-text = "🎣 釣具店 [U]"
+text = "釣具店 [U]"
 
 [node name="BtnOpenBook" type="Button" parent="."]
 anchors_preset = 1
@@ -460,7 +460,7 @@ layout_mode = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.75, 0.45, 1)
 theme_override_font_sizes/font_size = 12
-text = "エサ: 🦐 アミエビ (残5)"
+text = "エサ: アミエビ (残5)"
 
 [node name="BaitKeyGuide" type="Label" parent="EquipmentBar/HBox"]
 layout_mode = 2

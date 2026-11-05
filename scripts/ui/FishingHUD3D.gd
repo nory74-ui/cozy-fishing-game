@@ -141,7 +141,7 @@ func _ready() -> void:
 
 func _on_coins_changed(new_amount: int) -> void:
 	if coins_label:
-		coins_label.text = "🪙 所持金: %d G" % new_amount
+		coins_label.text = "所持金: %d G" % new_amount
 
 func _update_equipment_display() -> void:
 	if not GameData: return
@@ -291,6 +291,8 @@ func hide_fight_ui() -> void:
 
 # 釣果ダイアログ（詳細な生態・学術データ対応）
 func show_catch_result(fish_data: Dictionary) -> void:
+	if status_toast_label:
+		status_toast_label.visible = false
 	current_caught_fish = fish_data
 	result_dialog.visible = true
 	result_title.text = "★ %s を釣り上げた！" % fish_data.get("name", "謎の魚")
@@ -327,7 +329,7 @@ func show_catch_result(fish_data: Dictionary) -> void:
 	result_desc.text = fish_data.get("desc", "")
 
 	if btn_sell_now:
-		btn_sell_now.text = "💰 すぐに売却 (+%d G)" % price_val
+		btn_sell_now.text = "すぐに売却 (+%d G)" % price_val
 	
 	var tex_path = fish_data.get("texture", "")
 	if ResourceLoader.exists(tex_path):
@@ -350,7 +352,7 @@ func _on_sell_now_pressed() -> void:
 	# 直前にビクへ入った魚（最後の要素）を売却
 	var last_idx = GameData.inventory.size() - 1
 	var price = GameData.sell_fish_at(last_idx)
-	show_status_toast("💰 %s を売却して %d G を獲得しました！" % [current_caught_fish.get("name", "魚"), price], Color(1.0, 0.90, 0.35), 2.4)
+	show_status_toast("【売却】 %s を売却して %d G を獲得しました！" % [current_caught_fish.get("name", "魚"), price], Color(1.0, 0.90, 0.35), 2.4)
 	hide_catch_result()
 
 func hide_catch_result() -> void:

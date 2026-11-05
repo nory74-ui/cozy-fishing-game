@@ -61,9 +61,13 @@ func cleanup() -> void:
 	audio_cache.clear()
 
 func _preload_all() -> void:
-	# BGM
+	# BGM（タイトル & 時間帯別BGM：昼間・夕方・夜・明け方）
 	_load_sound("bgm_title", "res://assets/audio/bgm_title.ogg", true)
 	_load_sound("bgm_fishing", "res://assets/audio/bgm_fishing.ogg", true)
+	_load_sound("bgm_day", "res://assets/audio/bgm_day.ogg", true)
+	_load_sound("bgm_sunset", "res://assets/audio/bgm_sunset.ogg", true)
+	_load_sound("bgm_night", "res://assets/audio/bgm_night.ogg", true)
+	_load_sound("bgm_dawn", "res://assets/audio/bgm_dawn.ogg", true)
 	
 	# 環境音
 	_load_sound("ambient_waves", "res://assets/audio/ambient_waves.wav", true)
@@ -172,6 +176,22 @@ func _load_wav_file(path: String) -> AudioStreamWAV:
 	return null
 
 # --- BGM コントロール ---
+
+func get_bgm_for_time_of_day(time_of_day: float) -> String:
+	var total_hours = fmod((time_of_day * 24.0) + 6.0, 24.0)
+	if total_hours >= 4.5 and total_hours < 9.0:
+		return "bgm_dawn"
+	elif total_hours >= 9.0 and total_hours < 16.0:
+		return "bgm_day"
+	elif total_hours >= 16.0 and total_hours < 19.5:
+		return "bgm_sunset"
+	else:
+		return "bgm_night"
+
+func sync_time_bgm(time_of_day: float, fade_time: float = 2.0) -> void:
+	var target_bgm = get_bgm_for_time_of_day(time_of_day)
+	if current_bgm_name != target_bgm:
+		play_bgm(target_bgm, fade_time)
 
 func play_bgm(bgm_id: String, fade_time: float = 1.0) -> void:
 	if current_bgm_name == bgm_id and bgm_player.playing:

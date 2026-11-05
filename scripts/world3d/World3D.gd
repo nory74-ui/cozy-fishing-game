@@ -57,6 +57,7 @@ func _ready() -> void:
 
 	if SoundManager:
 		SoundManager.play_ambient("ambient_waves")
+		SoundManager.sync_time_bgm(current_time_of_day, 1.0)
 
 	if fishing_hud:
 		if fish_book_modal and fishing_hud.has_signal("book_open_requested"):
@@ -130,6 +131,8 @@ func _process(delta: float) -> void:
 		if current_time_of_day >= 1.0:
 			current_time_of_day = fmod(current_time_of_day, 1.0)
 		_update_lighting(delta)
+		if SoundManager:
+			SoundManager.sync_time_bgm(current_time_of_day, 2.5)
 	_sync_time_ui()
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -146,6 +149,8 @@ func _unhandled_input(event: InputEvent) -> void:
 func _jump_time_of_day() -> void:
 	current_time_of_day = fmod(current_time_of_day + 0.25, 1.0)
 	_update_lighting(0.0)
+	if SoundManager:
+		SoundManager.sync_time_bgm(current_time_of_day, 1.2)
 	_sync_time_ui()
 
 func _cycle_time_speed() -> void:

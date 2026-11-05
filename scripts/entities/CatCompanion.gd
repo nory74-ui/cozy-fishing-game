@@ -22,7 +22,7 @@ var walk_time: float = 0.0
 var idle_anim_timer: float = 0.0
 var meow_bubble_timer: float = 5.0
 var show_bubble: bool = false
-var bubble_text: String = "🐾"
+var bubble_text: String = "にゃ"
 
 func _ready() -> void:
 	z_index = 4
@@ -51,7 +51,7 @@ func _process(delta: float) -> void:
 	if meow_bubble_timer <= 0.0:
 		meow_bubble_timer = randf_range(8.0, 16.0)
 		show_bubble = true
-		var bubbles = ["🐾", "🐟✨", "にゃ♪", "🌊"]
+		var bubbles = ["にゃあ", "ごろごろ", "にゃ♪", "ふにゃ"]
 		bubble_text = bubbles[randi() % bubbles.size()]
 		# 2.2秒後に吹き出し非表示
 		get_tree().create_timer(2.2).timeout.connect(func(): show_bubble = false)

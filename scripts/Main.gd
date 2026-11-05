@@ -192,7 +192,7 @@ func _on_item_collected(item_name: String, value: int, icon: String) -> void:
 	_set_hud_status(msg, true)
 	var cat_node = get_node_or_null("CatCompanion")
 	if cat_node and "show_bubble" in cat_node:
-		cat_node.bubble_text = "🐾 大当たり！"
+		cat_node.bubble_text = "大当たり！"
 		cat_node.show_bubble = true
 
 func _run_capture_nogita_master_test() -> void:

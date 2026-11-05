@@ -83,7 +83,7 @@ func _on_coins_changed(_new_amount: int) -> void:
 func _update_coins_display() -> void:
 	if not coins_label: return
 	var c = GameData.coins if GameData else 0
-	coins_label.text = "所持金: 🪙 %d G" % c
+	coins_label.text = "所持金: %d G" % c
 
 func _style_tabs() -> void:
 	var tabs = [btn_tab_rods, btn_tab_lines, btn_tab_reels, btn_tab_baits, btn_tab_sell]
@@ -248,7 +248,7 @@ func _populate_baits() -> void:
 		var equip_btn = Button.new()
 		GameData.apply_pastel_button_style(equip_btn)
 		if is_equipped:
-			equip_btn.text = "✔ 装備中"
+			equip_btn.text = "【装備中】"
 			equip_btn.disabled = true
 			equip_btn.modulate = Color(0.4, 1.0, 0.5)
 		else:
@@ -270,8 +270,8 @@ func _populate_sell_list() -> void:
 	for f in inv:
 		total_val += f.get("price", 10)
 		
-	summary_label.text = "手持ちの魚: %d 匹 (売却見込み合計: 🪙 %d G)" % [inv.size(), total_val]
-	sell_all_button.text = "💰 まとめて全て売却 (+%d G)" % total_val
+	summary_label.text = "手持ちの魚: %d 匹 (売却見込み合計: %d G)" % [inv.size(), total_val]
+	sell_all_button.text = "まとめて全て売却 (+%d G)" % total_val
 	sell_all_button.disabled = (inv.is_empty())
 	
 	if inv.is_empty():
@@ -291,7 +291,7 @@ func _populate_sell_list() -> void:
 		var f_price = fish.get("price", 20)
 		var f_sci = fish.get("scientific_name", "")
 		
-		var title_txt = "🐟 %s (%0.1fcm / %0.2fkg)" % [f_name, f_len, f_weight]
+		var title_txt = "◆ %s (%0.1fcm / %0.2fkg)" % [f_name, f_len, f_weight]
 		var sub_txt = "学名: %s   生息地: %s" % [f_sci, fish.get("habitat", "野北海岸")]
 		var desc_txt = fish.get("desc", "")
 		
@@ -385,7 +385,7 @@ func _setup_card_actions(card: PanelContainer, price: int, is_unlocked: bool, is
 		var equip_btn = Button.new()
 		GameData.apply_pastel_button_style(equip_btn)
 		if is_equipped:
-			equip_btn.text = "✔ 装備中"
+			equip_btn.text = "【装備中】"
 			equip_btn.disabled = true
 			equip_btn.modulate = Color(0.4, 1.0, 0.5)
 		else:

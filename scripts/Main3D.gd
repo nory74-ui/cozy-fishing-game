@@ -112,11 +112,11 @@ func _spawn_fishes() -> void:
 
 func _spawn_forage_items() -> void:
 	var items = [
-		{"pos": Vector3(4.0, 0.45, 10.0), "name": "サザエ", "val": 120, "icon": "🐚"},
-		{"pos": Vector3(12.0, 0.45, 7.5), "name": "桜貝", "val": 60, "icon": "🌸"},
-		{"pos": Vector3(16.0, 0.45, 12.0), "name": "シーグラス", "val": 80, "icon": "💎"},
-		{"pos": Vector3(-12.0, 1.85, 4.0), "name": "アワビ", "val": 250, "icon": "🦪"},
-		{"pos": Vector3(8.0, 0.45, 2.0), "name": "漂着ボトル", "val": 150, "icon": "🍾"}
+		{"pos": Vector3(4.0, 0.45, 10.0), "name": "サザエ", "val": 120, "icon": "◆"},
+		{"pos": Vector3(12.0, 0.45, 7.5), "name": "桜貝", "val": 60, "icon": "◆"},
+		{"pos": Vector3(16.0, 0.45, 12.0), "name": "シーグラス", "val": 80, "icon": "◆"},
+		{"pos": Vector3(-12.0, 1.85, 4.0), "name": "アワビ", "val": 250, "icon": "◆"},
+		{"pos": Vector3(8.0, 0.45, 2.0), "name": "漂着ボトル", "val": 150, "icon": "◆"}
 	]
 	for it in items:
 		var sp = Sprite3D.new()

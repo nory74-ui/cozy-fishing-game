@@ -58,13 +58,13 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.98, 0.92, 0.75, 1)
 theme_override_font_sizes/font_size = 20
-text = "🎣 潮風釣具店（野北番屋支店）"
+text = "【潮風釣具店（野北番屋支店）】"
 
 [node name="CoinsLabel" type="Label" parent="Center/PanelContainer/VBox/Header"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.88, 0.35, 1)
 theme_override_font_sizes/font_size = 18
-text = "所持金: 🪙 60 G"
+text = "所持金: 60 G"
 
 [node name="BtnClose" type="Button" parent="Center/PanelContainer/VBox/Header"]
 custom_minimum_size = Vector2(80, 32)
@@ -83,31 +83,31 @@ theme_override_constants/separation = 8
 custom_minimum_size = Vector2(130, 34)
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
-text = "🎣 釣り竿 (ロッド)"
+text = "【竿】釣り竿 (ロッド)"
 
 [node name="BtnTabLines" type="Button" parent="Center/PanelContainer/VBox/TabHBox"]
 custom_minimum_size = Vector2(130, 34)
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
-text = "🧵 道糸 (ライン)"
+text = "【糸】道糸 (ライン)"
 
 [node name="BtnTabReels" type="Button" parent="Center/PanelContainer/VBox/TabHBox"]
 custom_minimum_size = Vector2(130, 34)
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
-text = "⚙️ リール"
+text = "【巻】リール"
 
 [node name="BtnTabBaits" type="Button" parent="Center/PanelContainer/VBox/TabHBox"]
 custom_minimum_size = Vector2(130, 34)
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
-text = "🦐 エサ・ルアー"
+text = "【餌】エサ・ルアー"
 
 [node name="BtnTabSell" type="Button" parent="Center/PanelContainer/VBox/TabHBox"]
 custom_minimum_size = Vector2(130, 34)
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
-text = "💰 魚の売却 (ビク)"
+text = "【売】魚の売却 (ビク)"
 
 [node name="ItemScroll" type="ScrollContainer" parent="Center/PanelContainer/VBox"]
 custom_minimum_size = Vector2(0, 320)
@@ -135,4 +135,4 @@ text = "※ 道具を強化することで、玄界灘のより大きな魚を�
 custom_minimum_size = Vector2(200, 36)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "💰 まとめて全て売却"
+text = "まとめて全て売却"

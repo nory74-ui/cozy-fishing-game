@@ -19,7 +19,7 @@ const ITEM_TYPES = [
 		"id": "sazae",
 		"name": "天然サザエ",
 		"value": 120,
-		"icon": "🐚",
+		"icon": "◆",
 		"zone": "pier", # 防波堤・磯根際
 		"color": Color(0.4, 0.7, 0.5)
 	},
@@ -27,7 +27,7 @@ const ITEM_TYPES = [
 		"id": "awabi",
 		"name": "玄界灘アワビ",
 		"value": 280,
-		"icon": "🦪",
+		"icon": "◆",
 		"zone": "pier",
 		"color": Color(0.9, 0.6, 0.3)
 	},
@@ -35,7 +35,7 @@ const ITEM_TYPES = [
 		"id": "sakuragai",
 		"name": "きれいな桜貝",
 		"value": 60,
-		"icon": "🌸",
+		"icon": "◆",
 		"zone": "beach", # 白砂サーフ波打ち際
 		"color": Color(1.0, 0.6, 0.75)
 	},
@@ -43,7 +43,7 @@ const ITEM_TYPES = [
 		"id": "seaglass",
 		"name": "シーグラス（海の宝石）",
 		"value": 50,
-		"icon": "💎",
+		"icon": "◆",
 		"zone": "beach",
 		"color": Color(0.3, 0.85, 0.95)
 	},
@@ -51,7 +51,7 @@ const ITEM_TYPES = [
 		"id": "bottle",
 		"name": "漂着メッセージボトル",
 		"value": 150,
-		"icon": "🍾",
+		"icon": "◆",
 		"zone": "beach",
 		"color": Color(0.95, 0.85, 0.4)
 	}

@@ -69,7 +69,7 @@ func show_result(fish_data: Dictionary) -> void:
 			"color": [Color("#ffd166"), Color("#06d6a0"), Color("#118ab2"), Color("#ffffff")][randi() % 4]
 		})
 		
-	title_label.text = "✨ " + fish_data.get("name", "魚") + " を釣り上げた！ ✨"
+	title_label.text = "★ " + fish_data.get("name", "魚") + " を釣り上げた！ ★"
 	
 	# 魚テクスチャの読み込み
 	var species = fish_data.get("species", "funa")
@@ -101,7 +101,7 @@ func show_result(fish_data: Dictionary) -> void:
 			record_badge_label.add_theme_color_override("font_color", Color("#06d6a0"))
 		elif is_new_record:
 			record_badge_label.visible = true
-			record_badge_label.text = "👑【NEW RECORD! 自己最高記録更新！】👑"
+			record_badge_label.text = "★【NEW RECORD! 自己最高記録更新！】★"
 			record_badge_label.add_theme_color_override("font_color", Color("#ffd166"))
 		else:
 			record_badge_label.visible = false
