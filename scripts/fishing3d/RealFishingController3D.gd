@@ -298,7 +298,21 @@ func _update_state_machine(delta: float) -> void:
 		State.LANDING:
 			_process_landing(delta)
 
-# --- 1. キャスト動作（力加減で手前浅瀬〜沖合深場まで明確に変化） ---
+# --- 1. キャスト動作（源さんが向いている方向へ投げ分け＆力加減で手前〜沖合まで明確に変化） ---
+func _is_point_in_water(x: float, z: float) -> bool:
+	if z < -18.5 or z > 18.5 or x < -17.5:
+		return false
+	var shore_x = 0.6 + sin(z * 0.16) * 1.1 + cos(z * 0.09 + 0.5) * 0.6
+	if x > shore_x - 0.55:
+		return false
+	# 木製桟橋の構造物上は除外（桟橋の南北の海や先端沖はOK）
+	if z >= -4.70 and z <= -2.45 and x >= -8.1:
+		return false
+	# 大波止（北防波堤）のコンクリート構造物上は除外（大波止の南側湾内・北側外海・先端西沖はOK）
+	if z >= -13.05 and z <= -9.85 and x >= -13.5:
+		return false
+	return true
+
 func _start_charging() -> void:
 	# エサの残数チェック
 	if GameData and not GameData.can_fish_with_current_bait():
@@ -310,12 +324,34 @@ func _start_charging() -> void:
 
 	current_state = State.CHARGING
 	charge_power = 0.0
+	if bobber_node:
+		bobber_node.visible = false
 	if stalker_fish_node:
 		stalker_fish_node.visible = false
 	if player:
 		player.current_state = CharacterBarlock3D.State.CASTING
-		player.facing_dir = 3 # 海側を向く
-		player._update_sprite_direction()
+		var p = player.global_position
+		var f_dir = player.get_facing_direction() if player.has_method("get_facing_direction") else Vector3(-1.0, 0.0, 0.0)
+		var on_wooden_pier = (abs(p.z - (-3.6)) < 1.3 and p.x <= 1.2)
+		var on_breakwater = (p.z < -9.1 and p.x <= 2.2)
+
+		if on_wooden_pier or on_breakwater:
+			# 桟橋や堤防の上では、源さんが現在向いている方向（南・北・西・斜めなど）をそのまま維持！
+			# もし真東（陸の根元方向）だけを向いている場合のみ、海側へ軽く向ける
+			if f_dir.x > 0.65 and abs(f_dir.z) < 0.65:
+				if on_breakwater:
+					player.set_facing_direction(Vector3(-0.35, 0.0, 0.93).normalized())
+				else:
+					player.set_facing_direction(Vector3(-1.0, 0.0, 0.0))
+			else:
+				player.set_facing_direction(f_dir)
+		else:
+			# 砂浜・波打ち際では、海側（西〜南西〜北西）を向いていればその向きを維持し、陸側を向いていれば海側を向く
+			if f_dir.x > -0.25:
+				var target_dir = Vector3(-1.0, 0.0, clamp(f_dir.z, -0.55, 0.55)).normalized()
+				player.set_facing_direction(target_dir)
+			else:
+				player.set_facing_direction(f_dir)
 	state_changed.emit(current_state)
 
 func _release_cast() -> void:
@@ -330,37 +366,66 @@ func _release_cast() -> void:
 	if player and player.has_method("play_cast_swing_anim"):
 		player.play_cast_swing_anim()
 
-	var rod_tip = _get_rod_tip_pos()
-	cast_start_pos = rod_tip
-
-	# プレイヤーの位置と力加減（0.0〜1.0）から、画面内で「手前（1.5m）〜中間（4.0m）〜沖合（6.8m）」を明確に作り分ける
-	var z_target = clamp(player.global_position.z + randf_range(-0.6, 0.6), -14.0, 14.0)
-	var shore_x = 0.6 + sin(z_target * 0.16) * 1.1 + cos(z_target * 0.09 + 0.5) * 0.6
-
-	# 大波止（北防波堤 z < -9.2）の上から投げる場合
-	if player.global_position.z < -9.2:
-		z_target = clamp(player.global_position.z + lerp(2.1, 4.2, power_ratio), -9.0, -5.8)
-		var dist_x = lerp(1.2, 5.2, power_ratio)
-		cast_target_pos.x = clamp(player.global_position.x - dist_x, -9.6, -2.0)
-		cast_target_pos.z = z_target
-	# 木製桟橋（z ≈ -3.6）の上から投げる場合
-	elif abs(player.global_position.z - (-3.6)) < 1.3 and player.global_position.x < 1.2:
-		z_target = player.global_position.z + lerp(1.4, 2.8, power_ratio)
-		var dist_x = lerp(1.2, 5.0, power_ratio)
-		cast_target_pos.x = clamp(player.global_position.x - dist_x, -9.2, -1.8)
-		cast_target_pos.z = z_target
-	# 砂浜・波打ち際から投げる場合：汀線からの距離を power_ratio に比例させる（1.2m〜6.5m沖合）
+	var p = player.global_position if player else Vector3.ZERO
+	var f_dir = player.get_facing_direction() if (player and player.has_method("get_facing_direction")) else Vector3(-1.0, 0.0, 0.0)
+	f_dir.y = 0.0
+	if f_dir.length_squared() < 0.001:
+		f_dir = Vector3(-1.0, 0.0, 0.0)
 	else:
-		var water_offset = lerp(1.1, 6.4, power_ratio)
-		var target_x = min(shore_x - water_offset, player.global_position.x - lerp(1.4, 6.8, power_ratio))
-		# カメラ画角から絶対にはみ出さない範囲で近い・遠いを表現
-		var min_screen_x = max(player.global_position.x - 7.0, -10.5)
-		var max_water_x = shore_x - 0.9
-		cast_target_pos.x = clamp(target_x, min_screen_x, max_water_x)
-		cast_target_pos.z = z_target
+		f_dir = f_dir.normalized()
+
+	# 源さんが向いている方向へレイマーチし、着水可能な海面区間 [min_water_d, max_water_d] を取得
+	var valid_dists: Array[float] = []
+	var d_step = 1.15
+	while d_step <= 7.0:
+		var test_pt = p + f_dir * d_step
+		if _is_point_in_water(test_pt.x, test_pt.z):
+			valid_dists.append(d_step)
+		d_step += 0.25
+
+	# もし桟橋や堤防の上で通路の真横（陸向きや桟橋長手方向）を向いていて前方に海面がない場合、
+	# 現在の向きから最も近い海面方向を自動探索してそちらへ投げる
+	if valid_dists.is_empty():
+		var fallback_angles = [25.0, -25.0, 45.0, -45.0, 65.0, -65.0, 90.0, -90.0, 120.0, -120.0, 180.0]
+		for ang_deg in fallback_angles:
+			var cand_dir = f_dir.rotated(Vector3.UP, deg_to_rad(ang_deg)).normalized()
+			var cand_dists: Array[float] = []
+			var cd = 1.15
+			while cd <= 7.0:
+				var cpt = p + cand_dir * cd
+				if _is_point_in_water(cpt.x, cpt.z):
+					cand_dists.append(cd)
+				cd += 0.25
+			if not cand_dists.is_empty():
+				f_dir = cand_dir
+				valid_dists = cand_dists
+				if player and player.has_method("set_facing_direction"):
+					player.set_facing_direction(f_dir)
+				break
+
+	if not valid_dists.is_empty():
+		var min_d: float = valid_dists[0]
+		var max_d: float = valid_dists[valid_dists.size() - 1]
+		var target_d: float = lerp(min_d, max_d, power_ratio)
+		# 選んだ距離が万が一桟橋等を跨ぐ場合は最も近い有効距離にスナップ
+		var best_d: float = target_d
+		var min_diff: float = 999.0
+		for vd in valid_dists:
+			var diff = abs(vd - target_d)
+			if diff < min_diff:
+				min_diff = diff
+				best_d = vd
+		var jitter_perp = Vector3(-f_dir.z, 0.0, f_dir.x) * randf_range(-0.18, 0.18)
+		cast_target_pos = p + f_dir * best_d + jitter_perp
+	else:
+		# 最終フォールバック（西側の海へキャスト）
+		var shore_x = 0.6 + sin(p.z * 0.16) * 1.1 + cos(p.z * 0.09 + 0.5) * 0.6
+		cast_target_pos = Vector3(min(shore_x - lerp(1.5, 5.8, power_ratio), p.x - lerp(1.8, 6.0, power_ratio)), 0.05, clamp(p.z, -16.0, 16.0))
 
 	cast_target_pos.y = 0.05
 
+	# 竿の実際の穂先（先端）ワールド座標からウキを発射！
+	cast_start_pos = _get_rod_tip_pos()
 	bobber_node.global_position = cast_start_pos
 	bobber_node.visible = true
 
@@ -412,9 +477,12 @@ func _start_fish_approach() -> void:
 	else:
 		approach_speed = randf_range(0.28, 0.48) # 大物はゆったり威風堂々と近づく
 
-	# 沖側〜横方向のランダムな角度（2.2m〜3.6m離れた場所）から3D魚影が出現
-	stalker_angle = randf_range(PI * 0.55, PI * 1.45)
-	var spawn_dist = randf_range(2.2, 3.5)
+	# キャスト方向の沖側〜横方向のランダムな角度（2.0m〜3.2m離れた場所）から3D魚影が出現
+	var cast_dir = (cast_target_pos - player.global_position) if player else Vector3(-1.0, 0.0, 0.0)
+	cast_dir.y = 0.0
+	var base_angle = atan2(cast_dir.z, cast_dir.x) if cast_dir.length_squared() > 0.01 else PI
+	stalker_angle = base_angle + randf_range(-PI * 0.42, PI * 0.42)
+	var spawn_dist = randf_range(2.0, 3.2)
 	stalker_start_pos = cast_target_pos + Vector3(cos(stalker_angle) * spawn_dist, -0.26, sin(stalker_angle) * spawn_dist)
 
 	if stalker_fish_node:
@@ -608,22 +676,32 @@ func _process_fighting(delta: float) -> void:
 	if is_fish_dashing and randf() < 0.28 and fx:
 		fx.spawn_water_splash(bobber_node.global_position, 7, 2.0)
 
-	# 3D上のウキと魚影の位置を残り距離に合わせて更新
+	# 3D上のウキと魚影の位置を残り距離に合わせて全方位対応で更新
 	var dir_from_player = (bobber_node.global_position - player.global_position)
 	dir_from_player.y = 0.0
 	if dir_from_player.length() < 0.05:
-		dir_from_player = Vector3(-1.0, 0.0, 0.0)
+		dir_from_player = player.get_facing_direction() if player.has_method("get_facing_direction") else Vector3(-1.0, 0.0, 0.0)
 	dir_from_player = dir_from_player.normalized()
 
+	# 源さんの身体もウキ（魚）の方向へ自然に向ける
+	if player and player.has_method("set_facing_direction"):
+		player.set_facing_direction(dir_from_player)
+
+	var perp_dir = Vector3(-dir_from_player.z, 0.0, dir_from_player.x)
 	var visual_dist = clamp(fight_distance * 0.62, 1.3, 7.2)
-	var sway_z = sin(fish_pull_timer * 1.7) * (0.45 if is_fish_dashing else 0.15)
-	bobber_node.global_position.x = player.global_position.x + dir_from_player.x * visual_dist
-	bobber_node.global_position.z = clamp(player.global_position.z + dir_from_player.z * visual_dist + sway_z * delta * 8.0, -14.0, 14.0)
+	var sway_amount = sin(fish_pull_timer * 1.7) * (0.45 if is_fish_dashing else 0.15) * delta * 8.0
+	var next_bob_pos = player.global_position + dir_from_player * visual_dist + perp_dir * sway_amount
+	bobber_node.global_position.x = clamp(next_bob_pos.x, -17.5, 4.5)
+	bobber_node.global_position.z = clamp(next_bob_pos.z, -18.5, 18.5)
 	bobber_node.global_position.y = 0.02 + sin(fish_pull_timer * 4.0) * 0.12
 
 	if stalker_fish_node:
 		stalker_fish_node.visible = true
-		stalker_fish_node.global_position = Vector3(bobber_node.global_position.x - 0.18, -0.22, bobber_node.global_position.z)
+		stalker_fish_node.global_position = Vector3(
+			bobber_node.global_position.x + dir_from_player.x * 0.18,
+			-0.22,
+			bobber_node.global_position.z + dir_from_player.z * 0.18
+		)
 		stalker_fish_node.rotation.y = atan2(dir_from_player.x, dir_from_player.z) + sin(fish_pull_timer * 5.0) * 0.45
 
 	if player and player.has_method("play_fight_pose"):
@@ -702,9 +780,10 @@ func _start_landing_action() -> void:
 func _process_landing_action(delta: float) -> void:
 	landing_anim_timer += delta
 	var t = clamp(landing_anim_timer / max(0.2, landing_duration), 0.0, 1.0)
-	var hand_target = (player.global_position + Vector3(-0.55, 1.05, 0.0)) if player else landing_start_pos
+	var f_dir = player.get_facing_direction() if (player and player.has_method("get_facing_direction")) else Vector3(-1.0, 0.0, 0.0)
+	var hand_target = (player.global_position + f_dir * 0.55 + Vector3(0.0, 1.05, 0.0)) if player else landing_start_pos
 
-	# 水面からバーロック船長の手元へ高い弧を描いて魚が飛んでくる！
+	# 水面から源さんの手元へ高い弧を描いて魚が飛んでくる！
 	var cur_pos = landing_start_pos.lerp(hand_target, t)
 	cur_pos.y += sin(t * PI) * 2.35
 	if bobber_node:
@@ -790,15 +869,19 @@ func _on_catch_dialog_closed() -> void:
 			player.reset_pose()
 	state_changed.emit(current_state)
 
-# 竿先位置取得
+# 竿先（3D竹竿の穂先）の正確なワールド座標を取得
 func _get_rod_tip_pos() -> Vector3:
-	if not player: return Vector3.ZERO
+	if not player:
+		return Vector3.ZERO
+	if player.has_method("get_rod_tip_global_position"):
+		return player.get_rod_tip_global_position()
 	return player.global_position + Vector3(-0.9, 1.7, 0.1)
 
-# 釣り糸の更新
+# 釣り糸の更新（常に竹竿の先端からウキまで正確に描画）
 func _update_fishing_line() -> void:
-	if not fx or not bobber_node: return
-	var is_visible = (current_state != State.IDLE and current_state != State.LANDING)
+	if not fx or not bobber_node:
+		return
+	var is_visible = bobber_node.visible and (current_state != State.IDLE and current_state != State.CHARGING and current_state != State.LANDING)
 	var tension_val = 0.25
 	if current_state == State.WAITING or current_state == State.FIGHTING:
 		tension_val = fight_tension

@@ -189,8 +189,8 @@ func _physics_process(delta: float) -> void:
 		var mid_x = lerp(player.global_position.x, fishing_ctrl.bobber_node.global_position.x, 0.38)
 		var mid_z = lerp(player.global_position.z, fishing_ctrl.bobber_node.global_position.z, 0.25)
 		target_pos = Vector3(mid_x, player.global_position.y, mid_z)
-	target_pos.z = clamp(target_pos.z, -14.5, 14.5)
-	target_pos.x = clamp(target_pos.x, -12.5, 6.5)
+	target_pos.z = clamp(target_pos.z, -16.0, 15.0)
+	target_pos.x = clamp(target_pos.x, -14.5, 6.5)
 	camera_pivot.global_position = camera_pivot.global_position.lerp(target_pos, camera_follow_speed * delta)
 	camera.position = current_camera_offset
 	camera.look_at(camera_pivot.global_position, Vector3.UP)
@@ -320,39 +320,62 @@ func _do_capture_nogita() -> void:
 	var img = get_viewport().get_texture().get_image()
 	img.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_nogita_3d_beach_day.png")
 
-	# 1.5 木製ロング桟橋と中空の木造小舟 & 漁師の番屋デッキ（frame_007.jpg / frame_009.jpg 完全再現）
-	if player and mike:
-		player.global_position = Vector3(-1.8, 0.50, -3.6)
+	# 1.5 木製ロング桟橋から南向き（正面手前 +Z 方向）へキャスト検証＆竿先からの釣り糸クローズアップ
+	if player and mike and fishing_ctrl:
+		player.global_position = Vector3(-3.2, 0.48, -3.6)
 		player.velocity = Vector3.ZERO
-		if player.has_node("VisualRoot"):
-			player.get_node("VisualRoot").rotation.y = deg_to_rad(25.0)
-		mike.global_position = Vector3(-0.7, 0.50, -3.5)
+		player.set_facing_direction(Vector3(0.0, 0.0, 1.0)) # 南向き（画面手前方向）
+		mike.global_position = Vector3(-2.1, 0.48, -3.5)
 		mike.velocity = Vector3.ZERO
-		camera_pivot.global_position = Vector3(-1.4, 0.3, -2.8)
+
+		fishing_ctrl._start_charging()
+		fishing_ctrl.charge_power = 0.55
+		fishing_ctrl._release_cast()
+		fishing_ctrl._on_bobber_landed()
+
+		camera_pivot.global_position = Vector3(-3.2, 0.3, -2.0)
 		camera.position = camera_offset
 		camera.look_at(camera_pivot.global_position, Vector3.UP)
 	await get_tree().create_timer(0.6).timeout
 	img = get_viewport().get_texture().get_image()
 	img.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_nogita_3d_boat.png")
+	img.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_pier_cast_south.png")
 
-	# 2. 野北の大波止・白灯台の前へ移動 & 3Dリアルフィッシング・キャスト
-	if player and mike and fishing_ctrl:
-		player.global_position = Vector3(-3.8, 0.98, -11.2)
-		player.velocity = Vector3.ZERO
-		mike.global_position = Vector3(-2.6, 0.98, -11.2)
-		mike.velocity = Vector3.ZERO
-		camera_pivot.global_position = Vector3(-4.6, 0.5, -10.2)
-		camera.position = camera_offset
+	# 1.6 竹竿の穂先（先端）から釣り糸が正確に出ていることを確認するクローズアップ撮影
+	if player and camera and camera_pivot and fishing_ctrl:
+		set_physics_process(false)
+		var tip_pos = player.get_rod_tip_global_position()
+		print("ROD_TIP_GLOBAL_POS: ", tip_pos, " BOBBER_POS: ", fishing_ctrl.bobber_node.global_position)
+		camera_pivot.global_position = player.global_position + Vector3(0.0, 1.0, 0.8)
+		camera.position = Vector3(1.8, 1.2, 2.2)
 		camera.look_at(camera_pivot.global_position, Vector3.UP)
+		await get_tree().create_timer(0.3).timeout
+		var img_tip = get_viewport().get_texture().get_image()
+		img_tip.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_rod_tip_line_closeup.png")
+		camera.position = camera_offset
+		set_physics_process(true)
 
-		fishing_ctrl.current_state = fishing_ctrl.State.WAITING
-		fishing_ctrl.cast_target_pos = Vector3(-5.8, 0.05, -8.2)
-		fishing_ctrl.bobber_node.global_position = Vector3(-5.8, 0.05, -8.2)
-		fishing_ctrl.bobber_node.visible = true
+	# 2. 野北の大波止・白灯台の前へ移動 & 向いている方向（南東〜南方向）へキャスト
+	if player and mike and fishing_ctrl:
+		player.global_position = Vector3(-4.2, 0.95, -11.2)
+		player.velocity = Vector3.ZERO
+		player.set_facing_direction(Vector3(-0.35, 0.0, 0.93).normalized()) # 大波止から南南西の湾内向き
+		mike.global_position = Vector3(-2.8, 0.95, -11.2)
+		mike.velocity = Vector3.ZERO
+
+		fishing_ctrl.current_state = fishing_ctrl.State.IDLE
+		fishing_ctrl._start_charging()
+		fishing_ctrl.charge_power = 0.65
+		fishing_ctrl._release_cast()
+		fishing_ctrl._on_bobber_landed()
 		fishing_ctrl.current_fish = FishDb.get_fish_dict("suzuki")
 		fishing_ctrl._start_fish_approach()
 		if fx_node:
-			fx_node.spawn_water_splash(Vector3(-5.8, 0.05, -8.2), 12, 2.0)
+			fx_node.spawn_water_splash(fishing_ctrl.bobber_node.global_position, 12, 2.0)
+
+		camera_pivot.global_position = Vector3(-4.6, 0.5, -9.8)
+		camera.position = camera_offset
+		camera.look_at(camera_pivot.global_position, Vector3.UP)
 	await get_tree().create_timer(0.6).timeout
 	img = get_viewport().get_texture().get_image()
 	img.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_nogita_3d_pier_lighthouse.png")

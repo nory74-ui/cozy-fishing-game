@@ -18,13 +18,14 @@ var left_leg_pivot: Node3D = null
 var right_leg_pivot: Node3D = null
 var left_arm_pivot: Node3D = null
 var right_arm_pivot: Node3D = null
+var rod_pivot: Node3D = null
 var head_pivot: Node3D = null
 var torso_pivot: Node3D = null
 var mustache_pivot: Node3D = null
 var anim_player: AnimationPlayer = null
 
-var target_rotation_y: float = 0.0
-var last_move_dir: Vector3 = Vector3(0, 0, 1)
+var target_rotation_y: float = deg_to_rad(-25.0)
+var last_move_dir: Vector3 = Vector3(-0.42, 0, 0.90).normalized()
 
 # 後方互換性プロパティ（3Dモデルの回転と自動同期）
 var facing_dir: int = 0:
@@ -35,11 +36,37 @@ var facing_dir: int = 0:
 			1: target_rotation_y = deg_to_rad(90.0)
 			2: target_rotation_y = deg_to_rad(180.0)
 			3: target_rotation_y = deg_to_rad(-90.0)
+		last_move_dir = Vector3(sin(target_rotation_y), 0.0, cos(target_rotation_y)).normalized()
 		if visual_root:
 			visual_root.rotation.y = target_rotation_y
 
 func _update_sprite_direction() -> void:
 	pass
+
+func get_facing_direction() -> Vector3:
+	if visual_root:
+		var ry = visual_root.rotation.y
+		var v = Vector3(sin(ry), 0.0, cos(ry))
+		if v.length_squared() > 0.001:
+			return v.normalized()
+	return Vector3(sin(target_rotation_y), 0.0, cos(target_rotation_y)).normalized()
+
+func set_facing_direction(dir: Vector3) -> void:
+	var d = Vector3(dir.x, 0.0, dir.z)
+	if d.length_squared() < 0.001:
+		return
+	d = d.normalized()
+	last_move_dir = d
+	target_rotation_y = atan2(d.x, d.z)
+	if visual_root:
+		visual_root.rotation.y = target_rotation_y
+
+# 3D竹竿の穂先（先端）の正確なワールド座標を返す
+func get_rod_tip_global_position() -> Vector3:
+	if rod_pivot:
+		return rod_pivot.to_global(Vector3(0.0, 1.495, 0.0))
+	var f_dir = get_facing_direction()
+	return global_position + f_dir * 1.15 + Vector3(0.0, 1.45, 0.0)
 
 var walk_anim_timer: float = 0.0
 var footprint_timer: float = 0.0
@@ -62,6 +89,7 @@ func _bind_character_joints() -> void:
 	right_leg_pivot = visual_root.find_child("RightLegPivot", true, false) as Node3D
 	left_arm_pivot = visual_root.find_child("LeftArmPivot", true, false) as Node3D
 	right_arm_pivot = visual_root.find_child("RightArmPivot", true, false) as Node3D
+	rod_pivot = visual_root.find_child("RodPivot", true, false) as Node3D
 	head_pivot = visual_root.find_child("HeadPivot", true, false) as Node3D
 	torso_pivot = visual_root.find_child("TorsoPivot", true, false) as Node3D
 	mustache_pivot = visual_root.find_child("MustachePivot", true, false) as Node3D
@@ -266,15 +294,15 @@ func _enforce_safe_bounds() -> void:
 	var target_y = get_walkable_surface_height(global_position.x, global_position.z)
 	global_position.y = lerp(global_position.y, target_y, 0.35)
 
-# --- 3D 釣り＆釣り上げ（抜き上げ）アクションアニメーション（源さんの腕・竿・白ひげ連動） ---
+# --- 3D 釣り＆釣り上げ（抜き上げ）アクションアニメーション（源さんの腕・竿・白ひげ連動・全方位キャスト対応） ---
 func play_charge_pose(power_ratio: float) -> void:
 	if not visual_root: return
-	visual_root.rotation.y = lerp_angle(visual_root.rotation.y, deg_to_rad(-90.0), 0.25)
-	# チャージ量に応じて上体と右腕（竹竿）を大きく後ろへ振りかぶる！
-	visual_root.rotation.x = deg_to_rad(lerp(4.0, 18.0, power_ratio))
+	visual_root.rotation.y = lerp_angle(visual_root.rotation.y, target_rotation_y, 0.25)
+	# チャージ量に応じて上体を反らし、右腕（竹竿）を上・後ろへ振りかぶる！
+	visual_root.rotation.x = deg_to_rad(lerp(-3.0, -14.0, power_ratio))
 	visual_root.position.y = lerp(0.0, -0.04, power_ratio)
 	if right_arm_pivot:
-		right_arm_pivot.rotation.x = deg_to_rad(lerp(15.0, 75.0, power_ratio))
+		right_arm_pivot.rotation.x = deg_to_rad(lerp(-10.0, -55.0, power_ratio))
 	if left_arm_pivot:
 		left_arm_pivot.rotation.x = deg_to_rad(lerp(-10.0, -35.0, power_ratio))
 
@@ -283,41 +311,41 @@ func play_cast_swing_anim() -> void:
 	if action_tween and action_tween.is_valid():
 		action_tween.kill()
 	action_tween = create_tween()
-	action_tween.tween_property(visual_root, "rotation:x", deg_to_rad(-16.0), 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	action_tween.parallel().tween_property(visual_root, "position:y", 0.12, 0.14)
+	action_tween.tween_property(visual_root, "rotation:x", deg_to_rad(14.0), 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	action_tween.parallel().tween_property(visual_root, "position:y", 0.10, 0.14)
 	if right_arm_pivot:
-		action_tween.parallel().tween_property(right_arm_pivot, "rotation:x", deg_to_rad(-58.0), 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		action_tween.parallel().tween_property(right_arm_pivot, "rotation:x", deg_to_rad(25.0), 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	action_tween.tween_property(visual_root, "rotation:x", 0.0, 0.22)
 	action_tween.parallel().tween_property(visual_root, "position:y", 0.0, 0.22)
 	if right_arm_pivot:
-		action_tween.parallel().tween_property(right_arm_pivot, "rotation:x", deg_to_rad(-18.0), 0.22)
+		action_tween.parallel().tween_property(right_arm_pivot, "rotation:x", deg_to_rad(5.0), 0.22)
 
 func play_fight_pose(is_reeling: bool, is_dashing: bool, time_sec: float) -> void:
 	if not visual_root: return
-	visual_root.rotation.y = lerp_angle(visual_root.rotation.y, deg_to_rad(-90.0), 0.2)
+	visual_root.rotation.y = lerp_angle(visual_root.rotation.y, target_rotation_y, 0.2)
 	if is_dashing:
-		# 魚の強烈な引きに腰を落として両腕で竿を溜めて耐えるポーズ
-		visual_root.rotation.x = deg_to_rad(14.0 + sin(time_sec * 18.0) * 4.0)
+		# 魚の強烈な引きに腰を落として両腕で竿を立てて耐えるポーズ
+		visual_root.rotation.x = deg_to_rad(-12.0 + sin(time_sec * 18.0) * 4.0)
 		visual_root.position.y = -0.03 + abs(sin(time_sec * 12.0)) * 0.03
 		if right_arm_pivot:
-			right_arm_pivot.rotation.x = deg_to_rad(28.0 + sin(time_sec * 20.0) * 8.0)
+			right_arm_pivot.rotation.x = deg_to_rad(-32.0 + sin(time_sec * 20.0) * 8.0)
 		if left_arm_pivot:
 			left_arm_pivot.rotation.x = deg_to_rad(-32.0 + cos(time_sec * 20.0) * 6.0)
 		if mustache_pivot:
 			mustache_pivot.rotation.z = sin(time_sec * 24.0) * 0.12
 	elif is_reeling:
 		# 竿をポンピングしながら力強くリールを巻くモーション
-		visual_root.rotation.x = deg_to_rad(8.0 + sin(time_sec * 10.0) * 7.0)
+		visual_root.rotation.x = deg_to_rad(-6.0 + sin(time_sec * 10.0) * 6.0)
 		visual_root.position.y = abs(sin(time_sec * 10.0)) * 0.05
 		if right_arm_pivot:
-			right_arm_pivot.rotation.x = deg_to_rad(-10.0 + sin(time_sec * 10.0) * 28.0)
+			right_arm_pivot.rotation.x = deg_to_rad(-18.0 + sin(time_sec * 10.0) * 20.0)
 		if left_arm_pivot:
 			left_arm_pivot.rotation.x = deg_to_rad(-25.0 + cos(time_sec * 16.0) * 18.0)
 	else:
-		visual_root.rotation.x = move_toward(visual_root.rotation.x, deg_to_rad(4.0), 0.1)
+		visual_root.rotation.x = move_toward(visual_root.rotation.x, deg_to_rad(-3.0), 0.1)
 		visual_root.position.y = move_toward(visual_root.position.y, 0.0, 0.1)
 		if right_arm_pivot:
-			right_arm_pivot.rotation.x = move_toward(right_arm_pivot.rotation.x, deg_to_rad(-15.0), 0.1)
+			right_arm_pivot.rotation.x = move_toward(right_arm_pivot.rotation.x, deg_to_rad(-12.0), 0.1)
 		if left_arm_pivot:
 			left_arm_pivot.rotation.x = move_toward(left_arm_pivot.rotation.x, deg_to_rad(-15.0), 0.1)
 
@@ -327,15 +355,15 @@ func play_landing_heave_anim() -> void:
 		action_tween.kill()
 	action_tween = create_tween()
 	# 1. 右腕の竹竿を大きく天へ振り上げ、左腕もバンザイして魚を海から抜き上げる豪快なアクション！
-	action_tween.tween_property(visual_root, "rotation:x", deg_to_rad(24.0), 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	action_tween.tween_property(visual_root, "rotation:x", deg_to_rad(-18.0), 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	action_tween.parallel().tween_property(visual_root, "position:y", 0.34, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	if right_arm_pivot:
-		action_tween.parallel().tween_property(right_arm_pivot, "rotation:x", deg_to_rad(65.0), 0.22)
+		action_tween.parallel().tween_property(right_arm_pivot, "rotation:x", deg_to_rad(-65.0), 0.22)
 	if left_arm_pivot:
 		action_tween.parallel().tween_property(left_arm_pivot, "rotation:x", deg_to_rad(-110.0), 0.22)
 	# 2. 着地してもう一度「獲ったどー！」の喜びジャンプ！
 	action_tween.tween_property(visual_root, "position:y", 0.0, 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	action_tween.parallel().tween_property(visual_root, "rotation:x", deg_to_rad(-5.0), 0.18)
+	action_tween.parallel().tween_property(visual_root, "rotation:x", deg_to_rad(5.0), 0.18)
 	action_tween.tween_property(visual_root, "position:y", 0.22, 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	action_tween.parallel().tween_property(visual_root, "rotation:x", 0.0, 0.15)
 	action_tween.tween_property(visual_root, "position:y", 0.0, 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
