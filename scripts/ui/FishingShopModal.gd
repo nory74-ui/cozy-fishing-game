@@ -35,6 +35,7 @@ var current_tab: Tab = Tab.RODS
 @onready var footer_hbox: HBoxContainer = $Center/PanelContainer/VBox/FooterHBox
 @onready var sell_all_button: Button = $Center/PanelContainer/VBox/FooterHBox/SellAllButton
 @onready var summary_label: Label = $Center/PanelContainer/VBox/FooterHBox/SummaryLabel
+@onready var overlay_backdrop: ColorRect = get_node_or_null("OverlayBackdrop")
 
 func _ready() -> void:
 	visible = false
@@ -45,6 +46,12 @@ func _ready() -> void:
 		GameData.equipment_changed.connect(_refresh_current_tab)
 
 	btn_close.pressed.connect(close_shop)
+	if overlay_backdrop:
+		overlay_backdrop.gui_input.connect(func(event: InputEvent):
+			if visible and event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+				close_shop()
+				get_viewport().set_input_as_handled()
+		)
 	
 	btn_tab_rods.pressed.connect(func(): _switch_tab(Tab.RODS))
 	btn_tab_lines.pressed.connect(func(): _switch_tab(Tab.LINES))
@@ -60,12 +67,14 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible:
 		return
-	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_ESCAPE or event.keycode == KEY_U:
+	if event is InputEventKey and event.pressed:
+		if not event.echo and (event.keycode == KEY_ESCAPE or event.keycode == KEY_U):
 			close_shop()
-			get_viewport().set_input_as_handled()
+		get_viewport().set_input_as_handled()
 
 func open_shop(default_tab: Tab = Tab.RODS) -> void:
+	if GameData:
+		GameData.ensure_starter_bait_if_stranded()
 	visible = true
 	_update_coins_display()
 	_switch_tab(default_tab)

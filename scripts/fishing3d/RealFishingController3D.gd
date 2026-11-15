@@ -148,6 +148,10 @@ func _create_stalker_fish_shadow() -> void:
 	add_child(stalker_fish_node)
 
 func _unhandled_input(event: InputEvent) -> void:
+	var parent_world = get_parent()
+	if current_state != State.LANDING and parent_world and parent_world.has_method("is_ui_modal_open") and parent_world.is_ui_modal_open():
+		return
+
 	# [P] キーによるオートパイロットのON/OFF切り替えは常に最優先で受け付ける
 	if event is InputEventKey and not event.echo and event.pressed:
 		if event.keycode == KEY_P:
@@ -182,7 +186,9 @@ func _on_action_pressed() -> void:
 		State.FIGHTING:
 			is_reeling = true
 		State.LANDING:
-			if hud: hud.hide_catch_result()
+			if hud:
+				hud.hide_catch_result()
+				get_viewport().set_input_as_handled()
 
 func _on_action_released() -> void:
 	match current_state:
@@ -314,6 +320,11 @@ func _is_point_in_water(x: float, z: float) -> bool:
 	return true
 
 func _start_charging() -> void:
+	# エサ切れ・コイン不足・ビク空の詰み防止救済
+	if GameData and GameData.ensure_starter_bait_if_stranded():
+		if hud and hud.has_method("show_status_toast"):
+			hud.show_status_toast("【番屋の差し入れ】エサを切らしたため、地元漁師から「アミエビ 5個」を分けてもらった！", Color(0.55, 0.95, 0.72), 3.0)
+
 	# エサの残数チェック
 	if GameData and not GameData.can_fish_with_current_bait():
 		if hud and hud.has_method("show_status_toast"):
@@ -446,7 +457,8 @@ func _on_bobber_landed() -> void:
 	var is_night = false
 	var parent_world = get_parent()
 	if parent_world and "current_time_of_day" in parent_world:
-		is_night = parent_world.current_time_of_day > 0.65
+		var total_hours = fmod((parent_world.current_time_of_day * 24.0) + 6.0, 24.0)
+		is_night = (total_hours >= 19.0 or total_hours < 5.0)
 
 	# エサを1個消費（ルアーは無限）
 	var current_bait_id = "okiami"
@@ -556,9 +568,8 @@ func _hook_fish() -> void:
 
 	if hud:
 		hud.show_fight_ui(current_fish.get("name", "魚"), current_fish.get("weight_label", ""))
-	if companion and companion.has_method("_update_sprite_direction"):
-		companion.facing_dir = 3 # 海を向いて応援
-		companion._update_sprite_direction()
+	if companion and companion.has_method("set_facing_direction") and player and player.has_method("get_facing_direction"):
+		companion.set_facing_direction(player.get_facing_direction())
 	state_changed.emit(current_state)
 
 # --- 3. 本格ファイトシステム（軽量級・中量級・重量級で挙動と難易度が明確に変化） ---
@@ -631,7 +642,7 @@ func _process_fighting(delta: float) -> void:
 
 		# 竿パワー不足時は魚の衝撃を吸収できずテンションがさらに跳ね上がる
 		if is_rod_underpowered:
-			reel_tension_rate *= 1.55
+			reel_tension_rate *= 1.25
 
 		tension_delta += reel_tension_rate * delta
 
@@ -658,8 +669,8 @@ func _process_fighting(delta: float) -> void:
 	if is_fish_dashing:
 		var pull_strength = (0.42 + pulse * 0.35) * fish_power * lerp(0.6, 1.1, fish_stamina)
 		if is_rod_underpowered:
-			# 竿がのされてバットが効かないためテンションが暴騰
-			pull_strength *= 1.65
+			# 竿がのされてバットが効かないためテンションが急上昇
+			pull_strength *= 1.30
 		tension_delta += pull_strength * delta
 
 		# リールを巻いていない、または重量級がダッシュしている時は糸を出して沖へ走る！

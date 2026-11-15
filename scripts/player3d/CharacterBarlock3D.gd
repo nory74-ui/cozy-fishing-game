@@ -142,6 +142,18 @@ func get_walkable_surface_height(x: float, z: float) -> float:
 	return h
 
 func _physics_process(delta: float) -> void:
+	var ui_world = get_parent()
+	if ui_world and ui_world.has_method("is_ui_modal_open") and ui_world.is_ui_modal_open():
+		velocity.x = move_toward(velocity.x, 0, move_speed * delta * 6.0)
+		velocity.z = move_toward(velocity.z, 0, move_speed * delta * 6.0)
+		velocity.y = 0.0
+		var t_idle = Time.get_ticks_msec() / 1000.0
+		visual_root.position.y = sin(t_idle * 2.2) * 0.015
+		_animate_idle_limbs(t_idle, delta)
+		move_and_slide()
+		_enforce_safe_bounds()
+		return
+
 	# キャスト中・釣り中はその場で待機（RealFishingController3Dがアニメーション制御）
 	if current_state == State.CASTING or current_state == State.FISHING:
 		velocity.x = move_toward(velocity.x, 0, move_speed * delta * 6.0)

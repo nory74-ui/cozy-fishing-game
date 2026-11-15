@@ -44,6 +44,15 @@ var facing_dir: int = 0:
 func _update_sprite_direction() -> void:
 	pass
 
+func set_facing_direction(dir: Vector3) -> void:
+	var d = Vector3(dir.x, 0.0, dir.z)
+	if d.length_squared() < 0.001:
+		return
+	d = d.normalized()
+	target_rotation_y = atan2(d.x, d.z)
+	if visual_root:
+		visual_root.rotation.y = target_rotation_y
+
 func _ready() -> void:
 	if follow_target_path:
 		follow_target = get_node_or_null(follow_target_path)
@@ -122,8 +131,14 @@ func _physics_process(delta: float) -> void:
 		visual_root.position.y = sin(t * 2.5) * 0.012
 
 		var is_fishing_cheer = (follow_target.get("current_state") == 3)
-		if is_fishing_cheer:
-			target_rotation_y = deg_to_rad(-90.0)
+		var parent_world = get_parent()
+		var in_closeup = (parent_world and "is_catch_closeup" in parent_world and parent_world.is_catch_closeup)
+		if is_fishing_cheer and not in_closeup:
+			if follow_target.has_method("get_facing_direction"):
+				var f_dir: Vector3 = follow_target.get_facing_direction()
+				target_rotation_y = atan2(f_dir.x, f_dir.z)
+			else:
+				target_rotation_y = deg_to_rad(-90.0)
 			visual_root.rotation.y = lerp_angle(visual_root.rotation.y, target_rotation_y, delta * 8.0)
 
 		_animate_idle_or_cheer_joints(t, delta, is_fishing_cheer)

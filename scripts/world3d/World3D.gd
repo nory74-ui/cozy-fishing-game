@@ -62,10 +62,14 @@ func _ready() -> void:
 	if fishing_hud:
 		if fish_book_modal and fishing_hud.has_signal("book_open_requested"):
 			fishing_hud.book_open_requested.connect(func():
+				if is_ui_modal_open() or _is_fishing_busy_for_modal():
+					return
 				fish_book_modal.open_book()
 			)
 		if fishing_shop_modal and fishing_hud.has_signal("shop_open_requested"):
 			fishing_hud.shop_open_requested.connect(func():
+				if is_ui_modal_open() or _is_fishing_busy_for_modal():
+					return
 				fishing_shop_modal.open_shop()
 			)
 		if fishing_hud.has_signal("time_jump_requested"):
@@ -135,7 +139,25 @@ func _process(delta: float) -> void:
 			SoundManager.sync_time_bgm(current_time_of_day, 2.5)
 	_sync_time_ui()
 
+func is_ui_modal_open() -> bool:
+	if fish_book_modal and fish_book_modal.visible:
+		return true
+	if fishing_shop_modal and fishing_shop_modal.visible:
+		return true
+	if fishing_hud and fishing_hud.result_dialog and fishing_hud.result_dialog.visible:
+		return true
+	return false
+
+func _is_fishing_busy_for_modal() -> bool:
+	var fishing_ctrl = get_node_or_null("RealFishingController3D")
+	if not fishing_ctrl:
+		return false
+	var st = fishing_ctrl.current_state
+	return st != fishing_ctrl.State.IDLE and st != fishing_ctrl.State.WAITING
+
 func _unhandled_input(event: InputEvent) -> void:
+	if is_ui_modal_open():
+		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_T:
 			_jump_time_of_day()
@@ -232,45 +254,56 @@ func _update_lighting(_delta: float) -> void:
 		sun_light.rotation_degrees = Vector3(-52.0, -138.0, 0.0)
 
 		var daylight_val = clamp(sin(sun_angle + PI * 0.5), -1.0, 1.0)
+		var total_hours = fmod((current_time_of_day * 24.0) + 6.0, 24.0)
+		var is_morning = (total_hours >= 4.0 and total_hours < 12.0)
 
-		if daylight_val > 0.2: # 昼
+		if daylight_val > 0.25: # 昼
 			sun_light.light_color = Color(1.0, 0.96, 0.88)
-			sun_light.light_energy = lerp(0.65, 0.88, daylight_val)
+			sun_light.light_energy = lerp(0.68, 0.90, daylight_val)
 			if player and player.has_method("set_lantern_enabled"):
 				player.set_lantern_enabled(false)
 			if world_env and world_env.environment:
 				world_env.environment.fog_light_color = Color(0.62, 0.82, 0.86)
 				world_env.environment.fog_density = 0.0005
+		elif daylight_val > -0.2 and is_morning: # 朝焼け・夜明け
+			var dawn_factor = (daylight_val + 0.2) / 0.45
+			sun_light.light_color = Color(0.98, 0.72, 0.56).lerp(Color(1.0, 0.96, 0.88), dawn_factor)
+			sun_light.light_energy = lerp(0.42, 0.68, dawn_factor)
+			if player and player.has_method("set_lantern_enabled"):
+				player.set_lantern_enabled(dawn_factor < 0.35)
+			if world_env and world_env.environment:
+				world_env.environment.fog_light_color = Color(0.86, 0.76, 0.72)
+				world_env.environment.fog_density = 0.0009
 		elif daylight_val > -0.2: # 夕方
-			var sunset_factor = (daylight_val + 0.2) / 0.4
+			var sunset_factor = (daylight_val + 0.2) / 0.45
 			sun_light.light_color = Color(1.0, 0.52, 0.26).lerp(Color(1.0, 0.95, 0.88), sunset_factor)
-			sun_light.light_energy = lerp(0.32, 0.65, sunset_factor)
+			sun_light.light_energy = lerp(0.35, 0.68, sunset_factor)
 			if player and player.has_method("set_lantern_enabled"):
 				player.set_lantern_enabled(true)
 			if world_env and world_env.environment:
 				world_env.environment.fog_light_color = Color(0.88, 0.48, 0.30)
 				world_env.environment.fog_density = 0.0012
 		else: # 夜
-			sun_light.light_color = Color(0.12, 0.18, 0.38)
-			sun_light.light_energy = 0.05
+			sun_light.light_color = Color(0.18, 0.26, 0.48)
+			sun_light.light_energy = 0.10
 			if player and player.has_method("set_lantern_enabled"):
 				player.set_lantern_enabled(true)
 			if world_env and world_env.environment:
-				world_env.environment.fog_light_color = Color(0.04, 0.06, 0.14)
-				world_env.environment.fog_density = 0.0025
+				world_env.environment.fog_light_color = Color(0.06, 0.10, 0.20)
+				world_env.environment.fog_density = 0.0018
 
 	if world_env and world_env.environment:
 		var env = world_env.environment
 		env.ambient_light_sky_contribution = 0.18
 		var daylight_val = clamp(sin(sun_angle + PI * 0.5), -1.0, 1.0)
 		if daylight_val > 0.0:
-			env.background_energy_multiplier = lerp(0.20, 0.85, daylight_val)
+			env.background_energy_multiplier = lerp(0.28, 0.85, daylight_val)
 			env.ambient_light_color = Color(0.78, 0.84, 0.80).lerp(Color(0.86, 0.88, 0.82), daylight_val)
-			env.ambient_light_energy = lerp(0.20, 0.32, daylight_val)
+			env.ambient_light_energy = lerp(0.24, 0.34, daylight_val)
 		else:
-			env.background_energy_multiplier = 0.06
-			env.ambient_light_color = Color(0.06, 0.10, 0.20)
-			env.ambient_light_energy = 0.15
+			env.background_energy_multiplier = 0.14
+			env.ambient_light_color = Color(0.12, 0.18, 0.32)
+			env.ambient_light_energy = 0.24
 
 # --- キャプチャ検証 ---
 func _do_capture_nogita() -> void:
@@ -386,6 +419,9 @@ func _do_capture_nogita() -> void:
 	img.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_nogita_3d_pier_lighthouse.png")
 
 	# 3. 本格ファイト中
+	var prev_rod_for_capture = GameData.current_rod if GameData else "starter_rod"
+	if GameData:
+		GameData.current_rod = "shore_jig_rod"
 	if fishing_ctrl and hud_node:
 		fishing_ctrl.current_state = fishing_ctrl.State.FIGHTING
 		fishing_ctrl.current_fish = FishDb.get_fish_dict("suzuki")
@@ -398,9 +434,11 @@ func _do_capture_nogita() -> void:
 		hud_node.update_fight_status(0.58, 7.4, false, true, 0.72)
 		if fx_node:
 			fx_node.spawn_water_splash(Vector3(-5.8, 0.05, -8.2), 8, 2.5)
-	await get_tree().create_timer(0.6).timeout
+	await get_tree().create_timer(0.35).timeout
 	img = get_viewport().get_texture().get_image()
 	img.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_nogita_3d_fight.png")
+	if GameData:
+		GameData.current_rod = prev_rod_for_capture
 
 	# 4a. 3D釣り上げ（抜き上げ）アクション中
 	if fishing_ctrl and hud_node:
@@ -471,14 +509,21 @@ func _do_capture_nogita() -> void:
 	if fishing_shop_modal:
 		fishing_shop_modal.close_shop()
 
-	# 6. 夕暮れの糸島サンセット
+	# 6. 朝焼け・夜明け
+	current_time_of_day = 0.0
+	_update_lighting(0.0)
+	await get_tree().create_timer(0.4).timeout
+	img = get_viewport().get_texture().get_image()
+	img.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_nogita_3d_dawn.png")
+
+	# 7. 夕暮れの糸島サンセット
 	current_time_of_day = 0.5
 	_update_lighting(0.0)
 	await get_tree().create_timer(0.5).timeout
 	img = get_viewport().get_texture().get_image()
 	img.save_png("/Users/nryktnk/.gemini/antigravity/brain/f5531dde-ea5d-4b53-bd51-7f2c584e7f31/view_nogita_3d_sunset.png")
 
-	# 7. 夜釣り（ランタン＆ケミホタル発光）
+	# 8. 夜釣り（ランタン＆ケミホタル発光）
 	current_time_of_day = 0.75
 	_update_lighting(0.0)
 	await get_tree().create_timer(0.5).timeout

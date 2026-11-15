@@ -78,16 +78,20 @@ func _ready() -> void:
 	if btn_keep_fish and GameData:
 		GameData.apply_pastel_button_style(btn_keep_fish)
 		btn_keep_fish.pressed.connect(hide_catch_result)
+	if result_dialog:
+		result_dialog.mouse_filter = Control.MOUSE_FILTER_STOP
+		result_dialog.gui_input.connect(_on_result_dialog_gui_input)
 
 	status_toast_label = Label.new()
 	status_toast_label.name = "StatusToastLabel"
 	status_toast_label.anchors_preset = Control.PRESET_CENTER_TOP
 	status_toast_label.anchor_left = 0.5
 	status_toast_label.anchor_right = 0.5
-	status_toast_label.offset_left = -300.0
-	status_toast_label.offset_right = 300.0
-	status_toast_label.offset_top = 72.0
-	status_toast_label.offset_bottom = 110.0
+	status_toast_label.offset_left = -460.0
+	status_toast_label.offset_right = 460.0
+	status_toast_label.offset_top = 64.0
+	status_toast_label.offset_bottom = 132.0
+	status_toast_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	status_toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	status_toast_label.add_theme_font_size_override("font_size", 17)
 	status_toast_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
@@ -187,10 +191,14 @@ func update_time_display(time_of_day: float, speed_mult: float) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if result_dialog and result_dialog.visible:
-		if (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) or (event is InputEventKey and event.pressed and (event.keycode == KEY_E or event.keycode == KEY_SPACE or event.keycode == KEY_ENTER or event.keycode == KEY_ESCAPE)):
+		if (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) or (event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_E or event.keycode == KEY_SPACE or event.keycode == KEY_ENTER or event.keycode == KEY_ESCAPE)):
 			hide_catch_result()
 			get_viewport().set_input_as_handled()
-			return
+		return
+
+	var parent_world = get_parent()
+	if parent_world and parent_world.has_method("is_ui_modal_open") and parent_world.is_ui_modal_open():
+		return
 
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_B or event.keycode == KEY_J:
@@ -355,13 +363,15 @@ func _on_sell_now_pressed() -> void:
 	show_status_toast("【売却】 %s を売却して %d G を獲得しました！" % [current_caught_fish.get("name", "魚"), price], Color(1.0, 0.90, 0.35), 2.4)
 	hide_catch_result()
 
+func _on_result_dialog_gui_input(event: InputEvent) -> void:
+	if not result_dialog or not result_dialog.visible:
+		return
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		hide_catch_result()
+		get_viewport().set_input_as_handled()
+
 func hide_catch_result() -> void:
 	result_dialog.visible = false
-	result_dialog.mouse_filter = Control.MOUSE_FILTER_STOP
-	result_dialog.gui_input.connect(func(event: InputEvent):
-		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			hide_catch_result()
-	)
 	catch_dialog_closed.emit()
 
 func set_autopilot_active(active: bool) -> void:

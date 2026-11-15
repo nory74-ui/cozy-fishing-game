@@ -61,9 +61,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not visible:
 		return
 	if event is InputEventKey and event.pressed:
-		if event.keycode == KEY_ESCAPE or event.keycode == KEY_B or event.keycode == KEY_J:
+		if not event.echo and (event.keycode == KEY_ESCAPE or event.keycode == KEY_B or event.keycode == KEY_J or event.keycode == KEY_TAB):
 			close_book()
-			get_viewport().set_input_as_handled()
+		get_viewport().set_input_as_handled()
 
 func _on_backdrop_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:

@@ -596,6 +596,23 @@ func consume_current_bait() -> bool:
 		return true
 	return false
 
+func has_any_bait() -> bool:
+	for k in ["okiami", "isome", "crab_bait", "live_fish", "lure"]:
+		if bait_counts.get(k, 0) > 0:
+			return true
+	return false
+
+func ensure_starter_bait_if_stranded() -> bool:
+	if has_any_bait():
+		return false
+	if coins >= 15 or not inventory.is_empty():
+		return false
+	bait_counts["okiami"] = 5
+	current_bait = "okiami"
+	equipment_changed.emit()
+	save_game()
+	return true
+
 # --- ★図鑑・釣果記録システム ---
 func record_fish_catch(species: String, size: float) -> Dictionary:
 	var is_first = not fish_records.has(species)

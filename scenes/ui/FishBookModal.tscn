@@ -32,8 +32,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.04, 0.06, 0.08, 0.82)
-grow_vertical = 2
-color = Color(0, 0, 0, 0.55)
 
 [node name="Card" type="PanelContainer" parent="."]
 layout_mode = 1
