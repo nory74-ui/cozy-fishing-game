@@ -24,6 +24,7 @@ var mat_flower_yellow: StandardMaterial3D
 var lighthouse_beam: SpotLight3D
 var moored_boat: Node3D
 var swimming_fish: Array[Dictionary] = []
+var beach_crabs: Array[Dictionary] = []
 
 func _ready() -> void:
 	_init_materials()
@@ -40,6 +41,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_update_swimming_fish(delta)
+	_update_beach_crabs(delta)
 	if lighthouse_beam:
 		lighthouse_beam.rotation.y += delta * 0.8
 	if moored_boat:
@@ -836,20 +838,29 @@ func _update_swimming_fish(delta: float) -> void:
 		node.rotation.y = atan2(-forward.x, -forward.z) + sin(t * f["wiggle_speed"]) * 0.16
 		node.rotation.z = cos(t * f["wiggle_speed"] * 0.8) * 0.08
 
-# --- 10. 波打ち際と砂浜の繊細な小カニ（frame_003.jpg の可愛いミニサイズ！） ---
+# --- 10. 波打ち際と砂浜の繊細な小カニ（横歩き移動＆ハサミ・脚アニメーション） ---
 func _build_beach_decorations() -> void:
 	var beach_deco = Node3D.new()
 	beach_deco.name = "BeachDecorations"
 	add_child(beach_deco)
+	beach_crabs.clear()
 
-	# 砂浜の上（波打ち際より必ず陸側）に小カニを配置（海中に赤い球体が入ってウキに見えてしまう現象を完全解消）
-	var crab_z_list = [2.2, 4.4, 6.8, -7.6]
-	for cz in crab_z_list:
-		var cx = _get_shoreline_x(cz) + 1.65
-		var pos = Vector3(cx, 0.0, cz)
+	# 砂浜の上（波打ち際より必ず陸側、デッキ・岩・草地を避けた砂浜ゾーン）に小カニを配置
+	var crab_zones = [
+		{"z": 1.2,  "z_min": 0.4,  "z_max": 2.4,  "x_min": 0.75, "x_max": 2.6},
+		{"z": 3.4,  "z_min": 2.5,  "z_max": 4.8,  "x_min": 0.75, "x_max": 2.8},
+		{"z": 6.2,  "z_min": 5.0,  "z_max": 7.8,  "x_min": 0.80, "x_max": 2.9},
+		{"z": -7.8, "z_min": -8.6, "z_max": -7.2, "x_min": 0.80, "x_max": 2.3},
+	]
+	for idx in range(crab_zones.size()):
+		var zone: Dictionary = crab_zones[idx]
+		var cz: float = zone["z"]
+		var cx: float = _get_shoreline_x(cz) + 1.55
+		var cy: float = _get_terrain_height(cx, cz) + 0.02
+
 		var crab = Node3D.new()
-		var cy = _get_terrain_height(pos.x, pos.z) + 0.02
-		crab.position = Vector3(pos.x, cy, pos.z)
+		crab.name = "BeachCrab_%d" % idx
+		crab.position = Vector3(cx, cy, cz)
 		crab.rotation.y = randf_range(0, TAU)
 		crab.scale = Vector3.ONE * 0.42 # 小さく繊細なリアルサイズ
 
@@ -861,6 +872,9 @@ func _build_beach_decorations() -> void:
 		shell.mesh = sm
 		crab.add_child(shell)
 
+		var claws: Array[MeshInstance3D] = []
+		var legs: Array[Dictionary] = []
+
 		for h in [-1.0, 1.0]:
 			var claw = MeshInstance3D.new()
 			var cm = SphereMesh.new()
@@ -870,6 +884,7 @@ func _build_beach_decorations() -> void:
 			claw.mesh = cm
 			claw.position = Vector3(h * 0.12, 0.02, -0.10)
 			crab.add_child(claw)
+			claws.append(claw)
 
 			for leg_i in range(3):
 				var leg = MeshInstance3D.new()
@@ -880,7 +895,99 @@ func _build_beach_decorations() -> void:
 				lm.material = mat_crab
 				leg.mesh = lm
 				leg.position = Vector3(h * 0.11, 0.0, -0.04 + leg_i * 0.045)
-				leg.rotation.z = h * deg_to_rad(55.0)
+				var base_z_rot: float = h * deg_to_rad(55.0)
+				leg.rotation.z = base_z_rot
 				crab.add_child(leg)
+				legs.append({"node": leg, "side": h, "idx": leg_i, "base_z": base_z_rot})
 
 		beach_deco.add_child(crab)
+
+		var crab_data := {
+			"node": crab,
+			"pos": Vector2(cx, cz),
+			"target": _pick_crab_target(Vector2(cx, cz), zone),
+			"zone": zone,
+			"state": "scuttle" if idx % 2 == 0 else "pause",
+			"timer": randf_range(0.6, 1.8),
+			"speed": randf_range(0.55, 0.90),
+			"side_sign": -1.0 if idx % 2 == 0 else 1.0,
+			"phase": randf_range(0.0, TAU),
+			"claws": claws,
+			"legs": legs,
+		}
+		beach_crabs.append(crab_data)
+
+func _pick_crab_target(current_pos: Vector2, zone: Dictionary) -> Vector2:
+	for _attempt in range(8):
+		var tz: float = randf_range(zone["z_min"], zone["z_max"])
+		var tx: float = _get_shoreline_x(tz) + randf_range(zone["x_min"], zone["x_max"])
+		var cand := Vector2(tx, tz)
+		if cand.distance_to(current_pos) >= 0.45:
+			return cand
+	var fallback_z: float = clamp(zone["z"], zone["z_min"], zone["z_max"])
+	return Vector2(_get_shoreline_x(fallback_z) + 1.5, fallback_z)
+
+func _update_beach_crabs(delta: float) -> void:
+	if beach_crabs.is_empty():
+		return
+	var t: float = Time.get_ticks_msec() / 1000.0
+	for c in beach_crabs:
+		var crab: Node3D = c["node"]
+		if not is_instance_valid(crab):
+			continue
+		var pos: Vector2 = c["pos"]
+		var phase: float = c["phase"]
+		c["timer"] -= delta
+
+		if c["state"] == "scuttle":
+			var target: Vector2 = c["target"]
+			var to_target: Vector2 = target - pos
+			var dist: float = to_target.length()
+			if dist < 0.06 or c["timer"] <= 0.0:
+				c["state"] = "pause"
+				c["timer"] = randf_range(1.1, 2.8)
+				c["side_sign"] *= -1.0
+			else:
+				var move_dir: Vector2 = to_target / dist
+				var step: float = min(c["speed"] * delta, dist)
+				pos += move_dir * step
+				# 乾いた砂浜の安全帯から絶対に海側・草地へはみ出さない
+				pos.y = clamp(pos.y, c["zone"]["z_min"], c["zone"]["z_max"])
+				var sx: float = _get_shoreline_x(pos.y)
+				pos.x = clamp(pos.x, sx + c["zone"]["x_min"], sx + c["zone"]["x_max"])
+				c["pos"] = pos
+
+				# カニらしい横歩き向き（進行方向に対して 90° 横を向いて走る）
+				var move_angle: float = atan2(move_dir.x, move_dir.y)
+				var crab_yaw: float = move_angle + c["side_sign"] * (PI * 0.5)
+				crab.rotation.y = lerp_angle(crab.rotation.y, crab_yaw, min(delta * 10.0, 1.0))
+
+				var cy: float = _get_terrain_height(pos.x, pos.y) + 0.02 + abs(sin(t * 22.0 + phase)) * 0.008
+				crab.position = Vector3(pos.x, cy, pos.y)
+				crab.rotation.z = sin(t * 20.0 + phase) * 0.07
+
+				for leg_info in c["legs"]:
+					var leg: MeshInstance3D = leg_info["node"]
+					var gait: float = sin(t * 32.0 + phase + leg_info["idx"] * 1.9 + leg_info["side"] * 1.5)
+					leg.rotation.z = leg_info["base_z"] + gait * 0.24
+					leg.rotation.y = gait * 0.22
+				for claw_i in range(c["claws"].size()):
+					var claw: MeshInstance3D = c["claws"][claw_i]
+					claw.position.y = 0.025 + abs(sin(t * 10.0 + phase + claw_i * 0.8)) * 0.015
+		else:
+			var base_y: float = _get_terrain_height(pos.x, pos.y) + 0.02
+			crab.position = Vector3(pos.x, base_y, pos.y)
+			crab.rotation.z = move_toward(crab.rotation.z, 0.0, delta * 5.0)
+			for leg_info in c["legs"]:
+				var leg: MeshInstance3D = leg_info["node"]
+				leg.rotation.z = move_toward(leg.rotation.z, leg_info["base_z"], delta * 8.0)
+				leg.rotation.y = move_toward(leg.rotation.y, 0.0, delta * 8.0)
+			for claw_i in range(c["claws"].size()):
+				var claw: MeshInstance3D = c["claws"][claw_i]
+				claw.position.y = 0.02 + abs(sin(t * 4.2 + phase + claw_i * 1.4)) * 0.028
+
+			if c["timer"] <= 0.0:
+				c["target"] = _pick_crab_target(pos, c["zone"])
+				c["speed"] = randf_range(0.55, 0.90)
+				c["timer"] = randf_range(1.6, 3.4)
+				c["state"] = "scuttle"

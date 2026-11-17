@@ -6,6 +6,21 @@ class_name CompanionMike3D
 @export var follow_target_path: NodePath
 var follow_target: Node3D
 
+const PIER_Z_MIN := -4.32
+const PIER_Z_MAX := -2.88
+const PIER_X_MIN := -7.25
+const PIER_EXIT_X := 0.85
+
+const BW_Z_MIN := -12.35
+const BW_Z_MAX := -10.35
+const BW_X_MIN := -12.80
+const BW_EXIT_X := 1.15
+
+const DECK_Z_MIN := -6.80
+const DECK_Z_MAX := -0.80
+const DECK_X_MIN := 0.85
+const LAND_HUB_X := 1.65
+
 @export var follow_speed: float = 4.8
 @export var stop_distance: float = 1.25
 @export var start_follow_distance: float = 1.75
@@ -90,16 +105,19 @@ func _physics_process(delta: float) -> void:
 			follow_target = parent.get_node_or_null("CharacterBarlock3D")
 		if not follow_target:
 			move_and_slide()
+			_enforce_safe_bounds(false, false, delta)
 			return
+
+	var was_on_pier := _is_in_pier_arm(global_position)
+	var was_on_bw := _is_in_breakwater_arm(global_position)
 
 	var to_target = follow_target.global_position - global_position
 	to_target.y = 0.0
 	var dist = to_target.length()
 
-	# 離れすぎた場合は源さんのすぐ後ろにスムーズ復帰
-	if dist > 6.5:
-		global_position = follow_target.global_position + Vector3(0.8, 0.1, 0.4)
-		velocity = Vector3.ZERO
+	# 陸路で大きく離れた場合のみ源さん付近の安全な陸・桟橋・防波堤上へ復帰（海上の空中ワープを防止）
+	if dist > 14.0 or _is_over_water(global_position):
+		_teleport_to_safe_spot_near_target()
 		return
 
 	if dist > start_follow_distance:
@@ -110,7 +128,10 @@ func _physics_process(delta: float) -> void:
 	var t = Time.get_ticks_msec() / 1000.0
 
 	if is_following:
-		var dir = to_target.normalized()
+		var nav_pos = _get_navigation_target()
+		var nav_vec = nav_pos - global_position
+		nav_vec.y = 0.0
+		var dir = nav_vec.normalized() if nav_vec.length_squared() > 0.0001 else to_target.normalized()
 		velocity.x = dir.x * follow_speed
 		velocity.z = dir.z * follow_speed
 
@@ -147,7 +168,7 @@ func _physics_process(delta: float) -> void:
 	velocity.z = clamp(velocity.z, -8.0, 8.0)
 	velocity.y = 0.0
 	move_and_slide()
-	_enforce_safe_bounds()
+	_enforce_safe_bounds(was_on_pier, was_on_bw, delta)
 
 func _animate_walk_joints(w_time: float) -> void:
 	var s = sin(w_time)
@@ -202,26 +223,108 @@ func _animate_idle_or_cheer_joints(t: float, delta: float, is_cheer: bool) -> vo
 		if bell_pivot:
 			bell_pivot.rotation.z = sin(t * 2.5) * 0.06
 
-func _enforce_safe_bounds() -> void:
-	global_position.z = clamp(global_position.z, -16.5, 16.5)
+func _is_in_pier_arm(pos: Vector3) -> bool:
+	return pos.x < PIER_EXIT_X and pos.z >= -4.55 and pos.z <= -2.65
+
+func _is_in_breakwater_arm(pos: Vector3) -> bool:
+	return pos.x < BW_EXIT_X and pos.z >= -12.65 and pos.z <= -10.10
+
+func _get_min_land_x(z: float) -> float:
+	var shore_x := _get_shoreline_x(z)
+	if z >= DECK_Z_MIN and z <= DECK_Z_MAX:
+		return DECK_X_MIN
+	if z >= -10.15 and z <= -9.0:
+		return max(shore_x + 0.15, 0.75)
+	return shore_x + 0.30
+
+func _is_point_on_walkable_surface(x: float, z: float, eps: float = 0.0) -> bool:
+	if z < -16.2 - eps or z > 16.2 + eps or x > _get_shoreline_x(z) + 6.5 + eps:
+		return false
+	if z >= PIER_Z_MIN - eps and z <= PIER_Z_MAX + eps and x >= PIER_X_MIN - eps:
+		return true
+	if z >= BW_Z_MIN - eps and z <= BW_Z_MAX + eps and x >= BW_X_MIN - eps:
+		return true
+	return x >= _get_min_land_x(z) - eps
+
+func _is_over_water(pos: Vector3) -> bool:
+	# Vector3(float32)への代入丸め誤差で誤反応しないよう境界外側のみを海と判定する
+	return not _is_point_on_walkable_surface(pos.x, pos.z, 0.04)
+
+func _get_navigation_target() -> Vector3:
+	var target := follow_target.global_position
+	var mike_on_pier := _is_in_pier_arm(global_position)
+	var mike_on_bw := _is_in_breakwater_arm(global_position)
+	var target_on_pier := _is_in_pier_arm(target)
+	var target_on_bw := _is_in_breakwater_arm(target)
+
+	# 桟橋や大波止から別エリアへ移動する際は、海上を突っ切らずに陸・デッキ側の合流路を経由する
+	if mike_on_pier and not target_on_pier:
+		return Vector3(LAND_HUB_X, global_position.y, -3.6)
+	if mike_on_bw and not target_on_bw:
+		return Vector3(LAND_HUB_X, global_position.y, -11.2)
+	if not mike_on_pier and target_on_pier and (global_position.z < PIER_Z_MIN or global_position.z > PIER_Z_MAX):
+		return Vector3(LAND_HUB_X, global_position.y, -3.6)
+	if not mike_on_bw and target_on_bw and (global_position.z < BW_Z_MIN or global_position.z > BW_Z_MAX):
+		return Vector3(LAND_HUB_X, global_position.y, -11.2)
+	return target
+
+func _teleport_to_safe_spot_near_target() -> void:
+	var base := follow_target.global_position
+	var offsets: Array[Vector3] = [
+		Vector3(0.8, 0.0, 0.0),
+		Vector3(-0.7, 0.0, 0.0),
+		Vector3(0.6, 0.0, -0.45),
+		Vector3(0.6, 0.0, 0.45),
+		Vector3(0.0, 0.0, -0.65),
+		Vector3(0.0, 0.0, 0.65),
+		Vector3(1.1, 0.0, 0.0),
+		Vector3.ZERO,
+	]
+	var chosen := Vector3(clamp(base.x, _get_min_land_x(base.z), _get_shoreline_x(base.z) + 6.5), 0.0, clamp(base.z, -16.2, 16.2))
+	for off in offsets:
+		var cand := base + off
+		if _is_point_on_walkable_surface(cand.x, cand.z):
+			chosen = cand
+			break
+	global_position = Vector3(chosen.x, _get_safe_surface_height(chosen.x, chosen.z), chosen.z)
+	velocity = Vector3.ZERO
+	_enforce_safe_bounds(false, false, 1.0)
+	global_position.y = _get_safe_surface_height(global_position.x, global_position.z)
+
+func _get_safe_surface_height(x: float, z: float) -> float:
+	if follow_target and follow_target.has_method("get_walkable_surface_height"):
+		return max(follow_target.get_walkable_surface_height(x, z), 0.03)
+	if z >= -4.55 and z <= -2.65 and x <= 0.85 and x >= -8.0:
+		return 0.48
+	if z >= -12.8 and z <= -10.1 and x <= 1.8:
+		return 0.95
+	if x >= 0.65 and x <= 5.6 and z >= -6.4 and z <= -1.2:
+		return 0.48
+	return max((x - _get_shoreline_x(z)) * 0.085, 0.03)
+
+func _enforce_safe_bounds(was_on_pier: bool = false, was_on_bw: bool = false, delta: float = 0.016) -> void:
+	global_position.z = clamp(global_position.z, -16.2, 16.2)
 	var z = global_position.z
 	var shore_x = _get_shoreline_x(z)
-	var on_wooden_pier = (z >= -4.50 and z <= -2.70)
-	var on_breakwater = (z >= -12.65 and z <= -10.15)
+	global_position.x = min(global_position.x, shore_x + 6.5)
 
-	if on_wooden_pier and global_position.x < shore_x + 0.6:
-		global_position.x = max(global_position.x, -7.2)
-		if global_position.x < 0.7:
-			global_position.z = clamp(global_position.z, -4.35, -2.85)
-	elif on_breakwater and global_position.x < shore_x + 1.0:
-		global_position.x = max(global_position.x, -12.8)
-		if global_position.x < 0.8:
-			global_position.z = clamp(global_position.z, -12.40, -10.30)
+	if was_on_pier and global_position.x < PIER_EXIT_X:
+		# フレーム落ち時でも桟橋の横端から海へ踏み外さないよう先に回廊内に収める
+		global_position.x = max(global_position.x, PIER_X_MIN)
+		global_position.z = clamp(global_position.z, PIER_Z_MIN, PIER_Z_MAX)
+	elif was_on_bw and global_position.x < BW_EXIT_X:
+		# 大波止上からも横へ踏み外さず陸側スロープ経由でのみ離脱可能にする
+		global_position.x = max(global_position.x, BW_X_MIN)
+		global_position.z = clamp(global_position.z, BW_Z_MIN, BW_Z_MAX)
+	elif z >= PIER_Z_MIN and z <= PIER_Z_MAX and global_position.x < _get_min_land_x(z):
+		global_position.x = max(global_position.x, PIER_X_MIN)
+		global_position.z = clamp(global_position.z, PIER_Z_MIN, PIER_Z_MAX)
+	elif z >= BW_Z_MIN and z <= BW_Z_MAX and global_position.x < _get_min_land_x(z):
+		global_position.x = max(global_position.x, BW_X_MIN)
+		global_position.z = clamp(global_position.z, BW_Z_MIN, BW_Z_MAX)
 	else:
-		global_position.x = max(global_position.x, min(shore_x - 0.10, 0.80))
+		global_position.x = max(global_position.x, _get_min_land_x(z))
 
-	if follow_target and follow_target.has_method("get_walkable_surface_height"):
-		var target_y = follow_target.get_walkable_surface_height(global_position.x, global_position.z)
-		global_position.y = lerp(global_position.y, target_y, 0.35)
-	elif global_position.y < -0.1:
-		global_position.y = 0.25
+	var target_y := _get_safe_surface_height(global_position.x, global_position.z)
+	var y_blend: float = clamp(delta * 20.0, 0.35, 1.0)
+	global_position.y = max(lerp(global_position.y, target_y, y_blend), 0.03)
